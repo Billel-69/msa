@@ -1,0 +1,181 @@
+/* Feed Container */
+.feed {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Posts Container */
+.posts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Floating Add Button */
+.floating-add-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-add-button:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 12px 35px rgba(0, 224, 255, 0.6);
+}
+
+.floating-add-button:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* No Posts State */
+.no-posts {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    border-radius: 20px;
+    border: 1px solid #302b63;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+
+.no-posts p {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.create-first-post-btn {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.create-first-post-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+}
+
+/* Loading State */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+    font-size: 16px;
+}
+
+/* Error State */
+.error {
+    text-align: center;
+    padding: 40px;
+    color: #ff6b6b;
+    background-color: rgba(255, 107, 107, 0.1);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.retry-button {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+}
+
+.retry-button:hover {
+    background-color: #ff5252;
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .feed {
+        padding: 15px;
+    }
+
+    .floating-add-button {
+        bottom: 20px;
+        right: 20px;
+        width: 55px;
+        height: 55px;
+        font-size: 24px;
+    }
+
+    .posts-container {
+        gap: 15px;
+    }
+
+    .no-posts {
+        padding: 40px 15px;
+    }
+
+    .no-posts p {
+        font-size: 14px;
+    }
+
+    .create-first-post-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+}
+
+/* Animation for new posts */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.posts-container > * {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Pulse animation for floating button */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+    }
+    50% {
+        box-shadow: 0 12px 35px rgba(0, 224, 255, 0.6);
+    }
+    100% {
+        box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+    }
+}
+
+.floating-add-button {
+    animation: pulse 2s infinite;
+}

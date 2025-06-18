@@ -1,0 +1,159 @@
+.profile-page {
+    background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+    color: white;
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #1b1444;
+}
+
+.logo {
+    color: #00e0ff;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+nav a {
+    color: white;
+    margin-left: 30px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.profile-content {
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.profile-top {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+}
+
+.info h1 {
+    font-size: 28px;
+    margin: 0;
+}
+
+.rank {
+    color: orange;
+    margin: 8px 0;
+}
+
+.title {
+    font-weight: 500;
+}
+
+.profile-stats {
+    background-color: #2b1e5f;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.profile-stats h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+.progress-bar {
+    background-color: #3e3a6d;
+    border-radius: 8px;
+    height: 10px;
+    width: 100%;
+    margin: 15px 0;
+}
+
+.filled {
+    background-color: #00e0ff;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.stat .value {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.profile-bottom {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.style-box, .journal-box {
+    flex: 1;
+    background-color: #2b1e5f;
+    padding: 20px;
+    border-radius: 12px;
+    min-width: 280px;
+}
+
+.style-card {
+    background-color: #3c3373;
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.style-card img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+}
+
+.style-card span {
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+    color: #bbb;
+}
+
+.journal-entry {
+    background-color: #3c3373;
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.journal-entry .tag {
+    background-color: orange;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.journal-entry .title {
+    font-weight: 600;
+    margin: 0;
+}
+
+.journal-entry .time {
+    font-size: 12px;
+    color: #ccc;
+}

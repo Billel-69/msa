@@ -1,0 +1,89 @@
+/* src/pages/Login.css */
+
+.login-page {
+    background-color: #0f0c29;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Arial', sans-serif;
+    color: white;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-avatar img {
+    width: 100px;
+    margin-bottom: 20px;
+}
+
+.login-box {
+    background-color: #0e1b2e;
+    padding: 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.login-box h1 {
+    text-align: center;
+    color: #3eb7ff;
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+.login-box input[type="email"],
+.login-box input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #071426;
+    color: white;
+}
+
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.login-options a {
+    color: #3eb7ff;
+    text-decoration: none;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 12px;
+    background-color: #3eb7ff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+}
+
+.login-footer {
+    margin-top: 20px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.login-footer a {
+    margin-left: 5px;
+    color: #3eb7ff;
+    text-decoration: none;
+    font-weight: bold;
+}

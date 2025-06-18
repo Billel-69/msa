@@ -1,0 +1,20 @@
+/* src/pages/Fragments.css */
+.fragments {
+    padding: 1rem;
+}
+.fragments h1 {
+    margin-bottom: 1rem;
+}
+.fragments-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+.fragment {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+.fragment.locked {
+    opacity: 0.5;
+}

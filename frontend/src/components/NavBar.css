@@ -1,0 +1,94 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: #1b1444;
+    font-family: 'Arial', sans-serif;
+}
+
+.logo {
+    color: #00e0ff;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+}
+
+nav a, .dropdown-title {
+    color: white;
+    margin-left: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+nav a:hover, .dropdown-title:hover {
+    color: #00e0ff;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    position: absolute;
+    top: 30px;
+    right: 0;
+    background-color: #2b1e5f;
+    border-radius: 8px;
+    padding: 10px 0;
+    min-width: 180px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dropdown:hover .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #3c3373;
+}
+
+.logout-button {
+    width: 100%;
+    padding: 10px 20px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 0 0 8px 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #e60000;
+}
+.logo-image {
+    height: 40px; /* taille de l’image */
+    margin-left: 15px; /* petit espace après ton texte "MSA" */
+    border-radius: 8px; /* arrondi optionnel pour un rendu plus moderne */
+    object-fit: contain; /* pour que l’image garde ses proportions */
+}
+

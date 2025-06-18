@@ -1,0 +1,63 @@
+/* src/pages/Subscriptions.css */
+.subscriptions {
+    padding: 1rem;
+}
+.subscriptions h1 {
+    margin-bottom: 1rem;
+}
+.plans {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.plan {
+    flex: 1;
+    background: #fff;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.plan.recommended {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+.plan h2 {
+    margin-bottom: 0.5rem;
+}
+.plan .price {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+.plan .price span {
+    font-size: 0.8rem;
+    color: #555;
+}
+.plan ul {
+    margin: 0 auto 1rem;
+    text-align: left;
+}
+.plan li {
+    margin: 0.3rem 0;
+}
+.plan li::before {
+    content: '✓';
+    color: #4caf50;
+    margin-right: 0.5rem;
+}
+.plan button {
+    margin-top: auto;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+}
+.plan button:hover {
+    background: #3a78c2;
+}

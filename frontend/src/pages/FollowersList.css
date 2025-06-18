@@ -1,0 +1,14 @@
+
+.followers-list {
+    background-color: #1b1444;
+    padding: 20px;
+    border-radius: 15px;
+    color: white;
+    max-width: 600px;
+    margin: auto;
+}
+
+.follower-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #2b1e5f;
+}

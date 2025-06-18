@@ -1,0 +1,28 @@
+/* src/index.css - global styles and resets */
+:root {
+    --primary-color: #4a90e2;
+    --secondary-color: #50e3c2;
+    --primary-light: #eaf5fd;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+a {
+    text-decoration: none;
+    color: inherit;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
+button {
+    cursor: pointer;
+    font: inherit;
+}

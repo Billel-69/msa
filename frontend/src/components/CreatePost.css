@@ -1,0 +1,56 @@
+.create-post-container {
+    position: relative;
+}
+
+.floating-button {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #00e0ff;
+    border: none;
+    color: white;
+    font-size: 36px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.create-post {
+    margin: 20px auto;
+    padding: 20px;
+    background: #1e1e35;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.create-post textarea {
+    width: 100%;
+    padding: 10px;
+    height: 80px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 10px;
+    resize: none;
+}
+
+.create-post input[type="file"] {
+    margin-bottom: 10px;
+}
+
+.create-post button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #00e0ff;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.close-button {
+    background-color: #ff4d4d;
+}
