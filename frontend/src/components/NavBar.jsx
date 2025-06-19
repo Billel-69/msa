@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 function NavBar() {
     const navigate = useNavigate();
-    const { token, logout } = useAuth();
+    const { token, user, logout } = useAuth();
 
     const handleLogout = () => {
         logout();
@@ -26,18 +26,23 @@ function NavBar() {
                         {!token ? (
                             <>
                                 <Link to="/connexion">Se connecter</Link>
-                                <Link to="/inscription">S’inscrire</Link>
+                                <Link to="/inscription">S'inscrire</Link>
                             </>
                         ) : (
                             <>
                                 <Link to="/profil">Mon Profil</Link>
                                 <Link to="/fragments">Mes Fragments</Link>
                                 <Link to="/abonnements">Mes Abonnements</Link>
+
+                                {/* Ajout conditionnel pour les parents */}
+                                {user?.accountType === 'parent' && (
+                                    <Link to="/parent-dashboard">Gestion Enfants</Link>
+                                )}
+
+                                <Link to="/modifier-profil">Modifier Profil</Link>
                                 <button className="logout-button" onClick={handleLogout}>
                                     Se déconnecter
                                 </button>
-                                <Link to="/modifier-profil">Modifier Profil</Link>
-
                             </>
                         )}
                     </div>

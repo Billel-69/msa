@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = 'kaizenverse_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'kaizenverse_secret_key';
 
 const verifyToken = (req, res, next) => {
     try {

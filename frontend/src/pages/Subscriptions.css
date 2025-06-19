@@ -1,63 +1,564 @@
-/* src/pages/Subscriptions.css */
+/* Subscriptions Page - Version Moderne */
 .subscriptions {
-    padding: 1rem;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    position: relative;
+    overflow-x: hidden;
 }
+
+/* Effet de particules premium */
+.subscriptions::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+            radial-gradient(2px 2px at 50px 80px, #ff8c00, transparent),
+            radial-gradient(1px 1px at 120px 40px, #00e0ff, transparent),
+            radial-gradient(2px 2px at 200px 120px, #ff8c00, transparent),
+            radial-gradient(1px 1px at 80px 160px, #00e0ff, transparent);
+    background-repeat: repeat;
+    background-size: 300px 300px;
+    animation: premiumParticles 25s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+}
+
+@keyframes premiumParticles {
+    0% {
+        transform: translateX(0) translateY(0) rotate(0deg);
+        opacity: 0.4;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(300px) translateY(-300px) rotate(360deg);
+        opacity: 0.4;
+    }
+}
+
+.subscriptions > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Header Section */
+.subscriptions-header {
+    text-align: center;
+    margin-bottom: 60px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .subscriptions h1 {
-    margin-bottom: 1rem;
+    font-size: 48px;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #00e0ff, #ff8c00, #00e0ff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: titleFlow 4s ease-in-out infinite;
+    font-weight: bold;
+    letter-spacing: 2px;
 }
-.plans {
+
+@keyframes titleFlow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.subscriptions-header p {
+    font-size: 18px;
+    color: #aaa;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+/* Billing Toggle */
+.billing-toggle {
     display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(27, 20, 68, 0.4);
+    padding: 8px;
+    border-radius: 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    max-width: 300px;
+    margin: 0 auto;
 }
-.plan {
+
+.billing-toggle label {
     flex: 1;
-    background: #fff;
-    border: 2px solid #eee;
+    text-align: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    font-weight: 500;
+    color: #aaa;
+}
+
+.billing-toggle label.active {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 224, 255, 0.3);
+}
+
+.billing-toggle input {
+    display: none;
+}
+
+.savings-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(45deg, #ff8c00, #ff6b35);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
     border-radius: 8px;
-    padding: 1rem;
+    font-weight: bold;
+}
+
+/* Plans Grid */
+.plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.plan {
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 25px;
+    padding: 30px;
     text-align: center;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.4s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(15px);
+    animation: planAppear 0.6s ease-out both;
 }
+
+@keyframes planAppear {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.plan::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--plan-gradient);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: -1;
+}
+
+.plan:hover::before {
+    opacity: 0.1;
+}
+
+.plan:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--plan-color);
+    box-shadow:
+            0 20px 40px rgba(0, 0, 0, 0.3),
+            0 0 30px var(--plan-color);
+}
+
 .plan.recommended {
-    border-color: var(--primary-color);
-    background: var(--primary-light);
+    border-color: var(--plan-color);
+    box-shadow: 0 15px 35px rgba(0, 224, 255, 0.3);
+    transform: scale(1.05);
 }
+
+.plan.recommended::before {
+    opacity: 0.05;
+}
+
+.plan.selected {
+    border-color: var(--plan-color);
+    box-shadow: 0 0 40px var(--plan-color);
+    animation: planSelected 0.5s ease-out;
+}
+
+@keyframes planSelected {
+    0%, 100% { transform: scale(1.05); }
+    50% { transform: scale(1.1); }
+}
+
+/* Plan Badge */
+.plan-badge {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--plan-gradient);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 0 0 15px 15px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Plan Header */
+.plan-header {
+    margin-bottom: 30px;
+}
+
+.plan-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: var(--plan-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    animation: iconFloat 6s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+}
+
 .plan h2 {
-    margin-bottom: 0.5rem;
-}
-.plan .price {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-}
-.plan .price span {
-    font-size: 0.8rem;
-    color: #555;
-}
-.plan ul {
-    margin: 0 auto 1rem;
-    text-align: left;
-}
-.plan li {
-    margin: 0.3rem 0;
-}
-.plan li::before {
-    content: '✓';
-    color: #4caf50;
-    margin-right: 0.5rem;
-}
-.plan button {
-    margin-top: auto;
-    background: var(--primary-color);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 0.5rem;
-    font-size: 1rem;
+    font-size: 28px;
+    margin-bottom: 15px;
+    color: var(--plan-color);
     font-weight: bold;
 }
-.plan button:hover {
-    background: #3a78c2;
+
+.plan-price {
+    margin-bottom: 10px;
+}
+
+.price-amount {
+    font-size: 42px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 0 20px var(--plan-color);
+}
+
+.price-period {
+    font-size: 16px;
+    color: #aaa;
+    margin-left: 5px;
+}
+
+.savings-info {
+    color: #4CAF50;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+    animation: savingsPulse 2s ease-in-out infinite;
+}
+
+@keyframes savingsPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Plan Features */
+.plan-features {
+    flex-grow: 1;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.plan-features h4 {
+    color: var(--plan-color);
+    margin-bottom: 20px;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.plan-features ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.plan-features li {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.plan-features li:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.feature-icon {
+    color: var(--plan-color);
+    margin-right: 12px;
+    font-size: 16px;
+    min-width: 20px;
+}
+
+.feature-text {
+    color: white;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Plan Limitations */
+.plan-limitations {
+    margin-top: 20px;
+}
+
+.plan-limitations h5 {
+    color: #ff6b6b;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.plan-limitations ul {
+    list-style: none;
+    padding: 0;
+}
+
+.plan-limitations li {
+    color: #aaa;
+    font-size: 12px;
+    margin: 5px 0;
+    background: rgba(255, 107, 107, 0.1);
+    border-left: 3px solid #ff6b6b;
+}
+
+/* Plan Button */
+.plan-button {
+    background: var(--plan-gradient);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    padding: 15px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.plan-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.plan-button:hover::before {
+    left: 100%;
+}
+
+.plan-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+}
+
+/* Additional Info Section */
+.subscription-info {
+    max-width: 1000px;
+    margin: 80px auto 0;
+    padding: 40px 0;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.info-item {
+    text-align: center;
+    padding: 30px 20px;
+    background: rgba(27, 20, 68, 0.4);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.info-item:hover {
+    transform: translateY(-5px);
+}
+
+.info-item h3 {
+    color: #00e0ff;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.info-item p {
+    color: #aaa;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* FAQ Preview */
+.faq-preview {
+    background: rgba(27, 20, 68, 0.4);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 224, 255, 0.2);
+}
+
+.faq-preview h3 {
+    color: #00e0ff;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.faq-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: rgba(60, 51, 115, 0.3);
+    border-radius: 15px;
+    border-left: 4px solid #00e0ff;
+}
+
+.faq-item strong {
+    color: #00e0ff;
+    display: block;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.faq-item p {
+    color: #aaa;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .plans {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    .plan.recommended {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .subscriptions {
+        padding: 30px 15px;
+    }
+
+    .subscriptions h1 {
+        font-size: 36px;
+    }
+
+    .subscriptions-header p {
+        font-size: 16px;
+    }
+
+    .plans {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .plan {
+        padding: 25px 20px;
+    }
+
+    .plan-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+
+    .price-amount {
+        font-size: 32px;
+    }
+
+    .billing-toggle {
+        max-width: 250px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .faq-preview {
+        padding: 25px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .subscriptions h1 {
+        font-size: 28px;
+    }
+
+    .plan {
+        padding: 20px 15px;
+    }
+
+    .plan-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .price-amount {
+        font-size: 28px;
+    }
+
+    .billing-toggle label {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
 }

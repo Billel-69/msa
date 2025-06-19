@@ -19,6 +19,8 @@ import ProfilePublic from "./pages/ProfilePublic";
 import FollowersList from "./pages/FollowersList";
 import FollowingList from "./pages/FollowingList";
 import CreatePost from "./pages/CreatePost";
+import ParentSetup from "./pages/ParentSetup";
+import ParentDashboard from "./pages/ParentDashboard";
 
 function App() {
     const location = useLocation();
@@ -80,16 +82,29 @@ function App() {
                         <FollowingList />
                     </PrivateRoute>
                 } />
+                <Route path="/create-post" element={
+                    <PrivateRoute>
+                        <CreatePost />
+                    </PrivateRoute>
+                } />
+
+                {/* CHANGEMENT ICI : ParentSetup maintenant protégé */}
+                <Route path="/parent-setup" element={
+                    <PrivateRoute>
+                        <ParentSetup />
+                    </PrivateRoute>
+                } />
+
+                {/* Nouveau : Dashboard parent */}
+                <Route path="/parent-dashboard" element={
+                    <PrivateRoute>
+                        <ParentDashboard />
+                    </PrivateRoute>
+                } />
 
                 {/* Routes publiques */}
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
-
-                <Route path="/create-post" element={<PrivateRoute>
-                <CreatePost />
-            </PrivateRoute>
-                } />
-
             </Routes>
         </>
     );

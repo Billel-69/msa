@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
-const followRoutes = require('./routes/followRoutes');
 const commentRoutes = require('./routes/commentRoutes');
+// SUPPRIMÉ: followRoutes car maintenant intégré dans authRoutes
 
 const app = express();
 const PORT = 5000;
@@ -15,10 +15,9 @@ app.use(express.json());
 // Accès statique au dossier uploads
 app.use('/uploads', express.static('uploads'));
 
-// Routes API
-app.use('/api', authRoutes);
+// Routes API - CHANGEMENT ICI : utilisez /api/auth pour les routes d'authentification
+app.use('/api/auth', authRoutes);  // ⬅️ CHANGÉ de /api à /api/auth
 app.use('/api', postRoutes);
-app.use('/api', followRoutes);
 app.use('/api', commentRoutes);
 
 // Route de test

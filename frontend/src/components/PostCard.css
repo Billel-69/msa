@@ -1,206 +1,680 @@
+/* Post Card - Version Moderne */
 .post-card {
-    background: #161628;
-    border-radius: 12px;
-    margin: 16px 0;
-    padding: 0;
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 25px;
     color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
-    max-width: 100%;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    border: 1px solid #302b63;
+    position: relative;
     overflow: hidden;
+}
+
+.post-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #00e0ff, #0099cc, #302b63);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .post-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-    transform: translateY(-1px);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 224, 255, 0.2);
 }
 
+.post-card:hover::before {
+    opacity: 1;
+}
+
+/* Post Header avec bouton Follow */
 .post-header {
     display: flex;
     align-items: center;
-    padding: 16px 20px 12px 20px;
-    gap: 12px;
+    margin-bottom: 20px;
+    gap: 15px;
 }
 
 .avatar {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    flex-shrink: 0;
-}
-
-.user-info {
+    background: linear-gradient(45deg, #00e0ff, #302b63);
     display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(0, 224, 255, 0.3);
+    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.user-info strong {
-    font-size: 15px;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.avatar:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 224, 255, 0.4);
 }
 
-.user-info span {
+.post-info {
+    flex: 1;
+}
+
+.username {
+    font-weight: bold;
+    color: #00e0ff;
+    font-size: 17px;
+    margin-bottom: 3px;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.username:hover {
+    color: #00bfff;
+}
+
+.date {
     font-size: 13px;
-    color: #8b8b8b;
-    font-weight: 400;
+    color: #aaa;
+    opacity: 0.8;
 }
 
+/* Bouton Follow/Unfollow */
+.follow-button {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 224, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.follow-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.follow-button:hover::before {
+    left: 100%;
+}
+
+.follow-button:hover:not(:disabled) {
+    background: linear-gradient(45deg, #00bfff, #0088bb);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 224, 255, 0.5);
+}
+
+.follow-button.following {
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.follow-button.following:hover:not(:disabled) {
+    background: linear-gradient(45deg, #45a049, #3d8b40);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+}
+
+.follow-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.follow-button svg {
+    font-size: 14px;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Post Content */
 .post-content {
-    padding: 0 20px 16px 20px;
-    font-size: 15px;
-    line-height: 1.4;
-    color: #ffffff;
-    margin: 0;
+    font-size: 16px;
+    margin-bottom: 20px;
+    line-height: 1.6;
     word-wrap: break-word;
-    white-space: pre-wrap;
+    color: #f0f0f0;
+}
+
+/* Post Image - Version Optimisée */
+.post-image-container {
+    margin-bottom: 20px;
+    border-radius: 15px;
+    overflow: hidden;
+    background-color: #0f0c29;
+    border: 2px solid #302b63;
+    position: relative;
+    max-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
 }
 
 .post-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding-bottom: 16px;
-}
-
-.post-image img {
-    width: 120px;
-    height: 120px;
-    aspect-ratio: unset;
+    max-width: 100%;
+    max-height: 350px;
+    width: auto;
+    height: auto;
     object-fit: contain;
-    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: block;
 }
 
-.post-actions {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px 16px 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    gap: 32px;
+.post-image:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
 }
 
-.like-section,
-.comment-section,
-.share-section {
+/* Style alternatif pour les images qui doivent remplir le container */
+.post-image.cover {
+    object-fit: cover;
+    height: 300px;
+}
+
+/* Post Actions - Version Ultra Moderne */
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding: 20px 0;
+    border-top: 1px solid rgba(0, 224, 255, 0.1);
+    gap: 15px;
+    position: relative;
+}
+
+.post-actions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #00e0ff, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.post-card:hover .post-actions::before {
+    opacity: 1;
+}
+
+.action-button {
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(48, 43, 99, 0.2));
+    border: 1px solid rgba(0, 224, 255, 0.3);
+    color: #e0e0e0;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-radius: 50px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+    justify-content: center;
+    font-weight: 600;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+    min-height: 44px;
+}
+
+.action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.action-button:hover::before {
+    left: 100%;
+}
+
+.action-button:hover {
+    color: #00e0ff;
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.2), rgba(0, 153, 204, 0.3));
+    border-color: #00e0ff;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow:
+            0 8px 25px rgba(0, 224, 255, 0.3),
+            0 0 20px rgba(0, 224, 255, 0.2);
+}
+
+.action-button:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* Bouton Like spécial */
+.action-button.liked {
+    color: #ff6b6b;
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 82, 82, 0.3));
+    border-color: rgba(255, 107, 107, 0.6);
+    box-shadow:
+            0 4px 15px rgba(255, 107, 107, 0.3),
+            0 0 15px rgba(255, 107, 107, 0.2);
+}
+
+.action-button.liked:hover {
+    color: #ff5252;
+    background: linear-gradient(135deg, rgba(255, 82, 82, 0.3), rgba(244, 67, 54, 0.4));
+    border-color: #ff5252;
+    box-shadow:
+            0 8px 25px rgba(255, 82, 82, 0.4),
+            0 0 25px rgba(255, 82, 82, 0.3);
+}
+
+.action-button svg {
+    font-size: 18px;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 4px currentColor);
+}
+
+.action-button:hover svg {
+    transform: scale(1.2) rotate(5deg);
+    filter: drop-shadow(0 0 8px currentColor);
+}
+
+.action-button.liked svg {
+    animation: heartPulse 2s ease-in-out infinite;
+}
+
+@keyframes heartPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 4px currentColor);
+    }
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 12px currentColor);
+    }
+}
+
+.action-button span {
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+/* Compteurs dans les boutons */
+.action-button .count {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 6px;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.3);
+    animation: countAppear 0.3s ease-out;
+}
+
+@keyframes countAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.action-button.liked .count {
+    background: linear-gradient(45deg, #ff6b6b, #ff5252);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+/* Section Commentaires Moderne */
+.comments-section {
+    margin-top: 25px;
+    padding: 25px;
+    background: linear-gradient(135deg, rgba(15, 12, 41, 0.8), rgba(27, 20, 68, 0.6));
+    border-radius: 20px;
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    backdrop-filter: blur(20px);
+    box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.1),
+            0 8px 25px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    animation: commentsSlideIn 0.4s ease-out;
+}
+
+@keyframes commentsSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+    }
+}
+
+.comments-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00e0ff, #0099cc, #00e0ff);
+    background-size: 200% 100%;
+    animation: commentsBorder 3s linear infinite;
+}
+
+@keyframes commentsBorder {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* Zone d'ajout de commentaire */
+.add-comment {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.comment-input {
+    flex: 1;
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.05), rgba(48, 43, 99, 0.1));
+    border: 2px solid rgba(0, 224, 255, 0.2);
+    border-radius: 25px;
+    padding: 15px 20px;
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    outline: none;
+}
+
+.comment-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+.comment-input:focus {
+    border-color: #00e0ff;
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(48, 43, 99, 0.2));
+    box-shadow:
+            0 0 20px rgba(0, 224, 255, 0.3),
+            0 4px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.comment-submit {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    border: none;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 25px;
     cursor: pointer;
-    padding: 6px 8px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    user-select: none;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 224, 255, 0.3);
+    position: relative;
+    overflow: hidden;
 }
 
-.like-section:hover,
-.comment-section:hover,
-.share-section:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    transform: scale(1.02);
+.comment-submit::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
 }
 
-.like-section:active,
-.comment-section:active,
-.share-section:active {
-    transform: scale(0.98);
+.comment-submit:hover::before {
+    left: 100%;
 }
 
-.like-section svg,
-.comment-section svg,
-.share-section svg {
-    width: 18px;
-    height: 18px;
-    transition: color 0.2s ease;
+.comment-submit:hover {
+    background: linear-gradient(45deg, #00bfff, #0088bb);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.5);
 }
 
-.like-section svg {
-    color: #8b8b8b;
+.comment-submit:active {
+    transform: translateY(0) scale(0.98);
 }
 
-.like-section:hover svg {
-    color: #ff3040;
+/* Liste des commentaires */
+.comments-list {
+    min-height: 60px;
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 224, 255, 0.5) transparent;
 }
 
-.comment-section svg {
-    color: #8b8b8b;
+.comments-list::-webkit-scrollbar {
+    width: 6px;
 }
 
-.comment-section:hover svg {
-    color: #1d9bf0;
+.comments-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
 }
 
-.share-section svg {
-    color: #8b8b8b;
+.comments-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    border-radius: 10px;
 }
 
-.share-section:hover svg {
-    color: #00ba7c;
+.no-comments {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    padding: 30px 20px;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 15px;
+    border: 1px dashed rgba(0, 224, 255, 0.2);
 }
 
-.like-section span,
-.comment-section span,
-.share-section span {
-    font-size: 13px;
-    font-weight: 500;
-    color: #8b8b8b;
-    min-width: 16px;
+/* Styles pour les commentaires individuels (à ajouter plus tard) */
+.comment-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 12px;
+    border-left: 3px solid #00e0ff;
+    transition: all 0.3s ease;
+    animation: commentAppear 0.3s ease-out;
 }
 
-/* Animation pour le like */
-.like-section svg[color="red"] {
-    color: #ff3040 !important;
-    animation: likeAnimation 0.3s ease;
+@keyframes commentAppear {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-@keyframes likeAnimation {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+.comment-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0, 224, 255, 0.2);
 }
 
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 768px) {
     .post-card {
-        margin: 12px 0;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 15px;
     }
 
     .post-header {
-        padding: 12px 16px 8px 16px;
-    }
-
-    .post-content {
-        padding: 0 16px 12px 16px;
-        font-size: 14px;
-    }
-
-    .post-actions {
-        padding: 8px 16px 12px 16px;
-        gap: 24px;
+        margin-bottom: 15px;
+        gap: 12px;
     }
 
     .avatar {
-        width: 36px;
-        height: 36px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
     }
 
-    .user-info strong {
-        font-size: 14px;
+    .username {
+        font-size: 16px;
     }
 
-    .user-info span {
-        font-size: 12px;
+    .post-content {
+        font-size: 15px;
+        margin-bottom: 15px;
     }
+
+    .post-image-container {
+        margin-bottom: 15px;
+        max-height: 280px;
+        border-radius: 12px;
+    }
+
+    .post-image {
+        max-height: 280px;
+    }
+
+    .action-button {
+        font-size: 13px;
+        padding: 10px 15px;
+        border-radius: 20px;
+    }
+
+    .action-button svg {
+        font-size: 16px;
+    }
+
+    .post-actions {
+        gap: 8px;
+        padding-top: 15px;
+    }
+}
+
+/* Animations */
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.3); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.3); }
+    70% { transform: scale(1); }
+}
+
+.action-button.liked svg {
+    animation: heartBeat 0.8s ease-in-out;
+}
+
+@keyframes slideInPost {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.post-card {
+    animation: slideInPost 0.5s ease-out;
+}
+
+/* Loading state pour les images */
+.post-image-container.loading {
+    background: linear-gradient(90deg, #1b1444, #302b63, #1b1444);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* État focus pour l'accessibilité */
+.action-button:focus {
+    outline: 2px solid #00e0ff;
+    outline-offset: 2px;
+}
+
+/* Effet de glow subtil */
+.post-card {
+    position: relative;
+}
+
+.post-card::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00e0ff, #302b63, #0099cc, #1b1444);
+    border-radius: 22px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.post-card:hover::after {
+    opacity: 0.1;
 }
