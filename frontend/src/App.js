@@ -22,6 +22,9 @@ import CreatePost from "./pages/CreatePost";
 import ParentSetup from "./pages/ParentSetup";
 import ParentDashboard from "./pages/ParentDashboard";
 
+// Import des pages Messages
+import Messages from "./pages/Messages";
+
 function App() {
     const location = useLocation();
 
@@ -85,6 +88,18 @@ function App() {
                 <Route path="/create-post" element={
                     <PrivateRoute>
                         <CreatePost />
+                    </PrivateRoute>
+                } />
+
+                {/* Routes Messages Privés */}
+                <Route path="/messages" element={
+                    <PrivateRoute>
+                        <Messages />
+                    </PrivateRoute>
+                } />
+                <Route path="/messages/:conversationId" element={
+                    <PrivateRoute>
+                        <Messages />
                     </PrivateRoute>
                 } />
 

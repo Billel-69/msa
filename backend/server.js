@@ -3,7 +3,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
-// SUPPRIMÉ: followRoutes car maintenant intégré dans authRoutes
+const messageRoutes = require('./routes/messageRoutes'); // ← AJOUTER CETTE LIGNE
 
 const app = express();
 const PORT = 5000;
@@ -15,10 +15,17 @@ app.use(express.json());
 // Accès statique au dossier uploads
 app.use('/uploads', express.static('uploads'));
 
-// Routes API - CHANGEMENT ICI : utilisez /api/auth pour les routes d'authentification
-app.use('/api/auth', authRoutes);  // ⬅️ CHANGÉ de /api à /api/auth
+// Middleware de logging pour debug (DÉPLACER AVANT LES ROUTES)
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.originalUrl}`);
+    next();
+});
+
+// Routes API
+app.use('/api/auth', authRoutes);
 app.use('/api', postRoutes);
-app.use('/api', commentRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/messages', messageRoutes); // ← AJOUTER CETTE LIGNE
 
 // Route de test
 app.get('/', (req, res) => {
@@ -27,6 +34,7 @@ app.get('/', (req, res) => {
 
 // Gestion des erreurs 404
 app.use('*', (req, res) => {
+    console.log('Route non trouvée:', req.originalUrl);
     res.status(404).json({ error: 'Route non trouvée' });
 });
 

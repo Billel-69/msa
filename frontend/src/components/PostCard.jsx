@@ -5,7 +5,7 @@ import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { BiComment, BiShare } from 'react-icons/bi';
 import { FaUserPlus, FaUserCheck } from 'react-icons/fa';
 import Comments from './Comments';
-import ImageModal from '../pages/ImageModal';
+import ImageModal from './ImageModal';
 import { useNavigate } from 'react-router-dom';
 import './PostCard.css';
 
@@ -129,10 +129,19 @@ function PostCard({ post, refresh }) {
     };
 
     const handleUserClick = (userId) => {
+        console.log('PostCard - Clic sur utilisateur:', userId, 'User actuel:', user?.id);
+
+        if (!userId) {
+            console.log('PostCard - Pas d\'ID utilisateur');
+            return;
+        }
+
         if (userId === user?.id) {
+            console.log('PostCard - Redirection vers profil personnel');
             navigate('/profil');
         } else {
-            navigate(`/profile/${userId}`);
+            console.log('PostCard - Redirection vers profil public:', userId);
+            navigate(`/profil-public/${userId}`);
         }
     };
 

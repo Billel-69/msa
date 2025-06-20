@@ -3,13 +3,21 @@ const router = express.Router();
 const commentController = require('../controllers/commentController');
 const verifyToken = require('../middlewares/authMiddleware');
 
-// Ajouter un commentaire à un post
-router.post('/posts/:id/comments', verifyToken, commentController.addComment);
+// Routes pour les commentaires
+// GET /api/comments/:postId - Récupérer les commentaires d'un post
+router.get('/:postId', verifyToken, commentController.getCommentsByPostId);
 
-// Récupérer les commentaires d'un post
-router.get('/posts/:id/comments', verifyToken, commentController.getComments);
+// POST /api/comments - Ajouter un commentaire
+router.post('/', verifyToken, commentController.createComment);
 
-// Supprimer un commentaire (seulement le propriétaire)
-router.delete('/comments/:id', verifyToken, commentController.deleteComment);
+// DELETE /api/comments/:id - Supprimer un commentaire
+router.delete('/:id', verifyToken, commentController.deleteComment);
+
+// Routes pour les likes de commentaires
+// POST /api/comments/:id/like - Liker/unliker un commentaire
+router.post('/:id/like', verifyToken, commentController.toggleCommentLike);
+
+// GET /api/comments/:id/like-status - Obtenir le statut de like
+router.get('/:id/like-status', verifyToken, commentController.getCommentLikeStatus);
 
 module.exports = router;

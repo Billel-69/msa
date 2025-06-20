@@ -1,94 +1,600 @@
+/* NavBar - Version Compacte */
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
-    background-color: #1b1444;
+    padding: 2px 20px; /* Padding vertical très réduit */
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
     font-family: 'Arial', sans-serif;
+    box-shadow: 0 2px 10px rgba(0, 224, 255, 0.1);
+    border-bottom: 1px solid rgba(0, 224, 255, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(20px);
+    min-height: 40px; /* Section plus petite */
 }
 
-.logo {
-    color: #00e0ff;
-    font-weight: bold;
-    font-size: 20px;
-}
-
-nav {
+/* ==========================================
+   BRAND / LOGO - Plus compact
+   ========================================== */
+.navbar-brand {
     display: flex;
     align-items: center;
+    gap: 6px; /* Encore plus réduit */
 }
 
-nav a, .dropdown-title {
-    color: white;
-    margin-left: 20px;
+.logo-image {
+    height: 35px; /* Taille normale maintenue */
+    border-radius: 8px;
+    object-fit: contain;
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 10px rgba(0, 224, 255, 0.4);
+}
+
+.brand-text {
+    color: #00e0ff;
+    font-weight: bold;
+    font-size: 20px; /* Taille normale maintenue */
+    background: linear-gradient(45deg, #00e0ff, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 10px rgba(0, 224, 255, 0.3);
+}
+
+/* ==========================================
+   NAVIGATION PRINCIPALE - Plus compacte
+   ========================================== */
+.navbar-main {
+    display: flex;
+    align-items: center;
+    gap: 3px; /* Encore plus réduit */
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Encore plus réduit */
+    padding: 6px 10px; /* Encore plus réduit */
+    color: rgba(255, 255, 255, 0.8);
     text-decoration: none;
     font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    transition: color 0.3s ease;
+    font-size: 12px; /* Encore plus petit */
+    border-radius: 15px; /* Ajusté */
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 1px solid transparent;
 }
 
-nav a:hover, .dropdown-title:hover {
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.nav-link:hover::before {
+    left: 100%;
+}
+
+.nav-link:hover {
     color: #00e0ff;
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(48, 43, 99, 0.2));
+    border-color: rgba(0, 224, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.2);
 }
 
-.dropdown {
+.nav-link.active {
+    color: #00e0ff;
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.2), rgba(48, 43, 99, 0.3));
+    border-color: rgba(0, 224, 255, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.3);
+}
+
+.nav-icon {
+    font-size: 16px; /* Taille normale maintenue */
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover .nav-icon {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 4px currentColor);
+}
+
+/* ==========================================
+   SECTION UTILISATEUR - Plus compacte
+   ========================================== */
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Encore plus réduit */
+}
+
+/* Boutons d'authentification */
+.auth-buttons {
+    display: flex;
+    gap: 6px; /* Encore plus réduit */
+}
+
+.btn-login,
+.btn-register {
+    padding: 6px 12px; /* Encore plus réduit */
+    border-radius: 15px; /* Ajusté */
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 11px; /* Encore plus petit */
+    transition: all 0.3s ease;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-login {
+    color: #00e0ff;
+    border-color: rgba(0, 224, 255, 0.3);
+    background: transparent;
+}
+
+.btn-login:hover {
+    background: rgba(0, 224, 255, 0.1);
+    border-color: #00e0ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.3);
+}
+
+.btn-register {
+    color: white;
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.3);
+}
+
+.btn-register:hover {
+    background: linear-gradient(45deg, #00bfff, #0088bb);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 224, 255, 0.5);
+}
+
+/* Bouton notifications - Plus petit */
+.notification-btn {
+    position: relative;
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(48, 43, 99, 0.2));
+    border: 1px solid rgba(0, 224, 255, 0.3);
+    color: #00e0ff;
+    width: 36px; /* Taille normale maintenue */
+    height: 36px; /* Taille normale maintenue */
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px; /* Taille normale maintenue */
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.notification-btn:hover {
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.2), rgba(48, 43, 99, 0.3));
+    border-color: #00e0ff;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 224, 255, 0.3);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: linear-gradient(45deg, #ff4757, #ff3742);
+    color: white;
+    font-size: 8px; /* Encore plus petit */
+    font-weight: bold;
+    padding: 1px 4px; /* Encore plus réduit */
+    border-radius: 6px; /* Ajusté */
+    min-width: 12px; /* Encore plus petit */
+    text-align: center;
+    box-shadow: 0 1px 4px rgba(255, 71, 87, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* ==========================================
+   DROPDOWN PROFIL - Plus compact
+   ========================================== */
+.profile-dropdown {
     position: relative;
 }
 
-.dropdown-content {
+.profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Encore plus réduit */
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(48, 43, 99, 0.2));
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    border-radius: 15px; /* Ajusté */
+    padding: 3px 8px 3px 3px; /* Encore plus réduit */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    color: white;
+}
+
+.profile-trigger:hover {
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.2), rgba(48, 43, 99, 0.3));
+    border-color: rgba(0, 224, 255, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 12px rgba(0, 224, 255, 0.2);
+}
+
+.profile-avatar {
+    width: 32px; /* Taille normale maintenue */
+    height: 32px; /* Taille normale maintenue */
+    border-radius: 50%;
+    background: linear-gradient(45deg, #00e0ff, #302b63);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px; /* Taille normale maintenue */
+    color: white;
+    font-weight: bold;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 224, 255, 0.3);
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.profile-name {
+    font-size: 14px; /* Taille normale maintenue */
+    font-weight: 600;
+    color: white;
+    line-height: 1.2;
+}
+
+.profile-type {
+    font-size: 11px; /* Taille normale maintenue */
+    color: rgba(0, 224, 255, 0.8);
+    line-height: 1.2;
+}
+
+.dropdown-arrow {
+    font-size: 12px; /* Taille normale maintenue */
+    color: rgba(255, 255, 255, 0.6);
+    transition: transform 0.3s ease;
+}
+
+.dropdown-arrow.rotated {
+    transform: rotate(180deg);
+}
+
+/* Menu dropdown */
+.dropdown-menu {
     position: absolute;
-    top: 30px;
+    top: 100%;
     right: 0;
-    background-color: #2b1e5f;
-    border-radius: 8px;
-    padding: 10px 0;
-    min-width: 180px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    z-index: 10;
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    border-radius: 16px;
+    padding: 0;
+    min-width: 260px; /* Encore plus petit */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+    margin-top: 6px; /* Encore plus réduit */
 }
 
-.dropdown:hover .dropdown-content {
+.profile-dropdown.open .dropdown-menu {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
 }
 
-.dropdown-content a {
-    display: block;
-    padding: 10px 20px;
+.dropdown-header {
+    padding: 12px; /* Encore plus réduit */
+    border-bottom: 1px solid rgba(0, 224, 255, 0.1);
+    background: rgba(0, 224, 255, 0.05);
+}
+
+.user-stats {
+    display: flex;
+    gap: 12px; /* Encore plus réduit */
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Encore plus réduit */
     color: white;
-    text-decoration: none;
+    font-size: 11px; /* Encore plus petit */
     font-weight: 500;
-    transition: background-color 0.3s ease;
 }
 
-.dropdown-content a:hover {
-    background-color: #3c3373;
+.stat-icon {
+    color: #00e0ff;
+    font-size: 12px; /* Encore plus petit */
+}
+
+.dropdown-section {
+    padding: 8px 0; /* Encore plus réduit */
+    border-bottom: 1px solid rgba(0, 224, 255, 0.1);
+}
+
+.dropdown-section:last-child {
+    border-bottom: none;
+}
+
+.dropdown-section h4 {
+    color: #00e0ff;
+    font-size: 10px; /* Encore plus petit */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 6px 0; /* Encore plus réduit */
+    padding: 0 12px; /* Encore plus réduit */
+    opacity: 0.8;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Encore plus réduit */
+    padding: 8px 12px; /* Encore plus réduit */
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 12px; /* Encore plus petit */
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.dropdown-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dropdown-item:hover {
+    color: #00e0ff;
+    background: rgba(0, 224, 255, 0.1);
+    transform: translateX(3px); /* Encore plus réduit */
+}
+
+.dropdown-item:hover::before {
+    opacity: 1;
+}
+
+.dropdown-item.special {
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(48, 43, 99, 0.2));
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    margin: 0 8px; /* Encore plus réduit */
+    border-radius: 8px; /* Encore plus petit */
+    color: #00e0ff;
+}
+
+.dropdown-item.special:hover {
+    background: linear-gradient(135deg, rgba(0, 224, 255, 0.2), rgba(48, 43, 99, 0.3));
+    border-color: #00e0ff;
+    transform: translateX(0) scale(1.02);
+}
+
+.dropdown-icon {
+    font-size: 12px; /* Encore plus petit */
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover .dropdown-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.dropdown-footer {
+    padding: 8px 12px; /* Encore plus réduit */
+    background: rgba(0, 224, 255, 0.05);
+    border-top: 1px solid rgba(0, 224, 255, 0.1);
 }
 
 .logout-button {
     width: 100%;
-    padding: 10px 20px;
-    background-color: #ff4d4d;
+    padding: 8px; /* Encore plus réduit */
+    background: linear-gradient(45deg, #ff4757, #ff3742);
     color: white;
     border: none;
-    border-radius: 0 0 8px 8px;
-    font-weight: bold;
-    font-size: 14px;
+    border-radius: 8px; /* Encore plus petit */
+    font-weight: 600;
+    font-size: 11px; /* Encore plus petit */
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px; /* Encore plus réduit */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
 }
 
 .logout-button:hover {
-    background-color: #e60000;
-}
-.logo-image {
-    height: 40px; /* taille de l’image */
-    margin-left: 15px; /* petit espace après ton texte "MSA" */
-    border-radius: 8px; /* arrondi optionnel pour un rendu plus moderne */
-    object-fit: contain; /* pour que l’image garde ses proportions */
+    background: linear-gradient(45deg, #ff3742, #e60000);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(255, 71, 87, 0.5);
 }
 
+/* Overlay pour fermer le dropdown */
+.dropdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 999;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+@media (max-width: 1024px) {
+    .navbar {
+        padding: 3px 20px;
+    }
+
+    .navbar-main {
+        gap: 2px;
+    }
+
+    .nav-link {
+        padding: 5px 8px;
+        font-size: 11px;
+    }
+
+    .nav-link span {
+        display: none;
+    }
+
+    .nav-icon {
+        font-size: 14px;
+    }
+
+    .profile-info {
+        display: none;
+    }
+
+    .dropdown-menu {
+        min-width: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 3px 15px;
+        flex-wrap: wrap;
+        min-height: 40px;
+    }
+
+    .navbar-main {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 6px;
+        gap: 2px;
+    }
+
+    .nav-link {
+        padding: 4px 8px;
+        border-radius: 10px;
+    }
+
+    .brand-text {
+        font-size: 16px;
+    }
+
+    .logo-image {
+        height: 24px;
+    }
+
+    .notification-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .profile-trigger {
+        padding: 2px 6px 2px 2px;
+    }
+
+    .profile-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+
+    .dropdown-menu {
+        min-width: 220px;
+        right: -10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 2px 10px;
+        min-height: 35px;
+    }
+
+    .navbar-main {
+        gap: 1px;
+        margin-top: 4px;
+    }
+
+    .nav-link {
+        padding: 3px 6px;
+    }
+
+    .nav-icon {
+        font-size: 12px;
+    }
+
+    .brand-text {
+        font-size: 14px;
+    }
+
+    .logo-image {
+        height: 20px;
+    }
+
+    .auth-buttons {
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .btn-login,
+    .btn-register {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .dropdown-menu {
+        right: -5px;
+        min-width: 200px;
+    }
+}
