@@ -1,12 +1,17 @@
 const express = require('express');
 const cors = require('cors');
+const connectMongoDB = require('./config/mongodb');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const messageRoutes = require('./routes/messageRoutes'); // ← AJOUTER CETTE LIGNE
+const mongoRoutes = require('./routes/mongoRoutes');
 
 const app = express();
 const PORT = 5000;
+
+// Connect to MongoDB
+connectMongoDB();
 
 // Middlewares
 app.use(cors());
@@ -26,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/messages', messageRoutes); // ← AJOUTER CETTE LIGNE
+app.use('/api/mongo', mongoRoutes); // MongoDB routes for unstructured data
 
 // Route de test
 app.get('/', (req, res) => {
