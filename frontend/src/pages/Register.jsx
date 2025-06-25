@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosInstance';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaUser, FaChild, FaChalkboardTeacher, FaArrowLeft, FaCheck } from 'react-icons/fa';
@@ -104,7 +104,7 @@ function Register() {
         try {
             // 1. Inscription
             console.log('Tentative d\'inscription...');
-            const registerResponse = await axios.post('http://localhost:5000/api/auth/register', {
+            const registerResponse = await axios.post('/auth/register', {
                 name: formData.name,
                 username: formData.username,
                 email: formData.email,
@@ -116,7 +116,7 @@ function Register() {
 
             // 2. Connexion automatique après inscription
             console.log('Connexion automatique...');
-            const loginResponse = await axios.post('http://localhost:5000/api/auth/login', {
+            const loginResponse = await axios.post('/auth/login', {
                 identifier: formData.email,
                 password: formData.password
             });

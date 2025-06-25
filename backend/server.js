@@ -1,5 +1,6 @@
 //Chargement des variables d'environnement
 require('dotenv').config();
+const connectMongoDB = require('./config/mongodb');
 
 const express = require('express');
 const cors = require('cors');
@@ -10,6 +11,9 @@ const commentRoutes = require('./routes/commentRoutes');
 
 // Importation de la route chat
 const chatRoutes = require("./routes/chatRoutes");
+
+// Connect to MongoDB
+connectMongoDB();
 
 const app = express();
 const PORT = 5000;
@@ -29,6 +33,23 @@ app.use("/api/chat", chatRoutes);
 app.use('/api/auth', authRoutes);  // ⬅️ CHANGÉ de /api à /api/auth
 app.use('/api', postRoutes);
 app.use('/api', commentRoutes);
+
+// Additional routes mounting
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const followRoutes = require('./routes/followRoutes');
+const gameRoutes = require('./routes/gameRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const mongoRoutes = require('./routes/mongoRoutes');
+const progressRoutes = require('./routes/progressRoutes');
+
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/follow', followRoutes);
+app.use('/api/games', gameRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/mongo', mongoRoutes);
+app.use('/api/progress', progressRoutes);
 
 // Route de test
 app.get('/', (req, res) => {

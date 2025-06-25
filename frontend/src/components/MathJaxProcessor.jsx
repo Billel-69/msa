@@ -1,6 +1,6 @@
 import React from 'react';
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { BlockMath, InlineMath } from 'react-katex';
 
 // Composant pour traiter le rendu mathématique
 const MathJaxProcessor = ({ text }) => {
@@ -94,4 +94,4 @@ const MathJaxProcessor = ({ text }) => {
   );
 };
 
-export default MathJaxProcessor; 
+export default MathJaxProcessor;

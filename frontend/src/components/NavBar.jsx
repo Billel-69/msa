@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import { useAuth } from '../context/AuthContext';
 
 function NavBar() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { token, user, logout } = useAuth();
 
     const handleLogout = () => {
@@ -14,41 +15,45 @@ function NavBar() {
 
     return (
         <div className="navbar">
-            <img src={require('../asset/img.png')} alt="Logo" className="logo-image" />
-            <nav>
-                <Link to="/">Accueil</Link>
-                <Link to="/mondes">Mondes</Link>
-                <Link to="/live">Live</Link>
-                <Link to="/sensai" className="nav-link sensai-link">SENSAI</Link>
+            {/* Brand */}
+            <div className="navbar-brand">
+                <img src={require('../asset/img.png')} alt="Logo" className="logo-image" />
+                <span className="brand-text">Kaizenverse</span>
+            </div>
 
-                <div className="dropdown">
-                    <span className="dropdown-title">Profil ▾</span>
-                    <div className="dropdown-content">
-                        {!token ? (
-                            <>
-                                <Link to="/connexion">Se connecter</Link>
-                                <Link to="/inscription">S'inscrire</Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link to="/profil">Mon Profil</Link>
-                                <Link to="/fragments">Mes Fragments</Link>
-                                <Link to="/abonnements">Mes Abonnements</Link>
+            {/* Main navigation */}
+            <div className="navbar-main">
+                {['/', '/mondes', '/live', '/sensai'].map(path => {
+                    const labels = { '/': 'Accueil', '/mondes': 'Mondes', '/live': 'Live', '/sensai': 'SENSAI' };
+                    return (
+                        <Link
+                            key={path}
+                            to={path}
+                            className={`nav-link${location.pathname === path ? ' active' : ''}`}
+                        >{labels[path]}</Link>
+                    );
+                })}
+            </div>
 
-                                {/* Ajout conditionnel pour les parents */}
-                                {user?.accountType === 'parent' && (
-                                    <Link to="/parent-dashboard">Gestion Enfants</Link>
-                                )}
-
-                                <Link to="/modifier-profil">Modifier Profil</Link>
-                                <button className="logout-button" onClick={handleLogout}>
-                                    Se déconnecter
-                                </button>
-                            </>
-                        )}
+            {/* User/auth section */}
+            <div className="navbar-user">
+                {!token ? (
+                    <div className="auth-buttons">
+                        <Link to="/connexion" className="btn-login">Se connecter</Link>
+                        <Link to="/inscription" className="btn-register">S'inscrire</Link>
                     </div>
-                </div>
-            </nav>
+                ) : (
+                    <>
+                        <Link to="/profil" className={`nav-link${location.pathname === '/profil' ? ' active' : ''}`}>Mon Profil</Link>
+                        <Link to="/fragments" className={`nav-link${location.pathname === '/fragments' ? ' active' : ''}`}>Fragments</Link>
+                        <Link to="/abonnements" className={`nav-link${location.pathname === '/abonnements' ? ' active' : ''}`}>Abonnements</Link>
+                        {user?.accountType === 'parent' && (
+                            <Link to="/parent-dashboard" className="nav-link">Enfants</Link>
+                        )}
+                        <button className="btn-login" onClick={handleLogout}>Déconnexion</button>
+                    </>
+                )}
+            </div>
         </div>
     );
 }
