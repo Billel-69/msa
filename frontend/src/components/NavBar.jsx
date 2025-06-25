@@ -19,6 +19,7 @@ function NavBar() {
                 <Link to="/">Accueil</Link>
                 <Link to="/mondes">Mondes</Link>
                 <Link to="/live">Live</Link>
+                <Link to="/sensai" className="nav-link sensai-link">SENSAI</Link>
 
                 <div className="dropdown">
                     <span className="dropdown-title">Profil ▾</span>
