@@ -1,84 +1,26 @@
-# Dependencies
+# Fichiers d'environnement
+.env
+.env.local
+.env.development
+.env.production
+
+# Dépendances
 node_modules/
-*/node_modules/
+/node_modules
+
+# Fichiers de build
+/frontend/build
+/frontend/dist
+/build
+/dist
+
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Build directories
-build/
-dist/
-.next/
-out/
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# Logs
-logs
-*.log
-
-# Cache directories
-.cache/
-*/**.cache/**
-.npm
-.eslintcache
-.parcel-cache
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS generated files
+# Fichiers temporaires
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Uploads directory (if you want to keep uploads local only)
-uploads/
-
-# Package lock files (optional - some teams prefer to track these)
-# package-lock.json
-# yarn.lock
-
-# Temporary files
-*.tmp
-*.temp
+.cache
+.temp

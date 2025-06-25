@@ -21,6 +21,8 @@ import FollowingList from "./pages/FollowingList";
 import CreatePost from "./pages/CreatePost";
 import ParentSetup from "./pages/ParentSetup";
 import ParentDashboard from "./pages/ParentDashboard";
+//ChatBot
+import Chat from './pages/Chat';
 
 // Import des pages Messages
 import Messages from "./pages/Messages";
@@ -109,6 +111,9 @@ function App() {
                         <ParentSetup />
                     </PrivateRoute>
                 } />
+               
+                {/* ChatBot */}
+                <Route path="/sensai" element={<Chat />} />
 
                 {/* Nouveau : Dashboard parent */}
                 <Route path="/parent-dashboard" element={

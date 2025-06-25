@@ -1,17 +1,19 @@
+//Chargement des variables d'environnement
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
-const connectMongoDB = require('./config/mongodb');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
-const messageRoutes = require('./routes/messageRoutes'); // ← AJOUTER CETTE LIGNE
-const mongoRoutes = require('./routes/mongoRoutes');
+// SUPPRIMÉ: followRoutes car maintenant intégré dans authRoutes
+
+// Importation de la route chat
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 const PORT = 5000;
 
-// Connect to MongoDB
-connectMongoDB();
 
 // Middlewares
 app.use(cors());
@@ -20,18 +22,13 @@ app.use(express.json());
 // Accès statique au dossier uploads
 app.use('/uploads', express.static('uploads'));
 
-// Middleware de logging pour debug (DÉPLACER AVANT LES ROUTES)
-app.use((req, res, next) => {
-    console.log(`${req.method} ${req.originalUrl}`);
-    next();
-});
+// Utilisation de la route pour chat
+app.use("/api/chat", chatRoutes);
 
-// Routes API
-app.use('/api/auth', authRoutes);
+// Routes API - CHANGEMENT ICI : utilisez /api/auth pour les routes d'authentification
+app.use('/api/auth', authRoutes);  // ⬅️ CHANGÉ de /api à /api/auth
 app.use('/api', postRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/messages', messageRoutes); // ← AJOUTER CETTE LIGNE
-app.use('/api/mongo', mongoRoutes); // MongoDB routes for unstructured data
+app.use('/api', commentRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
@@ -40,7 +37,6 @@ app.get('/', (req, res) => {
 
 // Gestion des erreurs 404
 app.use('*', (req, res) => {
-    console.log('Route non trouvée:', req.originalUrl);
     res.status(404).json({ error: 'Route non trouvée' });
 });
 
