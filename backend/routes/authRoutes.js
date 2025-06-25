@@ -1,41 +1,50 @@
+// Fichier de routes pour l'authentification et la gestion des utilisateurs
+
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const verifyToken = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/uploadMiddleware');
-const db = require('../config/db'); // Ajouter cette ligne
+const db = require('../config/db'); // Importation de la connexion à la base de données
 
-// Routes publiques
+// --- Routes Publiques ---
+// Ces routes ne nécessitent pas d'authentification
+
+// Inscription d'un nouvel utilisateur
 router.post('/register', authController.register);
+// Connexion d'un utilisateur
 router.post('/login', authController.login);
 
-// Routes protégées - Profil
+// --- Routes Protégées ---
+// Ces routes nécessitent un jeton JWT valide (l'utilisateur doit être connecté)
+
+// Profil de l'utilisateur connecté
 router.get('/me', verifyToken, authController.getProfile);
 router.put('/me', verifyToken, authController.updateProfile);
 router.put('/me/profile-picture', verifyToken, upload.single('profilePicture'), authController.updateProfilePicture);
 
-// Routes spécifiques aux parents
-router.post('/link-child', verifyToken, authController.linkChild);
-router.post('/create-child', verifyToken, authController.createChildAccount);
-router.get('/my-children', verifyToken, authController.getMyChildren);
+// Actions spécifiques aux parents
+router.post('/link-child', verifyToken, authController.linkChild); // Lier un enfant existant
+router.post('/create-child', verifyToken, authController.createChildAccount); // Créer un nouveau compte enfant
+router.get('/my-children', verifyToken, authController.getMyChildren); // Obtenir la liste des enfants liés
 
-// Routes de follow/unfollow
+// Suivre ou ne plus suivre un utilisateur
 router.post('/follow/:id', verifyToken, authController.followUser);
 router.post('/unfollow/:id', verifyToken, authController.unfollowUser);
-router.get('/follow-status/:id', verifyToken, authController.getFollowStatus);
+router.get('/follow-status/:id', verifyToken, authController.getFollowStatus); // Vérifier si l'utilisateur connecté suit un autre utilisateur
 
-// Routes followers/following pour l'utilisateur connecté
+// Obtenir les listes de followers/following pour l'utilisateur connecté
 router.get('/followers', verifyToken, authController.getFollowers);
 router.get('/following', verifyToken, authController.getFollowing);
 
-// ==========================================
-// NOUVELLES ROUTES - Followers/Following d'autres utilisateurs
-// ==========================================
+// --- Nouvelles Routes pour Consulter les Followers/Following d'AUTRES Utilisateurs ---
+
+// Obtenir la liste des followers d'un utilisateur spécifique par son ID
 router.get('/followers/:userId', verifyToken, async (req, res) => {
     try {
         const targetUserId = parseInt(req.params.userId);
 
-        // Vérifier que l'utilisateur existe
+        // Vérifie si l'utilisateur cible existe
         const [userCheck] = await db.execute(
             'SELECT id FROM users WHERE id = ?',
             [targetUserId]
@@ -45,7 +54,7 @@ router.get('/followers/:userId', verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'Utilisateur introuvable' });
         }
 
-        // Récupérer les followers (corriger le nom de table)
+        // Récupère les followers de l'utilisateur cible
         const [followers] = await db.execute(`
             SELECT u.id, u.name, u.username, u.profile_picture, u.account_type
             FROM followers f
@@ -61,11 +70,12 @@ router.get('/followers/:userId', verifyToken, async (req, res) => {
     }
 });
 
+// Obtenir la liste des utilisateurs suivis (following) par un utilisateur spécifique
 router.get('/following/:userId', verifyToken, async (req, res) => {
     try {
         const targetUserId = parseInt(req.params.userId);
 
-        // Vérifier que l'utilisateur existe
+        // Vérifie si l'utilisateur cible existe
         const [userCheck] = await db.execute(
             'SELECT id FROM users WHERE id = ?',
             [targetUserId]
@@ -75,7 +85,7 @@ router.get('/following/:userId', verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'Utilisateur introuvable' });
         }
 
-        // Récupérer les abonnements (corriger le nom de table)
+        // Récupère les utilisateurs que l'utilisateur cible suit
         const [following] = await db.execute(`
             SELECT u.id, u.name, u.username, u.profile_picture, u.account_type
             FROM followers f
@@ -91,7 +101,7 @@ router.get('/following/:userId', verifyToken, async (req, res) => {
     }
 });
 
-// Route pour récupérer un utilisateur public
+// Obtenir les informations publiques d'un utilisateur par son ID
 router.get('/users/:id', verifyToken, authController.getUserById);
 
 module.exports = router;

@@ -1,0 +1,122 @@
+
+/* frontend/src/pages/MiniGames2.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --mg2-font-family: 'Poppins', sans-serif;
+  --mg2-bg: #0d0c1d;
+  --mg2-primary: #6a11cb;
+  --mg2-secondary: #2575fc;
+  --mg2-accent: #ff5722;
+  --mg2-text: #ffffff;
+  --mg2-text-muted: #a9a8b3;
+  --mg2-card-bg: #1e1b3a;
+  --mg2-card-border: #3a375e;
+  --mg2-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  --mg2-radius: 20px;
+}
+
+.minigames2-page {
+  font-family: var(--mg2-font-family);
+  background-color: var(--mg2-bg);
+  color: var(--mg2-text);
+  padding: 2rem;
+}
+
+.mg2-container {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Header */
+.mg2-header {
+  padding: 4rem 2rem;
+  text-align: center;
+  border-radius: var(--mg2-radius);
+  background: linear-gradient(135deg, var(--mg2-primary), var(--mg2-secondary));
+  margin-bottom: 3rem;
+  box-shadow: var(--mg2-shadow);
+}
+
+.mg2-header h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.mg2-header p {
+  font-size: 1.2rem;
+  color: var(--mg2-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Section */
+.mg2-section {
+  margin-bottom: 4rem;
+}
+
+.mg2-section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Game Card */
+.mg2-game-card {
+  background: var(--mg2-card-bg);
+  border: 1px solid var(--mg2-card-border);
+  border-radius: var(--mg2-radius);
+  padding: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.mg2-game-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.mg2-card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: var(--mg2-radius);
+  margin-bottom: 1.5rem;
+}
+
+.mg2-card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.mg2-card-description {
+  font-size: 1rem;
+  color: var(--mg2-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.mg2-card-button {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background: linear-gradient(90deg, var(--mg2-accent), #ff9800);
+  color: var(--mg2-text);
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+
+.mg2-card-button:hover {
+  transform: scale(1.05);
+}
+
+/* Grid */
+.mg2-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}

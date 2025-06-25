@@ -24,16 +24,34 @@ function Home() {
                     <h1>AMÉLIORES TES CONNAISSANCES</h1>
                     <button className="cta-button">ENTRE DANS TA QUÊTE</button>
                 </div>
-            </section>
-
-            <section className="categories">
+            </section>            <section className="categories">
                 <div className="scroll-container">
-                    {categories.map((cat, index) => (
-                        <div key={index} className="category-card">
-                            <div className="icon-placeholder">🎮</div>
-                            <p>{cat}</p>
-                        </div>
-                    ))}
+                    {categories.map((cat, index) => {
+                        const getIcon = (category) => {
+                            const icons = {
+                                'Mathématiques': '🔢',
+                                'Français': '📚',
+                                'Histoire': '🏛️',
+                                'Anglais': '🇬🇧',
+                                'Espagnol': '🇪🇸',
+                                'Multiverse': '🌌',
+                                'Sciences': '🔬',
+                                'Géographie': '🗺️',
+                                'Musique': '🎵',
+                                'Art': '🎨',
+                                'Philosophie': '🤔',
+                                'Technologie': '💻'
+                            };
+                            return icons[category] || '🎮';
+                        };
+                        
+                        return (
+                            <div key={index} className="category-card">
+                                <div className="icon-placeholder">{getIcon(cat)}</div>
+                                <p>{cat}</p>
+                            </div>
+                        );
+                    })}
                 </div>
             </section>
 
@@ -44,15 +62,23 @@ function Home() {
                     </div>
                 ))}
                 <span className="fragment-count">1/15</span>
-            </section>
-
-            <section className="mini-games">
-                {[...Array(4)].map((_, i) => (
-                    <div key={i} className="game-card">
+            </section>            <section className="mini-games">
+                <div className="game-card">
+                    <div className="game-thumbnail">
+                        <img src={require('../asset/minijeux.jpg')} alt="Flash Cards" style={{width: '100%', height: 'auto', borderRadius: '8px'}} />
+                    </div>
+                    <div className="game-title">Cartes Mémoire</div>
+                    <Link to="/flash-cards">
+                        <button className="play-button">C'EST PARTI !</button>
+                    </Link>
+                </div>
+                {[...Array(3)].map((_, i) => (
+                    <div key={i + 1} className="game-card">
                         <div className="game-thumbnail">
                             <img src={require('../asset/minijeux.jpg')} alt="Mini-jeux" style={{width: '100%', height: 'auto', borderRadius: '8px'}} />
                         </div>
-                        <button className="play-button">C'EST PARTI !</button>
+                        <div className="game-title">Jeu à venir</div>
+                        <button className="play-button disabled" disabled>BIENTÔT</button>
                     </div>
                 ))}
             </section>

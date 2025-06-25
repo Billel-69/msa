@@ -1,3 +1,5 @@
+// Fichier de routes pour la messagerie entre utilisateurs
+
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
@@ -6,6 +8,8 @@ const verifyToken = require('../middlewares/authMiddleware');
 // ==========================================
 // ROUTE: Obtenir toutes les conversations d'un utilisateur
 // ==========================================
+// Récupère une liste de toutes les conversations de l'utilisateur connecté,
+// avec le dernier message, l'heure du dernier message et le nombre de messages non lus.
 router.get('/conversations', verifyToken, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -15,24 +19,31 @@ router.get('/conversations', verifyToken, async (req, res) => {
                 c.id as conversation_id,
                 c.created_at,
                 c.updated_at,
+                -- Identifie l'autre participant dans la conversation
                 CASE
                     WHEN c.participant1_id = ? THEN c.participant2_id
                     ELSE c.participant1_id
-                    END as other_user_id,
+                END as other_user_id,
+                -- Récupère le nom de l'autre participant
                 CASE
                     WHEN c.participant1_id = ? THEN u2.name
                     ELSE u1.name
-                    END as other_user_name,
+                END as other_user_name,
+                -- Récupère le nom d'utilisateur de l'autre participant
                 CASE
                     WHEN c.participant1_id = ? THEN u2.username
                     ELSE u1.username
-                    END as other_user_username,
+                END as other_user_username,
+                -- Récupère la photo de profil de l'autre participant
                 CASE
                     WHEN c.participant1_id = ? THEN u2.profile_picture
                     ELSE u1.profile_picture
-                    END as other_user_picture,
+                END as other_user_picture,
+                -- Récupère le contenu du dernier message
                 (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
+                -- Récupère l'heure du dernier message
                 (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_time,
+                -- Compte les messages non lus pour l'utilisateur connecté
                 (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_id != ? AND is_read = FALSE) as unread_count
             FROM conversations c
                 LEFT JOIN users u1 ON c.participant1_id = u1.id
@@ -56,12 +67,13 @@ router.get('/conversations', verifyToken, async (req, res) => {
 // ==========================================
 // ROUTE: Obtenir ou créer une conversation avec un autre utilisateur
 // ==========================================
+// Permet de récupérer une conversation existante avec un autre utilisateur ou d'en créer une nouvelle s'il n'y en a pas.
 router.get('/conversation/with/:otherUserId', verifyToken, async (req, res) => {
     try {
         const userId = req.user.id;
         const otherUserId = parseInt(req.params.otherUserId);
 
-        // Vérifier que l'autre utilisateur existe
+        // Vérifie que l'autre utilisateur existe
         const [userCheck] = await db.execute(
             'SELECT id, name, username, profile_picture FROM users WHERE id = ?',
             [otherUserId]
@@ -71,7 +83,7 @@ router.get('/conversation/with/:otherUserId', verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'Utilisateur introuvable' });
         }
 
-        // Chercher une conversation existante
+        // Cherche une conversation existante entre les deux utilisateurs
         let query = `
             SELECT id FROM conversations
             WHERE (participant1_id = ? AND participant2_id = ?)
@@ -85,11 +97,13 @@ router.get('/conversation/with/:otherUserId', verifyToken, async (req, res) => {
         let conversationId;
 
         if (existing.length > 0) {
+            // Si une conversation existe, on utilise son ID
             conversationId = existing[0].id;
         } else {
-            // Créer une nouvelle conversation
+            // Sinon, on en crée une nouvelle
             const [result] = await db.execute(
                 'INSERT INTO conversations (participant1_id, participant2_id) VALUES (?, ?)',
+                // On stocke toujours le plus petit ID en premier pour éviter les doublons
                 [Math.min(userId, otherUserId), Math.max(userId, otherUserId)]
             );
             conversationId = result.insertId;
@@ -101,7 +115,7 @@ router.get('/conversation/with/:otherUserId', verifyToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Erreur lors de la récupération/création de conversation:', error);
+        console.error('Erreur lors de la récupération/création de la conversation:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });
@@ -233,6 +247,7 @@ router.get('/conversation/:conversationId/messages', verifyToken, async (req, re
 // ==========================================
 // ROUTE: Envoyer un message
 // ==========================================
+// Permet à l'utilisateur d'envoyer un message dans une conversation.
 router.post('/conversation/:conversationId/send', verifyToken, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -328,6 +343,7 @@ router.delete('/message/:messageId', verifyToken, async (req, res) => {
 // ==========================================
 // ROUTE: Marquer une conversation comme lue
 // ==========================================
+// Met à jour le statut `is_read` de tous les messages d'une conversation pour l'utilisateur connecté.
 router.put('/conversation/:conversationId/read', verifyToken, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -373,6 +389,31 @@ router.get('/search-users', verifyToken, async (req, res) => {
 
     } catch (error) {
         console.error('Erreur lors de la recherche d\'utilisateurs:', error);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
+// ==========================================
+// ROUTE: Compter les messages non lus au total
+// ==========================================
+// Calcule le nombre total de messages non lus pour l'utilisateur connecté sur toutes ses conversations.
+router.get('/unread-count', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const query = `
+            SELECT COUNT(*) as total_unread_count
+            FROM messages m
+            JOIN conversations c ON m.conversation_id = c.id
+            WHERE m.receiver_id = ? AND m.is_read = FALSE
+        `;
+
+        const [result] = await db.execute(query, [userId]);
+
+        res.json(result[0]);
+
+    } catch (error) {
+        console.error('Erreur lors du comptage des messages non lus:', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });

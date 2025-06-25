@@ -3,7 +3,9 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
-const messageRoutes = require('./routes/messageRoutes'); // ← AJOUTER CETTE LIGNE
+const messageRoutes = require('./routes/messageRoutes');
+const gameRoutes = require('./routes/gameRoutes'); // Mini-games routes
+const connectMongoDB = require('./config/mongodb'); // MongoDB connection
 
 const app = express();
 const PORT = 5000;
@@ -11,6 +13,9 @@ const PORT = 5000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Initialize MongoDB connection
+connectMongoDB();
 
 // Accès statique au dossier uploads
 app.use('/uploads', express.static('uploads'));
@@ -25,7 +30,8 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api', postRoutes);
 app.use('/api/comments', commentRoutes);
-app.use('/api/messages', messageRoutes); // ← AJOUTER CETTE LIGNE
+app.use('/api/messages', messageRoutes);
+app.use('/api/games', gameRoutes); // Mini-games API routes
 
 // Route de test
 app.get('/', (req, res) => {

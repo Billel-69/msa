@@ -1,3 +1,12 @@
+/**
+ * @file Login.jsx
+ * @description Composant React pour la page de connexion.
+ * Gère l'authentification des utilisateurs, la validation du formulaire, la gestion des erreurs et la redirection.
+ */
+
+// =================================================================================
+// IMPORTATIONS
+// =================================================================================
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,61 +15,99 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { MdAlternateEmail } from 'react-icons/md';
 import './Login.css';
 
+// =================================================================================
+// COMPOSANT PRINCIPAL : Login
+// =================================================================================
 function Login() {
+    // ---------------------------------------------------------------------------------
+    // ÉTATS DU COMPOSANT
+    // ---------------------------------------------------------------------------------
     const [formData, setFormData] = useState({
-        identifier: '', // email ou username
-        password: ''
+        identifier: '', // Peut être l'email ou le nom d'utilisateur
+        password: ''      // Mot de passe
     });
-    const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
+    const [showPassword, setShowPassword] = useState(false); // Gère la visibilité du mot de passe
+    const [loading, setLoading] = useState(false); // Gère l'état de chargement pendant la soumission
+    const [errors, setErrors] = useState({}); // Stocke les erreurs de validation du formulaire
 
-    const { login, isAuthenticated, loading: authLoading } = useAuth();
-    const navigate = useNavigate();
+    // ---------------------------------------------------------------------------------
+    // HOOKS ET CONTEXTE
+    // ---------------------------------------------------------------------------------
+    const { login, isAuthenticated, loading: authLoading } = useAuth(); // Contexte d'authentification
+    const navigate = useNavigate(); // Hook pour la navigation programmatique
 
-    // Rediriger si déjà connecté
+    // ---------------------------------------------------------------------------------
+    // EFFETS DE CYCLE DE VIE
+    // ---------------------------------------------------------------------------------
+    /**
+     * Redirige l'utilisateur vers la page d'accueil s'il est déjà authentifié.
+     * S'exécute au chargement du composant et à chaque changement de l'état d'authentification.
+     */
     useEffect(() => {
         if (!authLoading && isAuthenticated) {
-            console.log('Login - Utilisateur déjà connecté, redirection');
+            console.log('Login - Utilisateur déjà authentifié, redirection vers la page d\'accueil.');
             navigate('/');
         }
     }, [isAuthenticated, authLoading, navigate]);
 
+    // ---------------------------------------------------------------------------------
+    // FONCTIONS DE VALIDATION ET DE GESTION
+    // ---------------------------------------------------------------------------------
+    /**
+     * Valide les champs du formulaire de connexion.
+     * @returns {boolean} - True si le formulaire est valide, sinon false.
+     */
     const validateForm = () => {
-        const newErrors = {};
+        const newErrors = {}; // Objet pour stocker les nouvelles erreurs
 
+        // Validation de l'identifiant
         if (!formData.identifier.trim()) {
-            newErrors.identifier = 'Email ou nom d\'utilisateur requis';
+            newErrors.identifier = 'L\'email ou le nom d\'utilisateur est requis';
         }
+        // Validation du mot de passe
         if (!formData.password) {
-            newErrors.password = 'Mot de passe requis';
+            newErrors.password = 'Le mot de passe est requis';
         }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        setErrors(newErrors); // Met à jour l'état des erreurs
+        return Object.keys(newErrors).length === 0; // Retourne true si aucune erreur
     };
 
+    /**
+     * Met à jour l'état du formulaire lors de la saisie de l'utilisateur.
+     * @param {React.ChangeEvent<HTMLInputElement>} e - L'événement de changement.
+     */
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
 
-        // Effacer l'erreur du champ modifié
+        // Efface l'erreur associée au champ en cours de modification
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
     };
 
+    // ---------------------------------------------------------------------------------
+    // GESTION DE LA SOUMISSION DU FORMULAIRE
+    // ---------------------------------------------------------------------------------
+    /**
+     * Gère la soumission du formulaire de connexion.
+     * Valide les données, envoie la requête à l'API et gère la réponse.
+     * @param {React.FormEvent<HTMLFormElement>} e - L'événement de soumission du formulaire.
+     */
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Empêche le rechargement de la page
 
+        // Arrête la soumission si le formulaire n'est pas valide
         if (!validateForm()) return;
 
-        setLoading(true);
-        setErrors({});
+        setLoading(true); // Active l'indicateur de chargement
+        setErrors({});    // Réinitialise les erreurs
 
         try {
-            console.log('Login - Tentative de connexion...');
+            console.log('Login - Tentative de connexion en cours...');
 
+            // Appel à l'API pour la connexion
             const response = await axios.post('http://localhost:5000/api/auth/login', {
                 identifier: formData.identifier,
                 password: formData.password
@@ -68,54 +115,61 @@ function Login() {
 
             console.log('Login - Réponse reçue:', response.data);
 
-            const { token, user } = response.data;
+            const { token, user } = response.data; // Extrait le token et les données utilisateur
 
+            // Vérifie la validité de la réponse
             if (!token || !user) {
-                throw new Error('Données de connexion invalides');
+                throw new Error('Données de connexion invalides reçues du serveur');
             }
 
-            // Appeler la fonction login du contexte
+            // Utilise la fonction login du contexte d'authentification pour stocker les informations
             login(token, user);
 
-            console.log('Login - Connexion réussie, redirection...');
+            console.log('Login - Connexion réussie, préparation de la redirection...');
 
-            // Redirection selon le type de compte
+            // Redirection différenciée en fonction du type de compte de l'utilisateur
             switch (user.accountType) {
                 case 'parent':
-                    console.log('Login - Redirection parent vers /parent-dashboard');
+                    console.log('Login - Redirection du parent vers /parent-dashboard');
                     navigate('/parent-dashboard');
                     break;
                 case 'child':
-                    console.log('Login - Redirection enfant vers /');
+                    console.log('Login - Redirection de l\'enfant vers /');
                     navigate('/');
                     break;
                 case 'teacher':
-                    console.log('Login - Redirection professeur vers /');
+                    console.log('Login - Redirection de l\'enseignant vers /');
                     navigate('/');
                     break;
                 default:
-                    console.log('Login - Redirection par défaut vers /');
+                    console.log('Login - Type de compte inconnu, redirection par défaut vers /');
                     navigate('/');
             }
 
         } catch (err) {
-            console.error('Login - Erreur:', err);
+            console.error('Login - Erreur lors de la connexion:', err);
 
-            let errorMessage = 'Erreur de connexion';
+            // Gestion et affichage des messages d'erreur
+            let errorMessage = 'Une erreur inattendue est survenue lors de la connexion.';
 
             if (err.response?.data?.error) {
+                // Message d'erreur spécifique de l'API
                 errorMessage = err.response.data.error;
             } else if (err.message) {
+                // Message d'erreur générique (ex: problème réseau)
                 errorMessage = err.message;
             }
 
-            setErrors({ general: errorMessage });
+            setErrors({ general: errorMessage }); // Affiche l'erreur à l'utilisateur
         } finally {
-            setLoading(false);
+            setLoading(false); // Désactive l'indicateur de chargement
         }
     };
 
-    // Afficher un loader pendant la vérification de l'auth
+    // ---------------------------------------------------------------------------------
+    // RENDU CONDITIONNEL
+    // ---------------------------------------------------------------------------------
+    // Affiche un indicateur de chargement pendant la vérification de l'authentification.
     if (authLoading) {
         return (
             <div className="login-page">
@@ -129,7 +183,7 @@ function Login() {
         );
     }
 
-    // Si déjà connecté, ne pas afficher le formulaire
+    // Affiche un message si l'utilisateur est déjà connecté.
     if (isAuthenticated) {
         return (
             <div className="login-page">
@@ -142,6 +196,9 @@ function Login() {
         );
     }
 
+    // ---------------------------------------------------------------------------------
+    // RENDU PRINCIPAL DU COMPOSANT
+    // ---------------------------------------------------------------------------------
     return (
         <div className="login-page">
             <div className="login-container">

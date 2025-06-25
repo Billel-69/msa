@@ -442,6 +442,14 @@ nav a:hover {
     transform: scale(1.1);
 }
 
+.game-title {
+    color: #00e0ff;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
 .play-button {
     background: linear-gradient(45deg, #ffffff, #f0f0f0);
     color: #1b1444;
@@ -461,7 +469,21 @@ nav a:hover {
     background: linear-gradient(45deg, #00e0ff, #0099cc);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.3);
+}
+
+.play-button.disabled {
+    background: linear-gradient(45deg, #666, #888);
+    color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.play-button.disabled:hover {
+    background: linear-gradient(45deg, #666, #888);
+    color: #ccc;
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Responsive Design */

@@ -25,6 +25,10 @@ import ParentDashboard from "./pages/ParentDashboard";
 // Import des pages Messages
 import Messages from "./pages/Messages";
 
+// Import des mini-jeux
+import FlashCards from "./components/games/FlashCards";
+import MiniGames from "./pages/MiniGames";
+
 function App() {
     const location = useLocation();
 
@@ -35,7 +39,17 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/mondes" element={<Worlds />} />
-                <Route path="/live" element={<Live />} />
+                <Route path="/live" element={<Live />} />                {/* Routes Mini-jeux */}
+                <Route path="/mini-jeux" element={
+                    <PrivateRoute>
+                        <MiniGames />
+                    </PrivateRoute>
+                } />
+                <Route path="/flash-cards" element={
+                    <PrivateRoute>
+                        <FlashCards />
+                    </PrivateRoute>
+                } />
 
                 {/* Routes protégées */}
                 <Route path="/profil" element={
