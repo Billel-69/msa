@@ -1,3 +1,6 @@
+//Chargement des variables d'environnement
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
@@ -5,8 +8,12 @@ const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 // SUPPRIMÉ: followRoutes car maintenant intégré dans authRoutes
 
+// Importation de la route chat
+const chatRoutes = require("./routes/chatRoutes");
+
 const app = express();
 const PORT = 5000;
+
 
 // Middlewares
 app.use(cors());
@@ -14,6 +21,9 @@ app.use(express.json());
 
 // Accès statique au dossier uploads
 app.use('/uploads', express.static('uploads'));
+
+// Utilisation de la route pour chat
+app.use("/api/chat", chatRoutes);
 
 // Routes API - CHANGEMENT ICI : utilisez /api/auth pour les routes d'authentification
 app.use('/api/auth', authRoutes);  // ⬅️ CHANGÉ de /api à /api/auth
