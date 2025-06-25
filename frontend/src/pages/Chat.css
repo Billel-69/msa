@@ -80,6 +80,7 @@
   text-align: center;
   background: linear-gradient(45deg, #ff8400, #ff6b9d);
   -webkit-background-clip: text;
+  background-clip: text;  /* Standard property for compatibility */
   -webkit-text-fill-color: transparent;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -241,7 +242,8 @@
   padding: 15px 18px;
   border-radius: 18px;
   max-width: calc(100% - 70px);
-  word-break: break-word;
+  word-break: normal;           /* Allow normal word wrapping */
+  overflow-wrap: break-word;    /* Break long words only when necessary */
   line-height: 1.5;
   box-shadow: var(--shadow-soft);
   transition: var(--transition-default);

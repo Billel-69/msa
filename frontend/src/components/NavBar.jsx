@@ -8,6 +8,16 @@ function NavBar() {
     const location = useLocation();
     const { token, user, logout } = useAuth();
 
+    // Main links including social feed and messaging
+    const mainLinks = [
+        { path: '/', label: 'Accueil' },
+        { path: '/mondes', label: 'Mondes' },
+        { path: '/live', label: 'Live' },
+        { path: '/sensai', label: 'SENSAI' },
+        { path: '/reseau', label: 'Réseau' },
+        { path: '/messages', label: 'Messages' }
+    ];
+
     const handleLogout = () => {
         logout();
         navigate('/connexion');
@@ -23,16 +33,13 @@ function NavBar() {
 
             {/* Main navigation */}
             <div className="navbar-main">
-                {['/', '/mondes', '/live', '/sensai'].map(path => {
-                    const labels = { '/': 'Accueil', '/mondes': 'Mondes', '/live': 'Live', '/sensai': 'SENSAI' };
-                    return (
-                        <Link
-                            key={path}
-                            to={path}
-                            className={`nav-link${location.pathname === path ? ' active' : ''}`}
-                        >{labels[path]}</Link>
-                    );
-                })}
+                {mainLinks.map(({ path, label }) => (
+                    <Link
+                        key={path}
+                        to={path}
+                        className={`nav-link${location.pathname === path ? ' active' : ''}`}
+                    >{label}</Link>
+                ))}
             </div>
 
             {/* User/auth section */}

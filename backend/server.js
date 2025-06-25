@@ -32,7 +32,7 @@ app.use("/api/chat", chatRoutes);
 // Routes API - CHANGEMENT ICI : utilisez /api/auth pour les routes d'authentification
 app.use('/api/auth', authRoutes);  // ⬅️ CHANGÉ de /api à /api/auth
 app.use('/api', postRoutes);
-app.use('/api', commentRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Additional routes mounting
 const analyticsRoutes = require('./routes/analyticsRoutes');
