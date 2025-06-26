@@ -40,32 +40,32 @@ function NavBar() {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
-                <img src={require('../asset/img.png')} alt="Logo" className="logo-image" />
-                <span className="brand-text">MSA</span>
+                <img src={require('../asset/img.png')} alt="Logo" className="navbar-logo-image" />
+                <span className="navbar-brand-text">MSA</span>
             </div>
 
             <div className="navbar-main">
                 <Link
                     to="/"
-                    className={`nav-link ${isActiveLink('/') && location.pathname === '/' ? 'active' : ''}`}
+                    className={`navbar-nav-link ${isActiveLink('/') && location.pathname === '/' ? 'active' : ''}`}
                 >
-                    <FaHome className="nav-icon" />
+                    <FaHome className="navbar-nav-icon" />
                     <span>Accueil</span>
                 </Link>
 
                 <Link
                     to="/mondes"
-                    className={`nav-link ${isActiveLink('/mondes') ? 'active' : ''}`}
+                    className={`navbar-nav-link ${isActiveLink('/mondes') ? 'active' : ''}`}
                 >
-                    <FaGlobeAmericas className="nav-icon" />
+                    <FaGlobeAmericas className="navbar-nav-icon" />
                     <span>Mondes</span>
                 </Link>
 
                 <Link
                     to="/live"
-                    className={`nav-link ${isActiveLink('/live') ? 'active' : ''}`}
+                    className={`navbar-nav-link ${isActiveLink('/live') ? 'active' : ''}`}
                 >
-                    <FaVideo className="nav-icon" />
+                    <FaVideo className="navbar-nav-icon" />
                     <span>Live</span>
                 </Link>
 
@@ -74,17 +74,17 @@ function NavBar() {
                     <>
                         <Link
                             to="/reseau"
-                            className={`nav-link ${isActiveLink('/reseau') ? 'active' : ''}`}
+                            className={`navbar-nav-link ${isActiveLink('/reseau') ? 'active' : ''}`}
                         >
-                            <FaUsers className="nav-icon" />
+                            <FaUsers className="navbar-nav-icon" />
                             <span>Réseau</span>
                         </Link>
 
                         <Link
                             to="/messages"
-                            className={`nav-link ${isActiveLink('/messages') ? 'active' : ''}`}
+                            className={`navbar-nav-link ${isActiveLink('/messages') ? 'active' : ''}`}
                         >
-                            <FaEnvelope className="nav-icon" />
+                            <FaEnvelope className="navbar-nav-icon" />
                             <span>Messages</span>
                         </Link>
                     </>
@@ -93,29 +93,29 @@ function NavBar() {
 
             <div className="navbar-user">
                 {!token ? (
-                    <div className="auth-buttons">
-                        <Link to="/connexion" className="btn-login">
+                    <div className="navbar-auth-buttons">
+                        <Link to="/connexion" className="navbar-btn-login">
                             Se connecter
                         </Link>
-                        <Link to="/inscription" className="btn-register">
+                        <Link to="/inscription" className="navbar-btn-register">
                             S'inscrire
                         </Link>
                     </div>
                 ) : (
                     <>
                         {/* Notifications (placeholder pour futur) */}
-                        <button className="notification-btn" title="Notifications">
+                        <button className="navbar-notification-btn" title="Notifications">
                             <FaBell />
-                            <span className="notification-badge">3</span>
+                            <span className="navbar-notification-badge">3</span>
                         </button>
 
                         {/* Profile Dropdown */}
-                        <div className={`profile-dropdown ${isProfileOpen ? 'open' : ''}`}>
+                        <div className={`navbar-profile-dropdown ${isProfileOpen ? 'open' : ''}`}>
                             <button
-                                className="profile-trigger"
+                                className="navbar-profile-trigger"
                                 onClick={toggleProfileDropdown}
                             >
-                                <div className="profile-avatar">
+                                <div className="navbar-profile-avatar">
                                     {user?.profilePicture ? (
                                         <img
                                             src={`http://localhost:5000/uploads/${user.profilePicture}`}
@@ -125,91 +125,91 @@ function NavBar() {
                                         <span>{user?.name?.charAt(0).toUpperCase()}</span>
                                     )}
                                 </div>
-                                <div className="profile-info">
-                                    <span className="profile-name">{user?.name}</span>
-                                    <span className="profile-type">
+                                <div className="navbar-profile-info">
+                                    <span className="navbar-profile-name">{user?.name}</span>
+                                    <span className="navbar-profile-type">
                                         {user?.accountType === 'child' ? '🧒 Enfant' :
                                             user?.accountType === 'parent' ? '👨‍👩‍👧‍👦 Parent' : '👩‍🏫 Professeur'}
                                     </span>
                                 </div>
-                                <FaChevronDown className={`dropdown-arrow ${isProfileOpen ? 'rotated' : ''}`} />
+                                <FaChevronDown className={`navbar-dropdown-arrow ${isProfileOpen ? 'rotated' : ''}`} />
                             </button>
 
-                            <div className="dropdown-menu">
-                                <div className="dropdown-header">
-                                    <div className="user-stats">
-                                        <div className="stat">
-                                            <FaGem className="stat-icon" />
+                            <div className="navbar-dropdown-menu">
+                                <div className="navbar-dropdown-header">
+                                    <div className="navbar-user-stats">
+                                        <div className="navbar-stat">
+                                            <FaGem className="navbar-stat-icon" />
                                             <span>Niveau {user?.level || 1}</span>
                                         </div>
-                                        <div className="stat">
-                                            <FaCrown className="stat-icon" />
+                                        <div className="navbar-stat">
+                                            <FaCrown className="navbar-stat-icon" />
                                             <span>{user?.fragments || 0} fragments</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="dropdown-section">
+                                <div className="navbar-dropdown-section">
                                     <h4>Mon Compte</h4>
                                     <Link
                                         to="/profil"
-                                        className="dropdown-item"
+                                        className="navbar-dropdown-item"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
-                                        <FaUser className="dropdown-icon" />
+                                        <FaUser className="navbar-dropdown-icon" />
                                         Mon Profil
                                     </Link>
                                     <Link
                                         to="/fragments"
-                                        className="dropdown-item"
+                                        className="navbar-dropdown-item"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
-                                        <FaGem className="dropdown-icon" />
+                                        <FaGem className="navbar-dropdown-icon" />
                                         Mes Fragments
                                     </Link>
                                     <Link
                                         to="/abonnements"
-                                        className="dropdown-item"
+                                        className="navbar-dropdown-item"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
-                                        <FaCrown className="dropdown-icon" />
+                                        <FaCrown className="navbar-dropdown-icon" />
                                         Mes Abonnements
                                     </Link>
                                 </div>
 
                                 {/* Section spéciale pour les parents */}
                                 {user?.accountType === 'parent' && (
-                                    <div className="dropdown-section">
+                                    <div className="navbar-dropdown-section">
                                         <h4>Gestion Famille</h4>
                                         <Link
                                             to="/parent-dashboard"
-                                            className="dropdown-item special"
+                                            className="navbar-dropdown-item special"
                                             onClick={() => setIsProfileOpen(false)}
                                         >
-                                            <FaUsers className="dropdown-icon" />
+                                            <FaUsers className="navbar-dropdown-icon" />
                                             Gestion Enfants
                                         </Link>
                                     </div>
                                 )}
 
-                                <div className="dropdown-section">
+                                <div className="navbar-dropdown-section">
                                     <h4>Paramètres</h4>
                                     <Link
                                         to="/modifier-profil"
-                                        className="dropdown-item"
+                                        className="navbar-dropdown-item"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
-                                        <FaCog className="dropdown-icon" />
+                                        <FaCog className="navbar-dropdown-icon" />
                                         Modifier Profil
                                     </Link>
                                 </div>
 
-                                <div className="dropdown-footer">
+                                <div className="navbar-dropdown-footer">
                                     <button
-                                        className="logout-button"
+                                        className="navbar-logout-button"
                                         onClick={handleLogout}
                                     >
-                                        <FaSignOutAlt className="dropdown-icon" />
+                                        <FaSignOutAlt className="navbar-dropdown-icon" />
                                         Se déconnecter
                                     </button>
                                 </div>
@@ -222,7 +222,7 @@ function NavBar() {
             {/* Overlay pour fermer le dropdown */}
             {isProfileOpen && (
                 <div
-                    className="dropdown-overlay"
+                    className="navbar-dropdown-overlay"
                     onClick={() => setIsProfileOpen(false)}
                 ></div>
             )}

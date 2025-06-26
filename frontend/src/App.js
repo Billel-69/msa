@@ -8,7 +8,11 @@ import Fragments from './pages/Fragments';
 import Login from './pages/Login';
 import Subscriptions from './pages/Subscriptions';
 import Register from "./pages/Register";
-import Live from "./pages/Live";
+
+// IMPORTANT: Nouveau composant pour les sessions live
+import LiveSession from "./pages/LiveSession"; // ← Nouveau avec chat temps réel
+import LiveMenu from "./pages/LiveMenu"; // ← Menu principal
+
 import PrivateRoute from './components/PrivateRoute';
 import EditProfile from "./pages/EditProfile";
 
@@ -28,6 +32,9 @@ import Messages from "./pages/Messages";
 function App() {
     const location = useLocation();
 
+    // Debug: afficher la route actuelle
+    console.log('🛣️ Route actuelle:', location.pathname);
+
     return (
         <>
             {location.pathname !== '/connexion' && <NavBar />}
@@ -35,7 +42,20 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/mondes" element={<Worlds />} />
-                <Route path="/live" element={<Live />} />
+
+                {/* MENU LIVE PRINCIPAL */}
+                <Route path="/live" element={
+                    <PrivateRoute>
+                        <LiveMenu />
+                    </PrivateRoute>
+                } />
+
+                {/* SESSION LIVE INDIVIDUELLE - NOUVEAU COMPOSANT */}
+                <Route path="/live/session/:sessionId" element={
+                    <PrivateRoute>
+                        <LiveSession />
+                    </PrivateRoute>
+                } />
 
                 {/* Routes protégées */}
                 <Route path="/profil" element={
@@ -103,14 +123,12 @@ function App() {
                     </PrivateRoute>
                 } />
 
-                {/* CHANGEMENT ICI : ParentSetup maintenant protégé */}
+                {/* Routes Parent */}
                 <Route path="/parent-setup" element={
                     <PrivateRoute>
                         <ParentSetup />
                     </PrivateRoute>
                 } />
-
-                {/* Nouveau : Dashboard parent */}
                 <Route path="/parent-dashboard" element={
                     <PrivateRoute>
                         <ParentDashboard />
