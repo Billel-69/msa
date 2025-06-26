@@ -38,15 +38,15 @@ const MiniGames = () => {
     // ---------------------------------------------------------------------------------
 
     /**
-     * Gère la navigation vers le jeu de Flash Cards.
+     * Gère la navigation vers le jeu de Quiz.
      * @param {React.MouseEvent} e - L'événement de clic.
      */
-    const handlePlayFlashCards = (e) => {
+    const handlePlayQuiz = (e) => {
         e.preventDefault(); // Empêche le comportement par défaut du bouton
         e.stopPropagation(); // Arrête la propagation de l'événement pour éviter les clics non désirés
-        console.log('Lancement du jeu "Flash Cards"...');
+        console.log('Lancement du jeu "Quiz Interactif"...');
         try {
-            navigate('/flash-cards'); // Redirige l'utilisateur
+            navigate('/quiz-game'); // Redirige l'utilisateur
         } catch (error) {
             console.error('Erreur de navigation:', error);
         }
@@ -143,23 +143,23 @@ const MiniGames = () => {
                 
                 {/* Grille des jeux */}
                 <div className="minigames-grid">
-                    {/* Carte du jeu "Flash Cards" (Mis en avant) */}
+                    {/* Carte du jeu "Quiz Interactif" (Mis en avant) */}
                     <div 
                         className="minigames-card featured"
-                        onMouseEnter={() => setHoveredCard('flash-cards')} // Effet au survol
+                        onMouseEnter={() => setHoveredCard('quiz-game')} // Effet au survol
                         onMouseLeave={() => setHoveredCard(null)}
                     >
                         <div className="featured-badge">
                             <FaBolt />
-                            À la une
+                            Nouveau
                         </div>
-                        <div className="minigames-card-icon">🃏</div>
-                        <h3>Cartes Mémoire Éclair</h3>
-                        <p>Mathématiques, sciences, histoire... répondez à un maximum de questions en un temps record!</p>
+                        <div className="minigames-card-icon">🧩</div>
+                        <h3>Quiz Interactif</h3>
+                        <p>Testez vos connaissances sur divers sujets et gagnez des points pour grimper dans le classement !</p>
                         <button 
-                            onClick={handlePlayFlashCards}
+                            onClick={handlePlayQuiz}
                             className="minigames-play-btn"
-                            aria-label="Lancer le jeu Cartes Mémoire Éclair"
+                            aria-label="Lancer le jeu Quiz Interactif"
                         >
                             <FaPlay />
                             <span>Jouer</span>
@@ -185,19 +185,6 @@ const MiniGames = () => {
                     
                     {/* Cartes de jeux à venir (placeholders) */}
                     <div
-                        className="minigames-card"
-                        onMouseEnter={() => setHoveredCard('quiz')}
-                        onMouseLeave={() => setHoveredCard(null)}
-                    >
-                        <div className="minigames-card-icon">🧩</div>
-                        <h3>Quiz du Savoir</h3>
-                        <p>Affrontez d'autres joueurs dans un quiz de culture générale avec classement en direct.</p>
-                        <div className="minigames-soon">
-                            <FaCrown style={{ marginRight: '8px' }} /> Prochainement
-                        </div>
-                    </div>
-
-                    <div 
                         className="minigames-card"
                         onMouseEnter={() => setHoveredCard('math')}
                         onMouseLeave={() => setHoveredCard(null)}
@@ -321,7 +308,7 @@ const MiniGames = () => {
                     <div className="goals-grid">
                         <div className="goal-item">
                             <FaBolt />
-                            <span>Terminer une session de Cartes Mémoire</span>
+                            <span>Terminer une session de Quiz</span>
                         </div>
                         <div className="goal-item">
                             <FaTrophy />

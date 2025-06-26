@@ -1,25 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/authMiddleware');
-const flashCardsController = require('../controllers/flashCardsController_fixed');
 
-// Flash Cards routes
-// POST /api/games/flash-cards/start - Start a new game session
-router.post('/flash-cards/start', authMiddleware, flashCardsController.startGame);
+// Add child-only authorization middleware
+const childOnly = (req, res, next) => {
+    if (req.user.accountType !== 'child') {
+        return res.status(403).json({ error: 'Accès réservé aux utilisateurs enfants' });
+    }
+    next();
+};
 
-// POST /api/games/flash-cards/answer - Submit answer for a single card
-router.post('/flash-cards/answer', authMiddleware, flashCardsController.submitAnswer);
-
-// POST /api/games/flash-cards/complete - Complete a game session
-router.post('/flash-cards/complete', authMiddleware, flashCardsController.completeSession);
-
-// GET /api/games/flash-cards/stats/:userId - Get user statistics
-router.get('/flash-cards/stats/:userId?', authMiddleware, flashCardsController.getUserStats);
+// Apply authentication and child-only authorization to all routes
+router.use(authMiddleware, childOnly);
 
 // General game routes (for future expansion)
 
 // GET /api/games/available - Get list of available games
-router.get('/available', authMiddleware, async (req, res) => {
+router.get('/available', async (req, res) => {
     try {
         const [games] = await require('../config/db').execute(
             'SELECT * FROM mini_games WHERE is_active = TRUE ORDER BY name'
@@ -31,7 +28,7 @@ router.get('/available', authMiddleware, async (req, res) => {
 });
 
 // GET /api/games/leaderboard/:gameType - Get leaderboard for a game type
-router.get('/leaderboard/:gameType', authMiddleware, async (req, res) => {
+router.get('/leaderboard/:gameType', async (req, res) => {
     try {
         const { gameType } = req.params;
         const { timeframe = '7d' } = req.query;
@@ -58,7 +55,7 @@ router.get('/leaderboard/:gameType', authMiddleware, async (req, res) => {
 });
 
 // GET /api/games/user-progress/:userId - Get overall user game progress
-router.get('/user-progress/:userId?', authMiddleware, async (req, res) => {
+router.get('/user-progress/:userId?', async (req, res) => {
     try {
         const userId = req.params.userId || req.user.id;
         

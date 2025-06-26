@@ -26,8 +26,8 @@ import ParentDashboard from "./pages/ParentDashboard";
 import Messages from "./pages/Messages";
 
 // Import des mini-jeux
-import FlashCards from "./components/games/FlashCards";
 import MiniGames from "./pages/MiniGames";
+import QuizGame from "./components/QuizGame";
 
 function App() {
     const location = useLocation();
@@ -45,9 +45,9 @@ function App() {
                         <MiniGames />
                     </PrivateRoute>
                 } />
-                <Route path="/flash-cards" element={
+                <Route path="/quiz-game" element={
                     <PrivateRoute>
-                        <FlashCards />
+                        <QuizGame />
                     </PrivateRoute>
                 } />
 

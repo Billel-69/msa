@@ -1,0 +1,42 @@
+/* Global Theme Variables and Mixins */
+:root {
+    /* Colors */
+    --color-bg-dark: #0f0c29;
+    --color-bg-mid: #24243e;
+    --color-bg-light: #302b63;
+    --color-accent: #00e0ff;
+    --color-accent-hover: #00bfff;
+    --color-text: #ffffff;
+    --color-border: rgba(0, 224, 255, 0.2);
+    --color-secondary-bg: rgba(0, 224, 255, 0.1);
+    --color-secondary-bg-hover: rgba(0, 224, 255, 0.2);
+
+    /* Typography */
+    --font-main: 'Poppins', Arial, sans-serif;
+    --font-size-base: 16px;
+
+    /* Gradients */
+    --gradient-bg: linear-gradient(135deg, var(--color-bg-dark), var(--color-bg-light));
+    --gradient-particles: radial-gradient(circle at 20px 30px, var(--color-accent) 0%, transparent 2px),
+                         radial-gradient(circle at 80px 70px, rgba(255,255,255,0.1) 0%, transparent 2px);
+}
+
+/* Utility Classes */
+.bg-main { background: var(--gradient-bg); color: var(--color-text); }
+.body-bg { background: var(--gradient-bg); }
+
+/* Particle Background */
+.particles-bg::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: var(--gradient-particles);
+    background-repeat: repeat;
+    background-size: 300px 300px;
+    z-index: 0;
+    opacity: 0.4;
+    pointer-events: none;
+}

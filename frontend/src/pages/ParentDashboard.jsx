@@ -14,7 +14,10 @@ import {
     FaStar,
     FaCalendarAlt,
     FaUserPlus,
-    FaCog
+    FaCog,
+    FaChartBar, // Added for charts
+    FaBookOpen, // Added for subjects
+    FaHistory, // Added for activity
 } from 'react-icons/fa';
 import './ParentDashboard.css';
 
@@ -55,172 +58,168 @@ function ParentDashboard() {
     };
 
     const renderOverviewTab = () => (
-        <div className="overview-tab">
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaClock />
+        <div className="overview-tab-reworked">
+            <div className="stats-grid-reworked">
+                <div className="stat-card-reworked">
+                    <div className="card-header-reworked">
+                        <span className="card-title-reworked">Temps d'apprentissage</span>
+                        <FaClock className="card-icon-reworked" />
                     </div>
-                    <div className="stat-info">
-                        <h3>Temps d'apprentissage</h3>
-                        <p className="stat-value">2h 30m</p>
-                        <span className="stat-period">Cette semaine</span>
-                    </div>
+                    <p className="card-value-reworked">2h 30m</p>
+                    <span className="card-period-reworked">Cette semaine</span>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaTrophy />
+                <div className="stat-card-reworked">
+                    <div className="card-header-reworked">
+                        <span className="card-title-reworked">Quêtes complétées</span>
+                        <FaTrophy className="card-icon-reworked" />
                     </div>
-                    <div className="stat-info">
-                        <h3>Quêtes complétées</h3>
-                        <p className="stat-value">{selectedChild?.quests_completed || 0}</p>
-                        <span className="stat-period">Total</span>
-                    </div>
+                    <p className="card-value-reworked">{selectedChild?.quests_completed || 0}</p>
+                    <span className="card-period-reworked">Total</span>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaStar />
+                <div className="stat-card-reworked">
+                    <div className="card-header-reworked">
+                        <span className="card-title-reworked">Fragments collectés</span>
+                        <FaStar className="card-icon-reworked" />
                     </div>
-                    <div className="stat-info">
-                        <h3>Fragments collectés</h3>
-                        <p className="stat-value">{selectedChild?.fragments || 0}</p>
-                        <span className="stat-period">Total</span>
-                    </div>
+                    <p className="card-value-reworked">{selectedChild?.fragments || 0}</p>
+                    <span className="card-period-reworked">Total</span>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaBook />
+                <div className="stat-card-reworked">
+                    <div className="card-header-reworked">
+                        <span className="card-title-reworked">Niveau actuel</span>
+                        <FaChartLine className="card-icon-reworked" />
                     </div>
-                    <div className="stat-info">
-                        <h3>Niveau actuel</h3>
-                        <p className="stat-value">Niveau {selectedChild?.level || 1}</p>
-                        <span className="stat-period">Rang: {selectedChild?.rank || 'Débutant'}</span>
+                    <p className="card-value-reworked">{selectedChild?.level || 1}</p>
+                    <span className="card-period-reworked">Rang: {selectedChild?.rank || 'Débutant'}</span>
+                </div>
+            </div>
+
+            <div className="mini-games-reworked">
+                <h3 className="section-title-reworked">Mini-Jeux</h3>
+                <div className="game-card-reworked" onClick={() => navigate('/quiz-game')}>
+                    <div className="game-card-icon-reworked">
+                        <FaGamepad />
+                    </div>
+                    <div className="game-card-details-reworked">
+                        <span className="game-card-title-reworked">Quiz Interactif</span>
+                        <p className="game-card-description-reworked">Testez vos connaissances et gagnez des récompenses.</p>
                     </div>
                 </div>
             </div>
 
-            <div className="recent-activity">
-                <h3>Activité récente</h3>
-                <div className="activity-list">
-                    <div className="activity-item">
-                        <div className="activity-icon">🎯</div>
-                        <div className="activity-details">
-                            <p><strong>Quête "Mathématiques" complétée</strong></p>
-                            <span>Il y a 2 heures</span>
-                        </div>
-                        <div className="activity-reward">+10 fragments</div>
+            <div className="recent-activity-reworked">
+                <h3 className="section-title-reworked">Activité Récente</h3>
+                <div className="activity-item-reworked">
+                    <div className="activity-icon-reworked" style={{ backgroundColor: 'var(--db-success-light)', color: 'var(--db-success)' }}><FaBookOpen /></div>
+                    <div className="activity-details-reworked">
+                        <p>Quête "Mathématiques" complétée</p>
+                        <span>Il y a 2 heures</span>
                     </div>
-
-                    <div className="activity-item">
-                        <div className="activity-icon">📚</div>
-                        <div className="activity-details">
-                            <p><strong>Nouveau niveau atteint en Français</strong></p>
-                            <span>Hier</span>
-                        </div>
-                        <div className="activity-reward">Niveau 3</div>
+                    <span className="activity-reward-reworked">+10 fragments</span>
+                </div>
+                <div className="activity-item-reworked">
+                    <div className="activity-icon-reworked" style={{ backgroundColor: 'var(--db-success-light)', color: 'var(--db-success)' }}><FaChartLine /></div>
+                    <div className="activity-details-reworked">
+                        <p>Nouveau niveau atteint en Français</p>
+                        <span>Hier</span>
                     </div>
-
-                    <div className="activity-item">
-                        <div className="activity-icon">🏆</div>
-                        <div className="activity-details">
-                            <p><strong>Badge "Explorateur" débloqué</strong></p>
-                            <span>Il y a 3 jours</span>
-                        </div>
-                        <div className="activity-reward">Nouveau badge</div>
+                    <span className="activity-reward-reworked">Niveau 3</span>
+                </div>
+                <div className="activity-item-reworked">
+                    <div className="activity-icon-reworked" style={{ backgroundColor: 'var(--db-success-light)', color: 'var(--db-success)' }}><FaTrophy /></div>
+                    <div className="activity-details-reworked">
+                        <p>Badge "Explorateur" débloqué</p>
+                        <span>Il y a 3 jours</span>
                     </div>
+                    <span className="activity-reward-reworked">Nouveau badge</span>
                 </div>
             </div>
         </div>
     );
 
     const renderProgressTab = () => (
-        <div className="progress-tab">
-            <div className="subject-progress">
-                <h3>Progression par matière</h3>
-                <div className="subjects-grid">
+        <div className="progress-tab-reworked">
+            <div className="card-reworked">
+                <h3 className="section-title-reworked">Progression par Matière</h3>
+                <div className="subjects-grid-reworked">
                     {['Mathématiques', 'Français', 'Sciences', 'Histoire', 'Anglais', 'Arts'].map((subject) => (
-                        <div key={subject} className="subject-card">
-                            <h4>{subject}</h4>
-                            <div className="progress-bar">
+                        <div key={subject} className="subject-progress-item-reworked">
+                            <div className="subject-info-reworked">
+                                <span>{subject}</span>
+                                <span>{Math.floor(Math.random() * 100)}%</span>
+                            </div>
+                            <div className="progress-bar-container-reworked">
                                 <div
-                                    className="progress-fill"
+                                    className="progress-bar-fill-reworked"
                                     style={{ width: `${Math.floor(Math.random() * 100)}%` }}
                                 ></div>
-                            </div>
-                            <div className="subject-stats">
-                                <span>Niveau {Math.floor(Math.random() * 5) + 1}</span>
-                                <span>{Math.floor(Math.random() * 50)} quêtes</span>
                             </div>
                         </div>
                     ))}
                 </div>
             </div>
-
-            <div className="weekly-chart">
-                <h3>Activité de la semaine</h3>
-                <div className="chart-placeholder">
-                    <div className="chart-bars">
-                        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
-                            <div key={day} className="chart-bar">
-                                <div
-                                    className="bar-fill"
-                                    style={{ height: `${Math.random() * 100}%` }}
-                                ></div>
-                                <span>{day}</span>
-                            </div>
-                        ))}
-                    </div>
+            <div className="card-reworked">
+                <h3 className="section-title-reworked">Activité de la Semaine (Heures)</h3>
+                <div className="weekly-chart-reworked">
+                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
+                        <div key={day} className="chart-bar-reworked">
+                            <div className="bar-fill-reworked" style={{ height: `${Math.random() * 150}px` }}></div>
+                            <span>{day}</span>
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
     );
 
     const renderActivityTab = () => (
-        <div className="activity-tab">
-            <div className="time-controls">
-                <h3>Contrôles parentaux</h3>
-                <div className="controls-grid">
-                    <div className="control-card">
-                        <h4>Temps d'écran quotidien</h4>
-                        <div className="time-selector">
-                            <button className="time-btn">30 min</button>
-                            <button className="time-btn active">1h</button>
-                            <button className="time-btn">2h</button>
-                            <button className="time-btn">Illimité</button>
-                        </div>
+        <div className="activity-tab-reworked">
+            <div className="activity-filter">
+                <h3>Filtrer l'activité</h3>
+                <form className="filter-form">
+                    <div className="form-group">
+                        <label htmlFor="activity-type">Type d'activité</label>
+                        <select id="activity-type">
+                            <option value="all">Toutes</option>
+                            <option value="quests">Quêtes</option>
+                            <option value="games">Mini-jeux</option>
+                            <option value="login">Connexions</option>
+                        </select>
                     </div>
-
-                    <div className="control-card">
-                        <h4>Plages horaires autorisées</h4>
-                        <div className="time-ranges">
-                            <div className="time-range">
-                                <span>Matin: 9h00 - 12h00</span>
-                                <button className="toggle-btn active">✓</button>
-                            </div>
-                            <div className="time-range">
-                                <span>Après-midi: 14h00 - 17h00</span>
-                                <button className="toggle-btn active">✓</button>
-                            </div>
-                            <div className="time-range">
-                                <span>Soir: 18h00 - 20h00</span>
-                                <button className="toggle-btn">○</button>
-                            </div>
-                        </div>
+                    <div className="form-group">
+                        <label htmlFor="activity-date">Date</label>
+                        <input type="date" id="activity-date" />
                     </div>
+                    <button type="submit" className="btn-reworked-secondary">Appliquer</button>
+                </form>
+            </div>
 
-                    <div className="control-card">
-                        <h4>Matières autorisées</h4>
-                        <div className="subjects-toggle">
-                            {['Mathématiques', 'Français', 'Sciences', 'Histoire'].map((subject) => (
-                                <div key={subject} className="subject-toggle">
-                                    <span>{subject}</span>
-                                    <button className="toggle-btn active">✓</button>
-                                </div>
-                            ))}
-                        </div>
+            <div className="recent-activity-reworked" style={{ marginTop: '2rem' }}>
+                <h3 className="section-title-reworked">Journal d'activité de {selectedChild?.username}</h3>
+                <div className="activity-item-reworked">
+                    <div className="activity-icon-reworked" style={{ backgroundColor: 'var(--db-success-light)', color: 'var(--db-success)' }}><FaBookOpen /></div>
+                    <div className="activity-details-reworked">
+                        <p>Quête "Mathématiques - Chapitre 1" complétée</p>
+                        <span>Aujourd'hui, 14:30</span>
+                    </div>
+                    <span className="activity-reward-reworked">+15 fragments</span>
+                </div>
+                <div className="activity-item-reworked">
+                    <div className="activity-icon-reworked" style={{ backgroundColor: 'var(--db-success-light)', color: 'var(--db-success)' }}><FaGamepad /></div>
+                    <div className="activity-details-reworked">
+                        <p>A joué à "Calcul Rapide" pendant 20 minutes</p>
+                        <span>Aujourd'hui, 11:10</span>
+                    </div>
+                    <span className="activity-reward-reworked">Score: 2100</span>
+                </div>
+                 <div className="activity-item-reworked">
+                    <div className="activity-icon-reworked" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#a9a2c2' }}><FaUserPlus /></div>
+                    <div className="activity-details-reworked">
+                        <p>Connexion à la plateforme</p>
+                        <span>Aujourd'hui, 11:05</span>
                     </div>
                 </div>
             </div>
@@ -228,74 +227,60 @@ function ParentDashboard() {
     );
 
     const renderSettingsTab = () => (
-        <div className="settings-tab">
-            <div className="settings-sections">
-                <div className="settings-section">
-                    <h3>Gestion du compte enfant</h3>
-                    <div className="settings-options">
-                        <div className="setting-item">
-                            <div className="setting-info">
-                                <h4>Nom d'utilisateur</h4>
-                                <p>{selectedChild?.username}</p>
-                            </div>
-                            <button className="setting-btn">Modifier</button>
-                        </div>
-
-                        <div className="setting-item">
-                            <div className="setting-info">
-                                <h4>Email</h4>
-                                <p>{selectedChild?.email}</p>
-                            </div>
-                            <button className="setting-btn">Modifier</button>
-                        </div>
-
-                        <div className="setting-item">
-                            <div className="setting-info">
-                                <h4>Mot de passe</h4>
-                                <p>••••••••</p>
-                            </div>
-                            <button className="setting-btn">Changer</button>
-                        </div>
-                    </div>
+        <div className="settings-tab-reworked">
+            <div className="settings-section">
+                <h3>Gestion du compte de {selectedChild?.username}</h3>
+                <div className="form-group">
+                    <label htmlFor="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" defaultValue={selectedChild?.username} />
                 </div>
-
-                <div className="settings-section">
-                    <h3>Notifications</h3>
-                    <div className="notification-settings">
-                        <div className="notification-item">
-                            <span>Rapport quotidien d'activité</span>
-                            <button className="toggle-btn active">✓</button>
-                        </div>
-                        <div className="notification-item">
-                            <span>Nouveaux accomplissements</span>
-                            <button className="toggle-btn active">✓</button>
-                        </div>
-                        <div className="notification-item">
-                            <span>Rappels de temps d'écran</span>
-                            <button className="toggle-btn">○</button>
-                        </div>
-                    </div>
+                <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input type="email" id="email" defaultValue={selectedChild?.email} />
                 </div>
+                <div className="form-group">
+                    <label htmlFor="password">Nouveau mot de passe</label>
+                    <input type="password" id="password" placeholder="Laisser vide pour ne pas changer" />
+                </div>
+                <button className="btn-reworked-primary">Sauvegarder les modifications</button>
+            </div>
+
+            <div className="settings-section">
+                <h3>Notifications par email</h3>
+                <div className="form-group">
+                    <label>Rapport d'activité</label>
+                    <select>
+                        <option>Jamais</option>
+                        <option selected>Quotidien</option>
+                        <option>Hebdomadaire</option>
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Alertes d'accomplissement</label>
+                    <select>
+                        <option>Désactivées</option>
+                        <option selected>Activées</option>
+                    </select>
+                </div>
+                <button className="btn-reworked-primary">Gérer les notifications</button>
             </div>
         </div>
     );
 
     if (loading) {
-        return <div className="parent-dashboard loading">Chargement...</div>;
+        return <div>Chargement...</div>;
     }
 
     if (children.length === 0) {
         return (
-            <div className="parent-dashboard empty">
-                <div className="empty-state">
-                    <FaChild className="empty-icon" />
-                    <h2>Aucun enfant lié</h2>
-                    <p>Commencez par ajouter un compte enfant pour accéder au tableau de bord.</p>
-                    <button
-                        className="add-child-btn"
-                        onClick={() => navigate('/parent-setup')}
-                    >
-                        <FaPlus /> Ajouter un enfant
+            <div className="parent-dashboard-reworked empty">
+                <div className="empty-state-reworked">
+                    <div className="empty-icon-reworked"><FaUserPlus /></div>
+                    <h2>Aucun enfant n'est encore ajouté</h2>
+                    <p>Commencez par ajouter votre premier enfant pour suivre ses progrès.</p>
+                    <button className="add-child-btn-reworked" onClick={() => navigate('/add-child')}>
+                        <FaPlus />
+                        Ajouter un enfant
                     </button>
                 </div>
             </div>
@@ -303,71 +288,66 @@ function ParentDashboard() {
     }
 
     return (
-        <div className="parent-dashboard">
-            <div className="dashboard-header">
-                <h1>Tableau de bord parent</h1>
-                <button
-                    className="add-child-btn"
-                    onClick={() => navigate('/parent-setup')}
-                >
-                    <FaPlus /> Ajouter un enfant
+        <div className="parent-dashboard-reworked">
+            <header className="dashboard-header-reworked">
+                <h1>Tableau de Bord Parent</h1>
+                <button className="add-child-btn-reworked" onClick={() => navigate('/add-child')}>
+                    <FaPlus />
+                    Ajouter un enfant
                 </button>
-            </div>
+            </header>
 
-            <div className="children-selector">
-                <h2>Mes enfants</h2>
-                <div className="children-tabs">
-                    {children.map((child) => (
-                        <div
-                            key={child.id}
-                            className={`child-tab ${selectedChild?.id === child.id ? 'active' : ''}`}
-                            onClick={() => setSelectedChild(child)}
-                        >
-                            <div className="child-avatar">
-                                {child.name.charAt(0).toUpperCase()}
-                            </div>
-                            <span>{child.name}</span>
+            <div className="children-selector-reworked">
+                {children.map((child) => (
+                    <div
+                        key={child._id}
+                        className={`child-tab-reworked ${selectedChild?._id === child._id ? 'active' : ''}`}
+                        onClick={() => setSelectedChild(child)}
+                    >
+                        <div className="child-avatar-reworked">
+                            <img src={child.profilePicture || '/default-avatar.png'} alt={child.username} />
                         </div>
-                    ))}
-                </div>
+                        <span>{child.username}</span>
+                    </div>
+                ))}
             </div>
 
             {selectedChild && (
-                <div className="dashboard-content">
-                    <div className="tab-navigation">
+                <>
+                    <div className="dashboard-tabs-reworked">
                         <button
-                            className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                            className={`tab-btn-reworked ${activeTab === 'overview' ? 'active' : ''}`}
                             onClick={() => setActiveTab('overview')}
                         >
-                            <FaChartLine /> Vue d'ensemble
+                            <FaEye /> Vue d'ensemble
                         </button>
                         <button
-                            className={`tab-btn ${activeTab === 'progress' ? 'active' : ''}`}
+                            className={`tab-btn-reworked ${activeTab === 'progress' ? 'active' : ''}`}
                             onClick={() => setActiveTab('progress')}
                         >
-                            <FaTrophy /> Progression
+                            <FaChartLine /> Progression
                         </button>
                         <button
-                            className={`tab-btn ${activeTab === 'activity' ? 'active' : ''}`}
+                            className={`tab-btn-reworked ${activeTab === 'activity' ? 'active' : ''}`}
                             onClick={() => setActiveTab('activity')}
                         >
-                            <FaClock /> Contrôles
+                            <FaHistory /> Activité
                         </button>
                         <button
-                            className={`tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
+                            className={`tab-btn-reworked ${activeTab === 'settings' ? 'active' : ''}`}
                             onClick={() => setActiveTab('settings')}
                         >
                             <FaCog /> Paramètres
                         </button>
                     </div>
 
-                    <div className="tab-content">
+                    <div className="dashboard-content-reworked">
                         {activeTab === 'overview' && renderOverviewTab()}
                         {activeTab === 'progress' && renderProgressTab()}
                         {activeTab === 'activity' && renderActivityTab()}
                         {activeTab === 'settings' && renderSettingsTab()}
                     </div>
-                </div>
+                </>
             )}
         </div>
     );

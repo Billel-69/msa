@@ -317,3 +317,143 @@ exports.searchUsers = async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la recherche d\'utilisateurs' });
     }
 };
+
+// Alias for creating child account using the existing register logic
+exports.createChildAccount = exports.register;
+// Alias for getting children linked to a parent
+exports.getMyChildren = exports.getLinkedChildren;
+
+// Follow another user
+exports.followUser = async (req, res) => {
+    const followerId = req.user.id;
+    const followedId = parseInt(req.params.id);
+
+    if (followerId === followedId) {
+        return res.status(400).json({ error: 'Vous ne pouvez pas vous suivre vous-même' });
+    }
+
+    try {
+        // Vérifie si l'utilisateur cible existe
+        const [userCheck] = await db.execute(
+            'SELECT id FROM users WHERE id = ?',
+            [followedId]
+        );
+        if (userCheck.length === 0) {
+            return res.status(404).json({ error: 'Utilisateur non trouvé' });
+        }
+
+        // Vérifie si le lien existe déjà
+        const [existing] = await db.execute(
+            'SELECT id FROM followers WHERE follower_id = ? AND followed_id = ?',
+            [followerId, followedId]
+        );
+        if (existing.length > 0) {
+            return res.status(409).json({ error: 'Vous suivez déjà cet utilisateur' });
+        }
+
+        // Crée le lien
+        await db.execute(
+            'INSERT INTO followers (follower_id, followed_id) VALUES (?, ?)',
+            [followerId, followedId]
+        );
+        res.status(201).json({ message: 'Utilisateur suivi avec succès' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// Unfollow a user
+exports.unfollowUser = async (req, res) => {
+    const followerId = req.user.id;
+    const followedId = parseInt(req.params.id);
+
+    try {
+        const [result] = await db.execute(
+            'DELETE FROM followers WHERE follower_id = ? AND followed_id = ?',
+            [followerId, followedId]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Vous ne suivez pas cet utilisateur' });
+        }
+        res.json({ message: 'Vous avez arrêté de suivre cet utilisateur' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// Check follow status
+exports.getFollowStatus = async (req, res) => {
+    const followerId = req.user.id;
+    const followedId = parseInt(req.params.id);
+
+    try {
+        const [rows] = await db.execute(
+            'SELECT id FROM followers WHERE follower_id = ? AND followed_id = ?',
+            [followerId, followedId]
+        );
+        res.json({ following: rows.length > 0 });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// Get followers of current user
+exports.getFollowers = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const [followers] = await db.execute(
+            `SELECT u.id, u.name, u.username, u.profile_picture, u.account_type
+             FROM followers f
+             JOIN users u ON f.follower_id = u.id
+             WHERE f.followed_id = ?
+             ORDER BY f.created_at DESC`,
+            [userId]
+        );
+        res.json(followers);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// Get users the current user is following
+exports.getFollowing = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const [following] = await db.execute(
+            `SELECT u.id, u.name, u.username, u.profile_picture, u.account_type
+             FROM followers f
+             JOIN users u ON f.followed_id = u.id
+             WHERE f.follower_id = ?
+             ORDER BY f.created_at DESC`,
+            [userId]
+        );
+        res.json(following);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// Get public user information by ID
+exports.getUserById = async (req, res) => {
+    try {
+        const targetUserId = parseInt(req.params.id);
+        const [rows] = await db.execute(
+            'SELECT id, name, username, email, account_type, profile_picture, level, quests_completed, fragments, badges, user_rank, style FROM users WHERE id = ?',
+            [targetUserId]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Utilisateur introuvable' });
+        }
+        res.json(rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};

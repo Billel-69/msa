@@ -66,15 +66,19 @@ function NavBar() {
                 >
                     <FaVideo className="nav-icon" />
                     <span>Live</span>
-                </Link>                <Link
-                    to="/mini-jeux"
-                    className={`nav-link ${isActiveLink('/mini-jeux') || isActiveLink('/flash-cards') ? 'active' : ''}`}
-                >
-                    <FaGamepad className="nav-icon" />
-                    <span>Mini-Jeux</span>
                 </Link>
 
                 {/* Liens pour utilisateurs connectés */}
+                {token && user?.accountType === 'child' && (
+                    <Link
+                        to="/mini-jeux"
+                        className={`nav-link ${isActiveLink('/mini-jeux') || isActiveLink('/flash-cards') ? 'active' : ''}`}
+                    >
+                        <FaGamepad className="nav-icon" />
+                        <span>Mini-Jeux</span>
+                    </Link>
+                )}
+
                 {token && (
                     <>
                         <Link

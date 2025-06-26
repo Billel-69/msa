@@ -166,3 +166,84 @@ exports.updateComment = async (req, res) => {
         res.status(500).json({ error: 'Erreur serveur' });
     }
 };
+
+// Toggle like on a comment
+exports.toggleCommentLike = async (req, res) => {
+    try {
+        const commentId = parseInt(req.params.id);
+        const userId = req.user.id;
+
+        // Vérifie que le commentaire existe
+        const [comment] = await db.execute('SELECT id FROM comments WHERE id = ?', [commentId]);
+        if (comment.length === 0) {
+            return res.status(404).json({ error: 'Commentaire non trouvé' });
+        }
+
+        // Vérifie si l'utilisateur a déjà liké
+        const [existing] = await db.execute(
+            'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?',
+            [commentId, userId]
+        );
+        let liked;
+        if (existing.length > 0) {
+            // Retire le like
+            await db.execute(
+                'DELETE FROM comment_likes WHERE comment_id = ? AND user_id = ?',
+                [commentId, userId]
+            );
+            liked = false;
+        } else {
+            // Ajoute un like
+            await db.execute(
+                'INSERT INTO comment_likes (comment_id, user_id, created_at) VALUES (?, ?, NOW())',
+                [commentId, userId]
+            );
+            liked = true;
+        }
+
+        // Récupère le nombre total de likes
+        const [countResult] = await db.execute(
+            'SELECT COUNT(*) as likesCount FROM comment_likes WHERE comment_id = ?',
+            [commentId]
+        );
+        const likesCount = countResult[0].likesCount;
+
+        res.json({ liked, likesCount });
+    } catch (err) {
+        console.error('Erreur lors du toggling du like:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};
+
+// Get like status and total count for a comment
+exports.getCommentLikeStatus = async (req, res) => {
+    try {
+        const commentId = parseInt(req.params.id);
+        const userId = req.user.id;
+
+        // Vérifie que le commentaire existe
+        const [comment] = await db.execute('SELECT id FROM comments WHERE id = ?', [commentId]);
+        if (comment.length === 0) {
+            return res.status(404).json({ error: 'Commentaire non trouvé' });
+        }
+
+        // Vérifie si l'utilisateur a liké
+        const [existing] = await db.execute(
+            'SELECT id FROM comment_likes WHERE comment_id = ? AND user_id = ?',
+            [commentId, userId]
+        );
+        const liked = existing.length > 0;
+
+        // Récupère le nombre total de likes
+        const [countResult] = await db.execute(
+            'SELECT COUNT(*) as likesCount FROM comment_likes WHERE comment_id = ?',
+            [commentId]
+        );
+        const likesCount = countResult[0].likesCount;
+
+        res.json({ liked, likesCount });
+    } catch (err) {
+        console.error('Erreur lors de la récupération du statut du like:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+};

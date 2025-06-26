@@ -5,6 +5,7 @@ const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const gameRoutes = require('./routes/gameRoutes'); // Mini-games routes
+const quizRoutes = require('./routes/quizRoutes'); // Quiz routes
 const connectMongoDB = require('./config/mongodb'); // MongoDB connection
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/games', gameRoutes); // Mini-games API routes
+app.use('/api/quizzes', quizRoutes); // Quiz API routes
 
 // Route de test
 app.get('/', (req, res) => {
