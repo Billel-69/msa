@@ -5,8 +5,11 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 const db = require('../config/db');
 
-// Clé secrète pour les jetons JWT, avec une valeur par défaut
-const JWT_SECRET = process.env.JWT_SECRET || 'kaizenverse_secret_key';
+// Clé secrète pour les jetons JWT (obligatoire)
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not defined');
+}
 
 // Gère l'inscription d'un nouvel utilisateur
 exports.register = async (req, res) => {

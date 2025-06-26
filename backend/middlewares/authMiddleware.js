@@ -1,8 +1,11 @@
 // Middleware pour la vérification des jetons d'authentification JWT
 
 const jwt = require('jsonwebtoken');
-// Récupère la clé secrète depuis les variables d'environnement ou utilise une valeur par défaut
-const JWT_SECRET = process.env.JWT_SECRET || 'kaizenverse_secret_key';
+// Récupère la clé secrète depuis les variables d'environnement
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not defined');
+}
 
 // Fonction middleware pour vérifier le jeton JWT
 const verifyToken = (req, res, next) => {
