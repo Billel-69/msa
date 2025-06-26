@@ -95,9 +95,9 @@ const testMongoConnection = async () => {
 };
 
 // Run the test
-console.log('=' .repeat(60));
+console.log('='.repeat(60));
 console.log('🚀 MongoDB Atlas Connection Test');
-console.log('=' .repeat(60));
+console.log('='.repeat(60));
 
 testMongoConnection().catch((error) => {
     console.error('💥 Unexpected error:', error);
