@@ -49,21 +49,32 @@ function LiveMenu() {
         try {
             setLoading(true);
 
+            console.log('Récupération des sessions live...');
+
             // Récupérer les sessions actives
             const activeResponse = await axios.get('http://localhost:5000/api/live/active-sessions', {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
+            console.log('Sessions actives récupérées:', activeResponse.data.length);
             setActiveSessions(activeResponse.data);
 
             // Si l'utilisateur est professeur, récupérer ses sessions
             if (user?.accountType === 'teacher' || user?.accountType === 'parent') {
-                const myResponse = await axios.get('http://localhost:5000/api/live/my-sessions', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setMySessions(myResponse.data);
+                try {
+                    const myResponse = await axios.get('http://localhost:5000/api/live/my-sessions', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    console.log('Mes sessions récupérées:', myResponse.data.length);
+                    setMySessions(myResponse.data);
+                } catch (error) {
+                    console.error('Erreur récupération mes sessions:', error);
+                    // Continue même si erreur pour mes sessions
+                }
             }
         } catch (error) {
             console.error('Erreur lors du chargement des sessions:', error);
+            alert('Erreur lors du chargement des sessions');
         } finally {
             setLoading(false);
         }
@@ -72,10 +83,14 @@ function LiveMenu() {
     const createSession = async (e) => {
         e.preventDefault();
         try {
+            console.log('Création de session:', newSession);
+
             const response = await axios.post('http://localhost:5000/api/live/create-session',
                 newSession,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
+            console.log('Session créée:', response.data);
 
             setShowCreateModal(false);
             setNewSession({
@@ -91,26 +106,42 @@ function LiveMenu() {
             navigate(`/live/session/${response.data.sessionId}`);
         } catch (error) {
             console.error('Erreur lors de la création:', error);
-            alert('Erreur lors de la création de la session');
+            alert(error.response?.data?.error || 'Erreur lors de la création de la session');
         }
     };
 
     const joinSession = async (sessionId, needsPassword = false) => {
         try {
+            let joinData = {};
+
+            console.log('Tentative de connexion à session:', sessionId, 'Mot de passe requis:', needsPassword);
+
             if (needsPassword) {
                 const password = prompt('Cette session est protégée par un mot de passe :');
                 if (!password) return;
-
-                await axios.post(`http://localhost:5000/api/live/join-session/${sessionId}`,
-                    { password },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+                joinData.password = password;
             }
 
+            const response = await axios.post(`http://localhost:5000/api/live/join-session/${sessionId}`,
+                joinData,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            console.log('Connexion réussie:', response.data);
             navigate(`/live/session/${sessionId}`);
+
         } catch (error) {
             console.error('Erreur lors de la connexion:', error);
-            alert('Impossible de rejoindre cette session');
+
+            if (error.response?.status === 401) {
+                alert('Mot de passe incorrect');
+            } else if (error.response?.status === 400) {
+                alert('Session complète ou non disponible');
+            } else if (error.response?.status === 404) {
+                alert('Session introuvable');
+            } else {
+                alert(error.response?.data?.error || 'Impossible de rejoindre cette session');
+            }
         }
     };
 
@@ -121,27 +152,33 @@ function LiveMenu() {
         }
 
         try {
+            console.log('Recherche par code:', searchCode);
+
             const response = await axios.get(`http://localhost:5000/api/live/session-by-code/${searchCode}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            console.log('Session trouvée par code:', response.data);
             joinSession(response.data.sessionId, response.data.hasPassword);
         } catch (error) {
-            console.error('Erreur:', error);
-            alert('Code de session invalide');
+            console.error('Erreur recherche par code:', error);
+            alert(error.response?.data?.error || 'Code de session invalide');
         }
     };
 
     const startSession = async (sessionId) => {
         try {
+            console.log('Démarrage session:', sessionId);
+
             await axios.post(`http://localhost:5000/api/live/start-session/${sessionId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            console.log('Session démarrée');
             navigate(`/live/session/${sessionId}`);
         } catch (error) {
-            console.error('Erreur:', error);
-            alert('Impossible de démarrer la session');
+            console.error('Erreur démarrage:', error);
+            alert(error.response?.data?.error || 'Impossible de démarrer la session');
         }
     };
 
@@ -149,14 +186,17 @@ function LiveMenu() {
         if (!window.confirm('Êtes-vous sûr de vouloir terminer cette session ?')) return;
 
         try {
+            console.log('Fin session:', sessionId);
+
             await axios.post(`http://localhost:5000/api/live/end-session/${sessionId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            console.log('Session terminée');
             fetchLiveSessions();
         } catch (error) {
-            console.error('Erreur:', error);
-            alert('Impossible de terminer la session');
+            console.error('Erreur fin session:', error);
+            alert(error.response?.data?.error || 'Impossible de terminer la session');
         }
     };
 
@@ -245,21 +285,22 @@ function LiveMenu() {
                             <div className="session-content">
                                 <h3>{session.title}</h3>
                                 <p className="session-subject">
-                                    <FaGraduationCap /> {session.subject}
+                                    <FaGraduationCap /> {session.subject || 'Matière non spécifiée'}
                                 </p>
                                 <p className="session-teacher">
                                     Par: {session.teacher_name}
                                 </p>
-                                <p className="session-description">{session.description}</p>
+                                <p className="session-description">{session.description || 'Aucune description'}</p>
 
                                 <div className="session-info">
                                     <span className="participants">
-                                        <FaUsers /> {session.current_participants}/{session.max_participants}
+                                        <FaUsers /> {session.current_participants || 0}/{session.max_participants}
                                     </span>
                                     <span className="room-code">
                                         Code: {session.room_code}
                                     </span>
                                     {session.password && <FaLock className="private-icon" />}
+                                    {!session.password && <FaGlobe className="public-icon" />}
                                 </div>
                             </div>
 
@@ -285,6 +326,64 @@ function LiveMenu() {
                 )}
             </div>
 
+            {/* Sessions en attente */}
+            <div className="sessions-section">
+                <h2>
+                    <FaClock className="section-icon" />
+                    Sessions en attente ({activeSessions.filter(s => s.status === 'waiting').length})
+                </h2>
+
+                <div className="sessions-grid">
+                    {activeSessions.filter(s => s.status === 'waiting').map(session => (
+                        <div key={session.id} className="session-card waiting">
+                            <div className="session-status" style={{ backgroundColor: getStatusColor(session.status) }}>
+                                {getStatusText(session.status)}
+                            </div>
+
+                            <div className="session-content">
+                                <h3>{session.title}</h3>
+                                <p className="session-subject">
+                                    <FaGraduationCap /> {session.subject || 'Matière non spécifiée'}
+                                </p>
+                                <p className="session-teacher">
+                                    Par: {session.teacher_name}
+                                </p>
+                                <p className="session-description">{session.description || 'Aucune description'}</p>
+
+                                <div className="session-info">
+                                    <span className="participants">
+                                        <FaUsers /> {session.current_participants || 0}/{session.max_participants}
+                                    </span>
+                                    <span className="room-code">
+                                        Code: {session.room_code}
+                                    </span>
+                                    {session.password && <FaLock className="private-icon" />}
+                                    {!session.password && <FaGlobe className="public-icon" />}
+                                </div>
+                            </div>
+
+                            <div className="session-actions">
+                                <button
+                                    onClick={() => joinSession(session.id, !!session.password)}
+                                    className="join-btn"
+                                    disabled={session.current_participants >= session.max_participants}
+                                >
+                                    <FaEye /> Rejoindre
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {activeSessions.filter(s => s.status === 'waiting').length === 0 && (
+                    <div className="no-sessions">
+                        <FaClock className="no-sessions-icon" />
+                        <p>Aucune session en attente actuellement</p>
+                        <span>Les sessions apparaîtront ici avant leur démarrage</span>
+                    </div>
+                )}
+            </div>
+
             {/* Mes sessions (pour les professeurs) */}
             {(user?.accountType === 'teacher' || user?.accountType === 'parent') && (
                 <div className="sessions-section">
@@ -303,13 +402,13 @@ function LiveMenu() {
                                 <div className="session-content">
                                     <h3>{session.title}</h3>
                                     <p className="session-subject">
-                                        <FaGraduationCap /> {session.subject}
+                                        <FaGraduationCap /> {session.subject || 'Matière non spécifiée'}
                                     </p>
-                                    <p className="session-description">{session.description}</p>
+                                    <p className="session-description">{session.description || 'Aucune description'}</p>
 
                                     <div className="session-info">
                                         <span className="participants">
-                                            <FaUsers /> {session.current_participants}/{session.max_participants}
+                                            <FaUsers /> {session.current_participants || 0}/{session.max_participants}
                                         </span>
                                         <span className="room-code">
                                             Code: {session.room_code}
@@ -317,9 +416,15 @@ function LiveMenu() {
                                         {session.password ? <FaLock className="private-icon" /> : <FaGlobe className="public-icon" />}
                                     </div>
 
-                                    {session.status === 'live' && (
+                                    {session.status === 'live' && session.started_at && (
                                         <p className="session-time">
-                                            <FaClock /> Démarré il y a {new Date(session.started_at).toLocaleTimeString()}
+                                            <FaClock /> Démarré le {new Date(session.started_at).toLocaleString('fr-FR')}
+                                        </p>
+                                    )}
+
+                                    {session.status === 'waiting' && (
+                                        <p className="session-time">
+                                            <FaClock /> Créé le {new Date(session.created_at).toLocaleString('fr-FR')}
                                         </p>
                                     )}
                                 </div>

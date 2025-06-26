@@ -262,7 +262,7 @@ router.post('/end-session/:sessionId', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// ROUTE: Rejoindre une session
+// ROUTE: Rejoindre une session - CORRIGÉE
 // ==========================================
 router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
     try {
@@ -270,7 +270,10 @@ router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
         const userId = req.user.id;
         const { password } = req.body;
 
-        console.log('Tentative de connexion à la session:', sessionId, 'par utilisateur:', userId);
+        console.log('=== TENTATIVE CONNEXION SESSION ===');
+        console.log('SessionId:', sessionId);
+        console.log('UserId:', userId);
+        console.log('User:', req.user.name, req.user.accountType);
 
         // Récupérer les détails de la session
         const [sessions] = await db.execute(`
@@ -279,18 +282,34 @@ router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
         `, [sessionId]);
 
         if (sessions.length === 0) {
+            console.log('Session introuvable ou terminée');
             return res.status(404).json({ error: 'Session introuvable ou terminée' });
         }
 
         const session = sessions[0];
+        console.log('Session trouvée:', session.title, 'Status:', session.status);
 
         // Vérifier le mot de passe si nécessaire
-        if (session.password && session.password !== password) {
-            return res.status(401).json({ error: 'Mot de passe incorrect' });
+        if (session.password && session.password.trim() !== '') {
+            if (!password || session.password !== password.trim()) {
+                console.log('Mot de passe incorrect');
+                return res.status(401).json({ error: 'Mot de passe incorrect' });
+            }
+            console.log('Mot de passe correct');
         }
 
-        // Vérifier le nombre maximum de participants
-        if (session.current_participants >= session.max_participants) {
+        // Compter les participants actuels
+        const [participantCount] = await db.execute(`
+            SELECT COUNT(*) as count FROM live_participants 
+            WHERE session_id = ? AND is_active = 1
+        `, [sessionId]);
+
+        const currentCount = participantCount[0].count;
+        console.log('Participants actuels:', currentCount, '/', session.max_participants);
+
+        // Vérifier le nombre maximum de participants (sauf pour le professeur)
+        if (currentCount >= session.max_participants && userId !== session.teacher_id) {
+            console.log('Session complète');
             return res.status(400).json({ error: 'Session complète' });
         }
 
@@ -301,34 +320,61 @@ router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
         `, [sessionId, userId]);
 
         if (existing.length > 0) {
-            return res.json({ message: 'Déjà connecté à cette session' });
+            console.log('Utilisateur déjà dans la session');
+            return res.json({
+                message: 'Déjà connecté à cette session',
+                alreadyJoined: true
+            });
         }
 
-        // Ajouter le participant
-        const role = (userId === session.teacher_id) ? 'teacher' : 'student';
+        // Déterminer le rôle
+        let role = 'student'; // Par défaut
+        if (userId === session.teacher_id) {
+            role = 'teacher';
+        } else if (req.user.accountType === 'parent') {
+            role = 'parent';
+        } else if (req.user.accountType === 'child') {
+            role = 'student';
+        }
 
+        console.log('Ajout du participant avec le rôle:', role);
+
+        // Ajouter le participant
         await db.execute(`
-            INSERT INTO live_participants (session_id, user_id, role, is_active)
-            VALUES (?, ?, ?, 1)
-                ON DUPLICATE KEY UPDATE is_active = 1, joined_at = NOW(), left_at = NULL
+            INSERT INTO live_participants (session_id, user_id, role, is_active, joined_at)
+            VALUES (?, ?, ?, 1, NOW())
+            ON DUPLICATE KEY UPDATE 
+                is_active = 1, 
+                joined_at = NOW(), 
+                left_at = NULL,
+                role = VALUES(role)
         `, [sessionId, userId, role]);
 
-        // Mettre à jour le nombre de participants
+        // Mettre à jour le nombre de participants dans la session
+        const [newCount] = await db.execute(`
+            SELECT COUNT(*) as count FROM live_participants
+            WHERE session_id = ? AND is_active = 1
+        `, [sessionId]);
+
         await db.execute(`
             UPDATE live_sessions
-            SET current_participants = (
-                SELECT COUNT(*) FROM live_participants
-                WHERE session_id = ? AND is_active = 1
-            )
+            SET current_participants = ?
             WHERE id = ?
-        `, [sessionId, sessionId]);
+        `, [newCount[0].count, sessionId]);
 
-        console.log('Utilisateur connecté à la session avec succès');
-        res.json({ message: 'Connexion à la session réussie' });
+        console.log('=== CONNEXION RÉUSSIE ===');
+        console.log('Nouveaux participants:', newCount[0].count);
+
+        res.json({
+            message: 'Connexion à la session réussie',
+            role: role,
+            sessionStatus: session.status,
+            participantCount: newCount[0].count
+        });
 
     } catch (error) {
-        console.error('Erreur lors de la connexion:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        console.error('=== ERREUR CONNEXION SESSION ===', error);
+        res.status(500).json({ error: 'Erreur serveur lors de la connexion' });
     }
 });
 
@@ -368,14 +414,17 @@ router.post('/leave-session/:sessionId', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// ROUTE: Obtenir les détails d'une session
+// ROUTE: Obtenir les détails d'une session - CORRIGÉE
 // ==========================================
 router.get('/session/:sessionId', verifyToken, async (req, res) => {
     try {
         const sessionId = parseInt(req.params.sessionId);
         const userId = req.user.id;
 
-        console.log('Récupération des détails de session:', sessionId);
+        console.log('=== RÉCUPÉRATION DÉTAILS SESSION ===');
+        console.log('SessionId:', sessionId);
+        console.log('UserId:', userId);
+        console.log('User:', req.user.name, req.user.accountType);
 
         // Récupérer les détails de la session
         const [sessions] = await db.execute(`
@@ -390,22 +439,23 @@ router.get('/session/:sessionId', verifyToken, async (req, res) => {
         `, [sessionId]);
 
         if (sessions.length === 0) {
+            console.log('Session introuvable');
             return res.status(404).json({ error: 'Session introuvable' });
         }
 
         const session = sessions[0];
+        console.log('Session trouvée:', session.title, 'Status:', session.status);
 
-        // Vérifier si l'utilisateur est participant
+        // Vérifier si l'utilisateur est déjà participant
         const [participant] = await db.execute(`
             SELECT * FROM live_participants
             WHERE session_id = ? AND user_id = ? AND is_active = 1
         `, [sessionId, userId]);
 
-        const isParticipant = participant.length > 0 || userId === session.teacher_id;
+        const isTeacher = userId === session.teacher_id;
+        const isParticipant = participant.length > 0 || isTeacher;
 
-        if (!isParticipant && session.status === 'live') {
-            return res.status(403).json({ error: 'Vous devez rejoindre cette session pour voir les détails' });
-        }
+        console.log('IsTeacher:', isTeacher, 'IsParticipant:', isParticipant);
 
         // Récupérer la liste des participants
         const [participants] = await db.execute(`
@@ -413,12 +463,15 @@ router.get('/session/:sessionId', verifyToken, async (req, res) => {
                 lp.*,
                 u.name as user_name,
                 u.username,
-                u.profile_picture
+                u.profile_picture,
+                u.account_type as role
             FROM live_participants lp
                      LEFT JOIN users u ON lp.user_id = u.id
             WHERE lp.session_id = ? AND lp.is_active = 1
             ORDER BY lp.role = 'teacher' DESC, lp.joined_at ASC
         `, [sessionId]);
+
+        console.log('Participants trouvés:', participants.length);
 
         res.json({
             session: {
@@ -427,11 +480,11 @@ router.get('/session/:sessionId', verifyToken, async (req, res) => {
             },
             participants,
             isParticipant,
-            userRole: participant.length > 0 ? participant[0].role : (userId === session.teacher_id ? 'teacher' : null)
+            userRole: participant.length > 0 ? participant[0].role : (isTeacher ? 'teacher' : null)
         });
 
     } catch (error) {
-        console.error('Erreur lors de la récupération des détails:', error);
+        console.error('=== ERREUR RÉCUPÉRATION SESSION ===', error);
         res.status(500).json({ error: 'Erreur serveur' });
     }
 });

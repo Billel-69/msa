@@ -155,6 +155,255 @@
     box-shadow: 0 0 6px rgba(220, 53, 69, 0.6);
 }
 
+/* Nouveaux styles pour les contrôles du professeur et média */
+
+/* Controls du professeur dans le header */
+.teacher-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 15px;
+}
+
+.control-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.audio-btn {
+    border-color: rgba(40, 167, 69, 0.5);
+    color: rgba(40, 167, 69, 0.8);
+}
+
+.audio-btn.active {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+    color: #28a745;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+}
+
+.audio-btn:hover {
+    background: rgba(40, 167, 69, 0.1);
+    transform: scale(1.05);
+}
+
+.mute-btn {
+    border-color: rgba(255, 193, 7, 0.5);
+    color: rgba(255, 193, 7, 0.8);
+}
+
+.mute-btn.muted {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.mute-btn:hover {
+    background: rgba(255, 193, 7, 0.1);
+    transform: scale(1.05);
+}
+
+.screen-btn {
+    border-color: rgba(0, 123, 255, 0.5);
+    color: rgba(0, 123, 255, 0.8);
+}
+
+.screen-btn.active {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: #007bff;
+    color: #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+}
+
+.screen-btn:hover {
+    background: rgba(0, 123, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.upload-btn {
+    border-color: rgba(0, 224, 255, 0.5);
+    color: rgba(0, 224, 255, 0.8);
+}
+
+.upload-btn:hover {
+    background: rgba(0, 224, 255, 0.1);
+    border-color: #00e0ff;
+    color: #00e0ff;
+    transform: scale(1.05);
+}
+
+/* Conteneur de partage d'écran */
+.screen-share-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.screen-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+.screen-share-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+}
+
+/* Conteneur de documents */
+.document-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #f8f9fa;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.document-viewer {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+}
+
+.document-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff;
+}
+
+.document-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    background: rgba(0, 224, 255, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-document {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-document:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Audio indicator dans participants */
+.audio-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    margin-left: auto;
+}
+
+.mic-icon {
+    font-size: 0.8rem;
+}
+
+.mic-icon.active {
+    color: #28a745;
+    animation: audioWave 1.5s ease-in-out infinite;
+}
+
+.mic-icon.muted {
+    color: #dc3545;
+}
+
+@keyframes audioWave {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Audio element caché */
+.teacher-audio {
+    display: none;
+}
+
+/* Responsive pour les contrôles */
+@media (max-width: 768px) {
+    .teacher-controls {
+        gap: 6px;
+        margin-right: 10px;
+    }
+
+    .control-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .screen-share-overlay,
+    .document-overlay {
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        padding: 6px 8px;
+        font-size: 0.7rem;
+    }
+
+    .audio-indicator {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .teacher-controls {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .control-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+}
+
 .leave-button {
     background: linear-gradient(45deg, #dc3545, #ff1744);
     color: white;

@@ -1,28 +1,144 @@
-/* src/index.css - global styles and resets */
-:root {
-    --primary-color: #4a90e2;
-    --secondary-color: #50e3c2;
-    --primary-light: #eaf5fd;
-}
+/* src/index.css - CSS GLOBAL PRINCIPAL */
+
+/* Reset complet */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    color: #333;
+
+/* Fond global pour toute l'application */
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f0c29) !important;
+    overflow-x: hidden !important;
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
+
+#root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    background: transparent !important;
+}
+
+/* Container App */
+.App {
+    width: 100%;
+    min-height: 100vh;
+    background: transparent;
+}
+
+/* Reset des éléments HTML */
 a {
     text-decoration: none;
     color: inherit;
 }
-ul {
-    list-style: none;
-    padding: 0;
-}
+
 button {
+    border: none;
+    background: none;
     cursor: pointer;
-    font: inherit;
+    font-family: inherit;
+}
+
+input, textarea, select {
+    border: none;
+    outline: none;
+    font-family: inherit;
+}
+
+ul, ol, li {
+    list-style: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: normal;
+}
+
+p {
+    margin: 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Code styling */
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Scrollbars personnalisées */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #0099cc, #007acc);
+}
+
+/* Pour Firefox */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #00e0ff transparent;
+}
+
+/* Fix pour les navigateurs */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
+/* Supprime les bordures bleues au focus sur mobile */
+*, *:focus, *:active {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Force les containers à être transparents */
+.container,
+.main-container,
+.page-container,
+div[class*="container"],
+div[class*="wrapper"] {
+    background: transparent !important;
+}
+
+/* Pages spécifiques - fond transparent pour hériter du body */
+.live-menu-container,
+.live-session-container,
+.profile-container,
+.home-container,
+.login-container,
+.register-container {
+    background: transparent;
+    min-height: 100vh;
+}
+
+/* Override Bootstrap ou autres frameworks si présents */
+.container-fluid,
+.row,
+.col {
+    background: transparent !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
