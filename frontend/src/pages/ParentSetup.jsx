@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaSearch, FaPlus, FaChild, FaUserPlus } from 'react-icons/fa';
@@ -58,12 +58,11 @@ function ParentSetup() {
 
         setLoading(true);
         try {
-            const response = await axios.post(
-                'http://localhost:5000/api/auth/link-child',
+            const response = await axiosInstance.post(
+                '/auth/link-child',
                 { childIdentifier: searchTerm.trim() },
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 }
@@ -103,12 +102,11 @@ function ParentSetup() {
 
         setLoading(true);
         try {
-            const response = await axios.post(
-                'http://localhost:5000/api/auth/create-child',
+            const response = await axiosInstance.post(
+                '/auth/create-child',
                 newChildData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 }

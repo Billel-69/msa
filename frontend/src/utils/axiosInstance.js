@@ -10,6 +10,7 @@
 // IMPORTATIONS
 // =================================================================================
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 // =================================================================================
 // CONFIGURATION DE L'INSTANCE AXIOS
@@ -18,7 +19,7 @@ import axios from 'axios';
 // Crée une instance d'Axios avec des paramètres par défaut.
 const axiosInstance = axios.create({
     // L'URL de base de l'API backend. Toutes les requêtes relatives utiliseront cette URL.
-    baseURL: 'http://localhost:5000/api',
+    baseURL: API_BASE_URL,
 });
 
 // =================================================================================

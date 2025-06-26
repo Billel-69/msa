@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import { IoClose, IoImageOutline, IoSendSharp } from 'react-icons/io5';
 import './CreatePostModal.css';
@@ -29,9 +29,8 @@ function CreatePostModal({ isOpen, onClose, onPostCreated }) {
                 formData.append('image', image);
             }
 
-            await axios.post('http://localhost:5000/api/posts', formData, {
+            await axiosInstance.post('/posts', formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
                 }
             });

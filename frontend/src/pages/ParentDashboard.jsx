@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -40,12 +40,7 @@ function ParentDashboard() {
 
     const fetchChildren = async () => {
         try {
-            const response = await axios.get(
-                'http://localhost:5000/api/auth/my-children',
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+            const response = await axiosInstance.get('/auth/my-children');
             setChildren(response.data);
             if (response.data.length > 0) {
                 setSelectedChild(response.data[0]);

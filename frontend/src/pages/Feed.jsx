@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import { IoAdd } from 'react-icons/io5';
 import CreatePostModal from '../components/CreatePostModal';
@@ -23,12 +23,7 @@ function Feed() {
                 return;
             }
 
-            const response = await axios.get('http://localhost:5000/api/feed', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await axiosInstance.get('/feed');
 
             console.log('Données reçues:', response.data);
             setPosts(response.data || []);

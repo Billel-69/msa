@@ -3,7 +3,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import {
     FaArrowLeft,
@@ -74,9 +75,7 @@ function Messages() {
 
     const fetchConversations = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/messages/conversations', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await axiosInstance.get('/messages/conversations');
             setConversations(response.data);
         } catch (error) {
             console.error('Erreur lors du chargement des conversations:', error);
@@ -89,11 +88,8 @@ function Messages() {
         try {
             if (!conversationId) return;
 
-            const response = await axios.get(
-                `http://localhost:5000/api/messages/conversation/${conversationId}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/messages/conversation/${conversationId}`
             );
             setCurrentConversation(response.data);
         } catch (error) {
@@ -105,21 +101,14 @@ function Messages() {
         if (!conversationId) return;
 
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/messages/conversation/${conversationId}/messages`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/messages/conversation/${conversationId}/messages`
             );
             setMessages(response.data);
 
             // Marquer comme lu
-            await axios.put(
-                `http://localhost:5000/api/messages/conversation/${conversationId}/read`,
-                {},
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            await axiosInstance.put(
+                `/messages/conversation/${conversationId}/read`
             );
 
             if (!silent) {
@@ -137,12 +126,9 @@ function Messages() {
 
         setSending(true);
         try {
-            const response = await axios.post(
-                `http://localhost:5000/api/messages/conversation/${conversationId}/send`,
-                { content: newMessage.trim() },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.post(
+                `/messages/conversation/${conversationId}/send`,
+                { content: newMessage.trim() }
             );
 
             setMessages(prev => [...prev, response.data]);
@@ -170,11 +156,8 @@ function Messages() {
 
         setSearchLoading(true);
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/messages/search-users?q=${encodeURIComponent(query)}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/messages/search-users?q=${encodeURIComponent(query)}`
             );
             setSearchResults(response.data);
         } catch (error) {
@@ -187,11 +170,8 @@ function Messages() {
 
     const startConversation = async (otherUserId) => {
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/messages/conversation/with/${otherUserId}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/messages/conversation/with/${otherUserId}`
             );
 
             setShowSearch(false);
@@ -209,9 +189,7 @@ function Messages() {
         if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/messages/message/${messageId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axiosInstance.delete(`/messages/message/${messageId}`);
 
             setMessages(prev => prev.filter(msg => msg.id !== messageId));
         } catch (error) {
@@ -302,7 +280,7 @@ function Messages() {
                                         <div className="user-avatar">
                                             {user.profile_picture ? (
                                                 <img
-                                                    src={`http://localhost:5000/uploads/${user.profile_picture}`}
+                                                    src={`${BASE_URL}/uploads/${user.profile_picture}`}
                                                     alt={user.name}
                                                 />
                                             ) : (
@@ -343,7 +321,7 @@ function Messages() {
                                 <div className="conversation-avatar">
                                     {conv.other_user_picture ? (
                                         <img
-                                            src={`http://localhost:5000/uploads/${conv.other_user_picture}`}
+                                            src={`${BASE_URL}/uploads/${conv.other_user_picture}`}
                                             alt={conv.other_user_name}
                                         />
                                     ) : (
@@ -403,7 +381,7 @@ function Messages() {
                                     <div className="user-avatar">
                                         {currentConversation.other_user_picture ? (
                                             <img
-                                                src={`http://localhost:5000/uploads/${currentConversation.other_user_picture}`}
+                                                src={`${BASE_URL}/uploads/${currentConversation.other_user_picture}`}
                                                 alt={currentConversation.other_user_name}
                                             />
                                         ) : (
@@ -439,7 +417,7 @@ function Messages() {
                                             <div className="message-avatar">
                                                 {message.sender_picture ? (
                                                     <img
-                                                        src={`http://localhost:5000/uploads/${message.sender_picture}`}
+                                                        src={`${BASE_URL}/uploads/${message.sender_picture}`}
                                                         alt={message.sender_name}
                                                     />
                                                 ) : (

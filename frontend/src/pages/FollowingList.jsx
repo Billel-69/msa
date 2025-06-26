@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 
 function FollowingList() {
     const [following, setFollowing] = useState([]);
@@ -8,9 +8,7 @@ function FollowingList() {
     useEffect(() => {
         const fetchFollowing = async () => {
             const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/following', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await axiosInstance.get('/following');
             setFollowing(res.data);
         };
         fetchFollowing();

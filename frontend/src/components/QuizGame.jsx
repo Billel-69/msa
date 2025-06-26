@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import './QuizGame.css';
 import { useAuth } from '../context/AuthContext';
 import { FaTrophy, FaGamepad, FaClock, FaArrowRight, FaRedo } from 'react-icons/fa';
@@ -22,11 +22,7 @@ const QuizGame = () => {
         const fetchQuizzes = async () => {
             if (!token) return;
             try {
-                const res = await axios.get('http://localhost:5000/api/quizzes', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const res = await axiosInstance.get('/quizzes');
                 setQuizzes(res.data);
                 if (res.data.length > 0) {
                     setCurrentQuiz(res.data[0]);

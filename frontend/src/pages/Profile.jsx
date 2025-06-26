@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -44,12 +45,7 @@ function Profile() {
 
     const fetchProfileData = async () => {
         try {
-            const response = await axios.get(
-                'http://localhost:5000/api/auth/me',
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+            const response = await axiosInstance.get('/auth/me');
             setProfileData(response.data);
         } catch (error) {
             console.error('Erreur lors de la récupération du profil:', error);
@@ -58,11 +54,8 @@ function Profile() {
 
     const fetchUserPosts = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/posts/user/${user.id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/posts/user/${user.id}`
             );
             setPosts(response.data);
         } catch (error) {
@@ -74,12 +67,8 @@ function Profile() {
     const fetchUserStats = async () => {
         try {
             const [followersRes, followingRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/auth/followers', {
-                    headers: { Authorization: `Bearer ${token}` }
-                }),
-                axios.get('http://localhost:5000/api/auth/following', {
-                    headers: { Authorization: `Bearer ${token}` }
-                })
+                axiosInstance.get('/auth/followers'),
+                axiosInstance.get('/auth/following')
             ]);
 
             setStats({
@@ -103,12 +92,11 @@ function Profile() {
         formData.append('profilePicture', file);
 
         try {
-            const response = await axios.put(
-                'http://localhost:5000/api/auth/me/profile-picture',
+            const response = await axiosInstance.put(
+                '/auth/me/profile-picture',
                 formData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
                         'Content-Type': 'multipart/form-data'
                     }
                 }
@@ -242,7 +230,7 @@ function Profile() {
                             {post.image && (
                                 <div className="post-image">
                                     <img
-                                        src={`http://localhost:5000/uploads/${post.image}`}
+                                    src={`${BASE_URL}/uploads/${post.image}`}
                                         alt="Post"
                                     />
                                 </div>
@@ -321,7 +309,7 @@ function Profile() {
                         <div className="profile-avatar">
                             {profileData.profilePicture ? (
                                 <img
-                                    src={`http://localhost:5000/uploads/${profileData.profilePicture}`}
+                                    src={`${BASE_URL}/uploads/${profileData.profilePicture}`}
                                     alt="Profil"
                                 />
                             ) : (

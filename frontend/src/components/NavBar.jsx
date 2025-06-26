@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import {
     FaHome,
@@ -127,7 +128,7 @@ function NavBar() {
                                 <div className="profile-avatar">
                                     {user?.profilePicture ? (
                                         <img
-                                            src={`http://localhost:5000/uploads/${user.profilePicture}`}
+                                            src={`${BASE_URL}/uploads/${user.profilePicture}`}
                                             alt={user?.name}
                                         />
                                     ) : (

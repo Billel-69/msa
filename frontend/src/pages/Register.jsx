@@ -9,7 +9,7 @@
 // IMPORTATIONS
 // =================================================================================
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaUser, FaChild, FaChalkboardTeacher, FaArrowLeft, FaCheck } from 'react-icons/fa';
@@ -151,7 +151,7 @@ function Register() {
         try {
             // Étape 1: Inscription de l'utilisateur
             console.log('Tentative d\'inscription en cours...');
-            const registerResponse = await axios.post('http://localhost:5000/api/auth/register', {
+            const registerResponse = await axiosInstance.post('/auth/register', {
                 name: formData.name,
                 username: formData.username,
                 email: formData.email,
@@ -163,7 +163,7 @@ function Register() {
 
             // Étape 2: Connexion automatique après une inscription réussie
             console.log('Connexion automatique en cours...');
-            const loginResponse = await axios.post('http://localhost:5000/api/auth/login', {
+            const loginResponse = await axiosInstance.post('/auth/login', {
                 identifier: formData.email,
                 password: formData.password
             });

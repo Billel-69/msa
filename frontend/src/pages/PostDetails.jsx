@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 
 function PostDetails() {
     const { id } = useParams();
@@ -10,9 +10,7 @@ function PostDetails() {
     useEffect(() => {
         const fetchPost = async () => {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:5000/api/posts/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await axiosInstance.get(`/posts/${id}`);
             setPost(res.data);
         };
         fetchPost();

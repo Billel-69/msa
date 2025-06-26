@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaCamera, FaSave, FaArrowLeft, FaUser, FaEnvelope, FaLock, FaAt } from 'react-icons/fa';
@@ -35,7 +36,7 @@ function EditProfile() {
 
         // Charger la photo de profil actuelle
         if (user?.profilePicture) {
-            setProfilePicturePreview(`http://localhost:5000/uploads/${user.profilePicture}`);
+            setProfilePicturePreview(`${BASE_URL}/uploads/${user.profilePicture}`);
         }
     }, [token, user, navigate]);
 
@@ -89,12 +90,11 @@ function EditProfile() {
         pictureFormData.append('profilePicture', profilePicture);
 
         try {
-            const response = await axios.put(
-                'http://localhost:5000/api/me/profile-picture',
+            const response = await axiosInstance.put(
+                '/me/profile-picture',
                 pictureFormData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
                         'Content-Type': 'multipart/form-data'
                     }
                 }
@@ -120,9 +120,7 @@ function EditProfile() {
             }
 
             // Mettre à jour les autres informations
-            await axios.put('http://localhost:5000/api/me', formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await axiosInstance.put('/me', formData);
 
             // Mettre à jour le contexte
             const updatedUser = {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { AiOutlineHeart, AiFillHeart } from 'react-icons/ai';
 import { BiComment, BiShare } from 'react-icons/bi';
@@ -32,11 +33,8 @@ function PostCard({ post, refresh }) {
         try {
             if (!token) return;
 
-            const response = await axios.get(
-                `http://localhost:5000/api/posts/${post.id}/like-status`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/posts/${post.id}/like-status`
             );
             setIsLiked(response.data.liked);
         } catch (error) {
@@ -49,11 +47,8 @@ function PostCard({ post, refresh }) {
             if (!token || !post.user_id || post.user_id === user?.id) return;
 
             // ROUTE API CORRIGÉE
-            const response = await axios.get(
-                `http://localhost:5000/api/auth/follow-status/${post.user_id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/auth/follow-status/${post.user_id}`
             );
             setIsFollowing(response.data.isFollowing);
         } catch (error) {
@@ -68,12 +63,8 @@ function PostCard({ post, refresh }) {
                 return;
             }
 
-            const response = await axios.post(
-                `http://localhost:5000/api/posts/${post.id}/like`,
-                {},
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.post(
+                `/posts/${post.id}/like`
             );
 
             // Toggle like state
@@ -101,22 +92,14 @@ function PostCard({ post, refresh }) {
         try {
             if (isFollowing) {
                 // ROUTE API CORRIGÉE
-                await axios.post(
-                    `http://localhost:5000/api/auth/unfollow/${post.user_id}`,
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
+                await axiosInstance.post(
+                    `/auth/unfollow/${post.user_id}`
                 );
                 setIsFollowing(false);
             } else {
                 // ROUTE API CORRIGÉE
-                await axios.post(
-                    `http://localhost:5000/api/auth/follow/${post.user_id}`,
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
+                await axiosInstance.post(
+                    `/auth/follow/${post.user_id}`
                 );
                 setIsFollowing(true);
             }
@@ -242,7 +225,7 @@ function PostCard({ post, refresh }) {
                 <>
                     <div className="post-image-container">
                         <img
-                            src={`http://localhost:5000/uploads/${post.image}`}
+                            src={`${BASE_URL}/uploads/${post.image}`}
                             alt="Post"
                             className="post-image"
                             onClick={() => setShowImageModal(true)}
@@ -270,7 +253,7 @@ function PostCard({ post, refresh }) {
 
                     <ImageModal
                         isOpen={showImageModal}
-                        imageUrl={`http://localhost:5000/uploads/${post.image}`}
+                        imageUrl={`${BASE_URL}/uploads/${post.image}`}
                         onClose={() => setShowImageModal(false)}
                     />
                 </>

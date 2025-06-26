@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { FaTimes, FaSearch, FaPaperPlane } from 'react-icons/fa';
 import './MessageModal.css';
@@ -30,11 +31,8 @@ function MessageModal({ isOpen, onClose, recipientUser = null }) {
 
         setSearchLoading(true);
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/messages/search-users?q=${encodeURIComponent(query)}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/messages/search-users?q=${encodeURIComponent(query)}`
             );
             setSearchResults(response.data);
         } catch (error) {
@@ -65,22 +63,16 @@ function MessageModal({ isOpen, onClose, recipientUser = null }) {
         setSending(true);
         try {
             // Créer ou obtenir la conversation
-            const convResponse = await axios.get(
-                `http://localhost:5000/api/messages/conversation/with/${selectedUser.id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const convResponse = await axiosInstance.get(
+                `/messages/conversation/with/${selectedUser.id}`
             );
 
             const conversationId = convResponse.data.conversationId;
 
             // Envoyer le message
-            await axios.post(
-                `http://localhost:5000/api/messages/conversation/${conversationId}/send`,
-                { content: message.trim() },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            await axiosInstance.post(
+                `/messages/conversation/${conversationId}/send`,
+                { content: message.trim() }
             );
 
             // Fermer la modal et rediriger vers la conversation
@@ -150,7 +142,7 @@ function MessageModal({ isOpen, onClose, recipientUser = null }) {
                                             <div className="user-avatar">
                                                 {user.profile_picture ? (
                                                     <img
-                                                        src={`http://localhost:5000/uploads/${user.profile_picture}`}
+                                                        src={`${BASE_URL}/uploads/${user.profile_picture}`}
                                                         alt={user.name}
                                                     />
                                                 ) : (
@@ -179,7 +171,7 @@ function MessageModal({ isOpen, onClose, recipientUser = null }) {
                                 <div className="user-avatar">
                                     {selectedUser.profile_picture ? (
                                         <img
-                                            src={`http://localhost:5000/uploads/${selectedUser.profile_picture}`}
+                                            src={`${BASE_URL}/uploads/${selectedUser.profile_picture}`}
                                             alt={selectedUser.name}
                                         />
                                     ) : (

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
+import { BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import {
     FaUserPlus,
@@ -55,11 +56,8 @@ function ProfilePublic() {
 
     const fetchProfileData = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/auth/users/${id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/auth/users/${id}`
             );
             setProfileData(response.data);
         } catch (error) {
@@ -73,11 +71,8 @@ function ProfilePublic() {
 
     const fetchUserPosts = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/posts/user/${id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/posts/user/${id}`
             );
             setPosts(response.data);
         } catch (error) {
@@ -88,11 +83,8 @@ function ProfilePublic() {
 
     const fetchFollowStatus = async () => {
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/auth/follow-status/${id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/auth/follow-status/${id}`
             );
             setIsFollowing(response.data.isFollowing);
         } catch (error) {
@@ -104,12 +96,8 @@ function ProfilePublic() {
         try {
             // Récupération des vraies statistiques
             const [followersRes, followingRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/auth/followers/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                }).catch(() => ({ data: [] })),
-                axios.get(`http://localhost:5000/api/auth/following/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                }).catch(() => ({ data: [] }))
+                axiosInstance.get(`/auth/followers/${id}`).catch(() => ({ data: [] })),
+                axiosInstance.get(`/auth/following/${id}`).catch(() => ({ data: [] }))
             ]);
 
             setStats({
@@ -138,22 +126,14 @@ function ProfilePublic() {
         setFollowLoading(true);
         try {
             if (isFollowing) {
-                await axios.post(
-                    `http://localhost:5000/api/auth/unfollow/${id}`,
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
+                await axiosInstance.post(
+                    `/auth/unfollow/${id}`
                 );
                 setIsFollowing(false);
                 setStats(prev => ({ ...prev, followers: Math.max(0, prev.followers - 1) }));
             } else {
-                await axios.post(
-                    `http://localhost:5000/api/auth/follow/${id}`,
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
+                await axiosInstance.post(
+                    `/auth/follow/${id}`
                 );
                 setIsFollowing(true);
                 setStats(prev => ({ ...prev, followers: prev.followers + 1 }));
@@ -180,11 +160,8 @@ function ProfilePublic() {
             console.log('Création/récupération de conversation avec utilisateur:', id);
 
             // Créer ou obtenir la conversation
-            const response = await axios.get(
-                `http://localhost:5000/api/messages/conversation/with/${id}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
+            const response = await axiosInstance.get(
+                `/messages/conversation/with/${id}`
             );
 
             console.log('Conversation créée/récupérée:', response.data.conversationId);
@@ -254,7 +231,7 @@ function ProfilePublic() {
                             {post.image && (
                                 <div className="post-image">
                                     <img
-                                        src={`http://localhost:5000/uploads/${post.image}`}
+                                        src={`${BASE_URL}/uploads/${post.image}`}
                                         alt="Post"
                                         onError={(e) => {
                                             e.target.style.display = 'none';
@@ -373,7 +350,7 @@ function ProfilePublic() {
                         <div className="profile-avatar">
                             {profileData.profile_picture ? (
                                 <img
-                                    src={`http://localhost:5000/uploads/${profileData.profile_picture}`}
+                                    src={`${BASE_URL}/uploads/${profileData.profile_picture}`}
                                     alt="Profil"
                                 />
                             ) : (

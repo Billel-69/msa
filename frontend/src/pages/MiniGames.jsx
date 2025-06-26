@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../utils/axiosInstance';
 import {
   FaGamepad, FaRocket, FaTrophy, FaStar, FaBolt, FaPlay, FaChartLine, FaRegLightbulb,
   FaArrowRight, FaCheckCircle, FaCrown
@@ -63,19 +64,8 @@ const MiniGames = () => {
     const fetchAvailableGames = useCallback(async () => {
         try {
             // Appel à l'API pour obtenir les jeux
-            const response = await fetch('http://localhost:5000/api/games/available', {
-                headers: {
-                    'Authorization': `Bearer ${token}`, // Token JWT pour l'authentification
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setGames(data.games || []); // Met à jour l'état avec les jeux reçus
-            } else {
-                setError('Erreur lors du chargement des mini-jeux.');
-            }
+            const { data } = await axiosInstance.get('/games/available');
+            setGames(data.games || []);
         } catch (err) {
             setError('Erreur de connexion au serveur. Veuillez vérifier votre connexion.');
         } finally {

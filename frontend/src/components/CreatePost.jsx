@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import './CreatePost.css';
 
@@ -28,9 +28,8 @@ function CreatePost({ refresh }) {
                 formData.append('image', image);
             }
 
-            await axios.post('http://localhost:5000/api/posts', formData, {
+            await axiosInstance.post('/posts', formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
                 }
             });

@@ -8,7 +8,7 @@
 // IMPORTATIONS
 // =================================================================================
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -108,7 +108,7 @@ function Login() {
             console.log('Login - Tentative de connexion en cours...');
 
             // Appel à l'API pour la connexion
-            const response = await axios.post('http://localhost:5000/api/auth/login', {
+            const response = await axiosInstance.post('/auth/login', {
                 identifier: formData.identifier,
                 password: formData.password
             });

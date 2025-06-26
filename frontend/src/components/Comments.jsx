@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 import { useAuth } from '../context/AuthContext';
 import { FaPaperPlane, FaHeart, FaReply, FaTrash } from 'react-icons/fa';
 import './Comments.css';
@@ -23,12 +23,7 @@ function Comments({ postId, isVisible, onCommentCountChange }) {
     const fetchComments = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(
-                `http://localhost:5000/api/comments/${postId}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+            const response = await axiosInstance.get(`/comments/${postId}`);
 
             setComments(response.data);
 
@@ -55,15 +50,14 @@ function Comments({ postId, isVisible, onCommentCountChange }) {
 
         setSubmitting(true);
         try {
-            const response = await axios.post(
-                'http://localhost:5000/api/comments',
+            const response = await axiosInstance.post(
+                '/comments',
                 {
                     postId: postId,
                     content: newComment.trim()
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }
                 }
@@ -97,12 +91,7 @@ function Comments({ postId, isVisible, onCommentCountChange }) {
         }
 
         try {
-            await axios.delete(
-                `http://localhost:5000/api/comments/${commentId}`,
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+            await axiosInstance.delete(`/comments/${commentId}`);
 
             // Retirer le commentaire de la liste
             setComments(prev => prev.filter(comment => comment.id !== commentId));
@@ -119,13 +108,7 @@ function Comments({ postId, isVisible, onCommentCountChange }) {
 
     const handleLikeComment = async (commentId) => {
         try {
-            await axios.post(
-                `http://localhost:5000/api/comments/${commentId}/like`,
-                {},
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+            await axiosInstance.post(`/comments/${commentId}/like`);
 
             // Mettre à jour le statut de like localement
             setComments(prev => prev.map(comment =>
