@@ -13,7 +13,6 @@ import {
     FaCalendarAlt,
     FaHeart,
     FaComment,
-    FaShare,
     FaUser
 } from 'react-icons/fa';
 import './ProfilePublic.css';

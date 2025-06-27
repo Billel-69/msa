@@ -41,5 +41,18 @@ const verifyToken = (req, res, next) => {
         }
     }
 };
+// Middleware pour verifier si un user est child/student
+const isChildOrStudent = (req, res, next) => {
+    // verfifier si l'utilisateur est authentifié
+    if (!req.user) {
+        return res.status(401).json({ error: 'Utilisateur non authentifié' });
+    }
 
-module.exports = verifyToken;
+    // verifier si l'utilisateur est de type enfant/élève
+    if (req.user.accountType === 'child' || req.user.accountType === 'élève' || req.user.accountType === 'enfant') {
+        next();
+    } else {
+        return res.status(403).json({ error: 'Accès réservé aux élèves/enfants' });
+    }
+};
+module.exports = { verifyToken };

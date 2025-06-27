@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const verifyToken = require('../middlewares/authMiddleware');
+const { verifyToken } = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/uploadMiddleware');
-const db = require('../config/db'); // Ajouter cette ligne
+const db = require('../config/db'); 
 
 // Routes publiques
 router.post('/register', authController.register);

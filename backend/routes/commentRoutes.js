@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const commentController = require('../controllers/commentController');
-const verifyToken = require('../middlewares/authMiddleware');
+const { verifyToken } = require('../middlewares/authMiddleware');
 
 // Routes pour les commentaires
 // GET /api/comments/:postId - Récupérer les commentaires d'un post

@@ -7,6 +7,7 @@ dotenv.config();
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const gameRoutes = require('./routes/gameRoutes');
 
 const connectMongoDB = require('./config/mongodb'); // MongoDB connection
 
@@ -34,7 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/messages', messageRoutes);
-
+app.use('/api/games', gameRoutes);
 
 // Route de test
 app.get('/', (req, res) => {

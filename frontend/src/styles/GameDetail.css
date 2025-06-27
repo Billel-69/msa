@@ -1,0 +1,360 @@
+/* Game Detail Page Styling */
+.game-detail-page {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    min-height: 100vh;
+    padding: 20px 0;
+    color: white;
+}
+
+.game-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.btn-back {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+}
+
+/* Game Header */
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.game-header h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+    color: #00e0ff;
+}
+
+.game-subject {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+/* Quiz Game Styling */
+.quiz-game {
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.quiz-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.question-count {
+    font-size: 16px;
+    color: #ccc;
+}
+
+.score-display {
+    font-size: 16px;
+    color: #00e0ff;
+    font-weight: bold;
+}
+
+.quiz-question {
+    margin-bottom: 30px;
+}
+
+.quiz-question h2 {
+    font-size: 24px;
+    line-height: 1.4;
+    color: white;
+    margin: 0;
+}
+
+.quiz-options {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.quiz-option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    font-size: 16px;
+}
+
+.quiz-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #00e0ff;
+    transform: translateY(-2px);
+}
+
+.quiz-option.selected {
+    background: rgba(0, 224, 255, 0.2);
+    border-color: #00e0ff;
+}
+
+.quiz-option.correct {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: #2ecc71;
+}
+
+.quiz-option.incorrect {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: #e74c3c;
+}
+
+.quiz-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Explanation */
+.explanation {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 4px solid;
+}
+
+.explanation.correct {
+    background: rgba(46, 204, 113, 0.1);
+    border-color: #2ecc71;
+}
+
+.explanation.incorrect {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+}
+
+/* Game Completed */
+.game-completed {
+    text-align: center;
+    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.result-animation {
+    margin-bottom: 30px;
+}
+
+.success-animation, .almost-animation {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 40px;
+    animation: bounce 0.5s ease;
+}
+
+.success-animation {
+    background: linear-gradient(45deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.almost-animation {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.game-completed h2 {
+    font-size: 28px;
+    margin-bottom: 30px;
+    color: #00e0ff;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.result-stat {
+    text-align: center;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 24px;
+}
+
+.stat-icon.score {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+}
+
+.stat-icon.xp {
+    background: linear-gradient(45deg, #f39c12, #e67e22);
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.result-message {
+    margin-bottom: 30px;
+}
+
+.success-message {
+    color: #2ecc71;
+    font-size: 18px;
+}
+
+.try-again-message {
+    color: #e74c3c;
+    font-size: 18px;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-play-again, .btn-back-to-games {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-play-again {
+    background: linear-gradient(45deg, #00e0ff, #0099cc);
+    color: white;
+}
+
+.btn-back-to-games {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-play-again:hover, .btn-back-to-games:hover {
+    transform: translateY(-2px);
+}
+
+/* Loading and Error States */
+.loading-state, .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #00e0ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error-state h2 {
+    color: #e74c3c;
+    margin-bottom: 10px;
+}
+
+.error-state p {
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-detail-container {
+        padding: 0 15px;
+    }
+    
+    .quiz-game {
+        padding: 20px;
+    }
+    
+    .quiz-progress {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .result-stats {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .result-buttons {
+        flex-direction: column;
+    }
+}

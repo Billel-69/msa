@@ -8,8 +8,16 @@ function NavBar() {
     const location = useLocation();
     const { token, user, logout } = useAuth();
 
+    // Check if user is child/student
+    const isChildOrStudent = user && (
+        user.accountType === 'child' || 
+        user.accountType === 'élève' || 
+        user.accountType === 'enfant' ||
+        user.accountType === 'student'
+    );
+
     // Main links including social feed and messaging
-    const mainLinks = [
+    let mainLinks = [
         { path: '/', label: 'Accueil' },
         { path: '/mondes', label: 'Mondes' },
         { path: '/live', label: 'Live' },
@@ -17,6 +25,11 @@ function NavBar() {
         { path: '/reseau', label: 'Réseau' },
         { path: '/messages', label: 'Messages' }
     ];
+
+    // Add mini-games link for child/student users
+    if (isChildOrStudent) {
+        mainLinks.splice(2, 0, { path: '/mini-jeux', label: 'Mini-Jeux' });
+    }
 
     const handleLogout = () => {
         logout();

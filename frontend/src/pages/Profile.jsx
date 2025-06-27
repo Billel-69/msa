@@ -9,12 +9,10 @@ import {
     FaTrophy,
     FaStar,
     FaGamepad,
-    FaCalendarAlt,
     FaUserPlus,
     FaUsers,
     FaHeart,
-    FaComment,
-    FaShare
+    FaComment
 } from 'react-icons/fa';
 import './Profile.css';
 
@@ -103,7 +101,7 @@ function Profile() {
         formData.append('profilePicture', file);
 
         try {
-            const response = await axios.put(
+            await axios.put(
                 'http://localhost:5000/api/auth/me/profile-picture',
                 formData,
                 {

@@ -4,7 +4,7 @@ dotenv.config();
 
 const connectMongoDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kaizenverse_games';
+    const mongoURI = process.env.MONGODB_URI;
     
     console.log('Attempting to connect to MongoDB...');
     console.log('MongoDB URI (masked):', mongoURI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'));
@@ -34,11 +34,19 @@ const connectMongoDB = async () => {
     });
     
   } catch (error) {
-    console.error('❌ MongoDB connection failed (continuing without MongoDB):', error.message);
-    console.error('🔍 Check your MONGODB_URI in .env file');
-    console.error('🌐 Make sure your MongoDB Atlas cluster is running and accessible');
-    // Don't exit - continue without MongoDB for now
+  console.error('❌ MongoDB connection failed:', error.message);
+  console.error('🔍 Check your MONGODB_URI in .env file');
+  console.error('🌐 Make sure your MongoDB Atlas cluster is running and accessible');
+  
+  // In production, exit to trigger container/service restart
+  if (process.env.NODE_ENV === 'production') {
+    console.error('❌ Exiting application due to database connection failure');
+    process.exit(1);
+  } else {
+    console.warn('⚠️ Development mode: Continuing without MongoDB (expect errors)');
+    // In development, you might want to continue for debugging
   }
+}
 };
 
 module.exports = connectMongoDB;

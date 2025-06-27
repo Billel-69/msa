@@ -27,6 +27,10 @@ import Chat from './pages/Chat';
 // Import des pages Messages
 import Messages from "./pages/Messages";
 
+// Import des pages Mini-Jeux
+import MiniGames from "./pages/MiniGames";
+import GameDetail from "./pages/GameDetail";
+
 function App() {
     const location = useLocation();
 
@@ -125,6 +129,18 @@ function App() {
                 {/* Routes publiques */}
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
+
+                {/* Routes Mini-Jeux */}
+                <Route path="/mini-jeux" element={
+                    <PrivateRoute>
+                        <MiniGames />
+                    </PrivateRoute>
+                } />
+                <Route path="/jeu/:id" element={
+                    <PrivateRoute>
+                        <GameDetail />
+                    </PrivateRoute>
+                } />
             </Routes>
         </>
     );
