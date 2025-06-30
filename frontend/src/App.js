@@ -29,6 +29,7 @@ import Messages from "./pages/Messages";
 
 // Import des pages Mini-Jeux
 import MiniGames from "./pages/MiniGames";
+
 import GameDetail from "./pages/GameDetail";
 
 function App() {
@@ -136,6 +137,8 @@ function App() {
                         <MiniGames />
                     </PrivateRoute>
                 } />
+                {/* test mini-jeux */}
+                <Route path="/test-minigames" element={<MiniGames />} />
                 <Route path="/jeu/:id" element={
                     <PrivateRoute>
                         <GameDetail />

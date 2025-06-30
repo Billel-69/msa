@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { FaGamepad, FaPlay, FaArrowLeft } from 'react-icons/fa';
-import './MiniGames.css';
+import '../styles/MiniGames.css';
 
 const MiniGames = () => {
   const [games, setGames] = useState([]);
@@ -42,7 +42,6 @@ const MiniGames = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="minigames-page">
