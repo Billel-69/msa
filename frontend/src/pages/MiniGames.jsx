@@ -10,6 +10,8 @@ const MiniGames = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('');
   const { token } = useAuth();
   const navigate = useNavigate();
 
@@ -29,6 +31,16 @@ const MiniGames = () => {
     };
     fetchGames();
   }, [token]);
+
+  const subjects = [...new Set(games.map(game => game.subject))];
+  const levels = [...new Set(games.map(game => game.level))];
+
+  const filteredGames = games.filter(game => {
+    return (
+      (selectedSubject ? game.subject === selectedSubject : true) &&
+      (selectedLevel ? game.level === selectedLevel : true)
+    );
+  });
 
   if (loading) {
     return (
@@ -63,12 +75,29 @@ const MiniGames = () => {
         <div className="minigames-hero">
           <div className="minigames-hero-content">
             <h1><FaGamepad /> Mini-Jeux Éducatifs</h1>
-            <p>Choisis un mini-jeu pour tester tes connaissances et gagner de l'XP!</p>
+            <p>Choisis une matière et un niveau scolaire, puis teste tes connaissances pour gagner de l'XP selon tes bonnes réponses !</p>
+          </div>
+        </div>
+        {/* Subject and Level Selectors */}
+        <div className="minigames-selectors" style={{ display: 'flex', gap: 16, margin: '24px 0', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div>
+            <label htmlFor="subject-select" style={{ color: '#b2eaff', fontWeight: 600, marginRight: 8 }}>Matière :</label>
+            <select id="subject-select" value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} style={{ borderRadius: 8, padding: '6px 12px', border: '1px solid #b2eaff', background: '#181a2a', color: '#fff' }}>
+              <option value="">Toutes</option>
+              {subjects.map(subject => <option key={subject} value={subject}>{subject}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="level-select" style={{ color: '#b2eaff', fontWeight: 600, marginRight: 8 }}>Niveau :</label>
+            <select id="level-select" value={selectedLevel} onChange={e => setSelectedLevel(e.target.value)} style={{ borderRadius: 8, padding: '6px 12px', border: '1px solid #b2eaff', background: '#181a2a', color: '#fff' }}>
+              <option value="">Tous</option>
+              {levels.map(level => <option key={level} value={level}>{level}</option>)}
+            </select>
           </div>
         </div>
         <div className="minigames-grid">
-          {games.length > 0 ? (
-            games.map(game => (
+          {filteredGames.length > 0 ? (
+            filteredGames.map(game => (
               <div
                 key={game._id}
                 className={`minigames-card${hovered === game._id ? ' hovered' : ''}`}
@@ -92,6 +121,7 @@ const MiniGames = () => {
                     <div className="stat-value"><span>{game.xpReward} XP</span></div>
                   </div>
                 </div>
+                <div style={{ fontSize: 12, color: '#b2eaff', marginBottom: 8 }}>Gagne de l'XP pour chaque bonne réponse !</div>
                 <button className="minigames-play-btn" onClick={() => navigate(`/jeu/${game._id}`)}>
                   <FaPlay /> <span>Jouer</span>
                 </button>
