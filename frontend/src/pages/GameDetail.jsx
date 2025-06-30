@@ -23,6 +23,8 @@ const GameDetail = () => {
     const [showFeedback, setShowFeedback] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
     const [gameStartTime] = useState(new Date());
+    const [xp, setXp] = useState(0);
+    const [streak, setStreak] = useState(0);
     
     // Fetch game details
     useEffect(() => {
@@ -62,6 +64,10 @@ const GameDetail = () => {
         
         if (correct) {
             setScore(score + 1);
+            setXp(xp + 5);
+            setStreak(streak + 1);
+        } else {
+            setStreak(0);
         }
         
         // Move to next question or end game after delay
@@ -112,6 +118,8 @@ const GameDetail = () => {
         setSelectedOption(null);
         setShowFeedback(false);
         setGameCompleted(false);
+        setXp(0);
+        setStreak(0);
     };
     
     // Render loading state
@@ -252,7 +260,13 @@ const GameDetail = () => {
                                     Question {currentQuestion + 1} sur {game.questions.length}
                                 </div>
                                 <div className="score-display">
-                                    Score: {score} / {currentQuestion}
+                                    Score: {score}
+                                </div>
+                                <div className="xp-display">
+                                    XP: {xp}
+                                </div>
+                                <div className="streak-display">
+                                    Streak: {streak}
                                 </div>
                             </div>
                             

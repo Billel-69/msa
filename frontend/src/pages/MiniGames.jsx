@@ -10,8 +10,8 @@ const MiniGames = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const [selectedNiveau, setSelectedNiveau] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState('');
   const { token } = useAuth();
   const navigate = useNavigate();
 
@@ -32,15 +32,24 @@ const MiniGames = () => {
     fetchGames();
   }, [token]);
 
-  const subjects = [...new Set(games.map(game => game.subject))];
-  const levels = [...new Set(games.map(game => game.level))];
+  // Define French school levels and subjects by level
+  const niveauxScolaires = [
+    'CP', 'CE1', 'CE2', 'CM1', 'CM2',
+    '6e', '5e', '4e', '3e',
+    '2nde', '1ère', 'Terminale', 'Bac'
+  ];
+  const subjectsByLevel = {
+    primaire: ['Mathématiques', 'Français', 'Histoire', 'Géographie', 'Anglais', 'Sciences'],
+    college: ['Mathématiques', 'Français', 'Histoire-Géo', 'Anglais', 'Espagnol', 'Physique-Chimie', 'SVT', 'Technologie'],
+    lycee: ['Mathématiques', 'Français', 'Philosophie', 'Histoire-Géo', 'Anglais', 'Espagnol', 'Physique-Chimie', 'SVT', 'SES', 'Spécialité']
+  };
+  function getSubjectsForLevel(niveau) {
+    if (["CP", "CE1", "CE2", "CM1", "CM2"].includes(niveau)) return subjectsByLevel.primaire;
+    if (["6e", "5e", "4e", "3e"].includes(niveau)) return subjectsByLevel.college;
+    return subjectsByLevel.lycee;
+  }
 
-  const filteredGames = games.filter(game => {
-    return (
-      (selectedSubject ? game.subject === selectedSubject : true) &&
-      (selectedLevel ? game.level === selectedLevel : true)
-    );
-  });
+  const subjects = selectedNiveau ? getSubjectsForLevel(selectedNiveau) : [];
 
   if (loading) {
     return (
@@ -81,23 +90,23 @@ const MiniGames = () => {
         {/* Subject and Level Selectors */}
         <div className="minigames-selectors" style={{ display: 'flex', gap: 16, margin: '24px 0', flexWrap: 'wrap', alignItems: 'center' }}>
           <div>
+            <label htmlFor="niveau-select" style={{ color: '#b2eaff', fontWeight: 600, marginRight: 8 }}>Niveau scolaire :</label>
+            <select id="niveau-select" value={selectedNiveau} onChange={e => { setSelectedNiveau(e.target.value); setSelectedSubject(''); }} style={{ borderRadius: 8, padding: '6px 12px', border: '1px solid #b2eaff', background: '#181a2a', color: '#fff' }}>
+              <option value="">Tous</option>
+              {niveauxScolaires.map(niveau => <option key={niveau} value={niveau}>{niveau}</option>)}
+            </select>
+          </div>
+          <div>
             <label htmlFor="subject-select" style={{ color: '#b2eaff', fontWeight: 600, marginRight: 8 }}>Matière :</label>
-            <select id="subject-select" value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} style={{ borderRadius: 8, padding: '6px 12px', border: '1px solid #b2eaff', background: '#181a2a', color: '#fff' }}>
+            <select id="subject-select" value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} style={{ borderRadius: 8, padding: '6px 12px', border: '1px solid #b2eaff', background: '#181a2a', color: '#fff' }} disabled={!selectedNiveau}>
               <option value="">Toutes</option>
               {subjects.map(subject => <option key={subject} value={subject}>{subject}</option>)}
             </select>
           </div>
-          <div>
-            <label htmlFor="level-select" style={{ color: '#b2eaff', fontWeight: 600, marginRight: 8 }}>Niveau :</label>
-            <select id="level-select" value={selectedLevel} onChange={e => setSelectedLevel(e.target.value)} style={{ borderRadius: 8, padding: '6px 12px', border: '1px solid #b2eaff', background: '#181a2a', color: '#fff' }}>
-              <option value="">Tous</option>
-              {levels.map(level => <option key={level} value={level}>{level}</option>)}
-            </select>
-          </div>
         </div>
         <div className="minigames-grid">
-          {filteredGames.length > 0 ? (
-            filteredGames.map(game => (
+          {games.length > 0 ? (
+            games.map(game => (
               <div
                 key={game._id}
                 className={`minigames-card${hovered === game._id ? ' hovered' : ''}`}
@@ -109,20 +118,18 @@ const MiniGames = () => {
                   <img src={game.imageUrl || '/assets/default-game.png'} alt={game.name} />
                 </div>
                 <h3>{game.name}</h3>
-                <div className="minigames-card-subject">{game.subject}</div>
                 <p>{game.description}</p>
-                <div className="minigames-card-stats">
-                  <div className="minigames-stat">
-                    <strong>Difficulté</strong>
-                    <div className="stat-value"><span>{game.difficulty}</span></div>
-                  </div>
-                  <div className="minigames-stat">
-                    <strong>Récompense</strong>
-                    <div className="stat-value"><span>{game.xpReward} XP</span></div>
-                  </div>
-                </div>
                 <div style={{ fontSize: 12, color: '#b2eaff', marginBottom: 8 }}>Gagne de l'XP pour chaque bonne réponse !</div>
-                <button className="minigames-play-btn" onClick={() => navigate(`/jeu/${game._id}`)}>
+                <button
+                  className="minigames-play-btn"
+                  onClick={() => {
+                    const params = [];
+                    if (selectedSubject) params.push(`subject=${encodeURIComponent(selectedSubject)}`);
+                    if (selectedNiveau) params.push(`niveau=${encodeURIComponent(selectedNiveau)}`);
+                    const query = params.length ? `?${params.join('&')}` : '';
+                    navigate(`/jeu/${game._id}${query}`);
+                  }}
+                >
                   <FaPlay /> <span>Jouer</span>
                 </button>
               </div>
