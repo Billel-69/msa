@@ -472,3 +472,30 @@
         padding: 6px 10px;
     }
 }
+
+/* Timer Styles */
+.timer-display {
+    background: rgba(0, 224, 255, 0.2);
+    border: 1px solid #00e0ff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #00e0ff;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    text-align: center;
+}
+
+.timer-urgent {
+    background: rgba(255, 99, 71, 0.3);
+    border-color: #ff6347;
+    color: #ff6347;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}

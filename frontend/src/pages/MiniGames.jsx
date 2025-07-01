@@ -32,11 +32,9 @@ const MiniGames = () => {
     fetchGames();
   }, [token]);
 
-  // Define French school levels and subjects by level
+  // Define French school levels (3e à Terminale seulement)
   const niveauxScolaires = [
-    'CP', 'CE1', 'CE2', 'CM1', 'CM2',
-    '6e', '5e', '4e', '3e',
-    '2nde', '1ère', 'Terminale', 'Bac'
+    '3e', '2nde', '1ère', 'Terminale'
   ];
   const subjectsByLevel = {
     primaire: ['Mathématiques', 'Français', 'Histoire', 'Géographie', 'Anglais', 'Sciences'],
@@ -44,9 +42,8 @@ const MiniGames = () => {
     lycee: ['Mathématiques', 'Français', 'Philosophie', 'Histoire-Géo', 'Anglais', 'Espagnol', 'Physique-Chimie', 'SVT', 'SES', 'Spécialité']
   };
   function getSubjectsForLevel(niveau) {
-    if (["CP", "CE1", "CE2", "CM1", "CM2"].includes(niveau)) return subjectsByLevel.primaire;
-    if (["6e", "5e", "4e", "3e"].includes(niveau)) return subjectsByLevel.college;
-    return subjectsByLevel.lycee;
+    if (["3e"].includes(niveau)) return subjectsByLevel.college;
+    return subjectsByLevel.lycee; // 2nde, 1ère, Terminale
   }
 
   const subjects = selectedNiveau ? getSubjectsForLevel(selectedNiveau) : [];
@@ -108,12 +105,12 @@ const MiniGames = () => {
           {games.length > 0 ? (
             games.map(game => (
               <div
-                key={game._id}
-                className={`minigames-card${hovered === game._id ? ' hovered' : ''}`}
-                onMouseEnter={() => setHovered(game._id)}
+                key={game.id}
+                className={`minigames-card${hovered === game.id ? ' hovered' : ''}`}
+                onMouseEnter={() => setHovered(game.id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                <div className="card-glow" style={{ opacity: hovered === game._id ? 1 : 0 }}></div>
+                <div className="card-glow" style={{ opacity: hovered === game.id ? 1 : 0 }}></div>
                 <div className="minigames-card-img">
                   <img src={game.imageUrl || '/assets/default-game.png'} alt={game.name} />
                 </div>
@@ -123,11 +120,15 @@ const MiniGames = () => {
                 <button
                   className="minigames-play-btn"
                   onClick={() => {
+                    console.log('Clicking on game:', game);
+                    console.log('Game ID:', game.id);
                     const params = [];
                     if (selectedSubject) params.push(`subject=${encodeURIComponent(selectedSubject)}`);
                     if (selectedNiveau) params.push(`niveau=${encodeURIComponent(selectedNiveau)}`);
                     const query = params.length ? `?${params.join('&')}` : '';
-                    navigate(`/jeu/${game._id}${query}`);
+                    const url = `/jeu/${game.id}${query}`;
+                    console.log('Navigating to:', url);
+                    navigate(url);
                   }}
                 >
                   <FaPlay /> <span>Jouer</span>

@@ -13,6 +13,9 @@ const GameDetail = () => {
     const navigate = useNavigate();
     const { token } = useAuth();
     
+    // Debug log
+    console.log('GameDetail - gameId from params:', gameId);
+    
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -25,21 +28,38 @@ const GameDetail = () => {
     const [gameStartTime] = useState(new Date());
     const [xp, setXp] = useState(0);
     const [streak, setStreak] = useState(0);
+    const [correctAnswers, setCorrectAnswers] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(0);
+    const [totalTime, setTotalTime] = useState(0);
+    const [timerActive, setTimerActive] = useState(false);
     
     // Fetch game details
     useEffect(() => {
         const fetchGameDetails = async () => {
             try {
                 setLoading(true);
+                console.log('Fetching game with ID:', gameId);
                 
                 const response = await axios.get(`http://localhost:5000/api/games/${gameId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 
-                setGame(response.data.game);
+                console.log('Game fetched successfully:', response.data.game);
+                const gameData = response.data.game;
+                setGame(gameData);
+                
+                // Initialiser le timer : 8 secondes par question
+                if (gameData.questions && gameData.questions.length > 0) {
+                    const calculatedTime = gameData.questions.length * 8;
+                    setTimeLeft(calculatedTime);
+                    setTotalTime(calculatedTime);
+                    setTimerActive(true);
+                }
+                
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching game:', err);
+                console.error('Request URL was:', `http://localhost:5000/api/games/${gameId}`);
                 setError('Impossible de charger ce jeu. Veuillez réessayer.');
                 setLoading(false);
             }
@@ -47,6 +67,25 @@ const GameDetail = () => {
         
         fetchGameDetails();
     }, [gameId, token]);
+    
+    // Gestion du timer
+    useEffect(() => {
+        if (!timerActive || timeLeft <= 0) return;
+        
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    setTimerActive(false);
+                    // Temps écoulé - terminer le jeu automatiquement
+                    submitGameResults(false);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        
+        return () => clearInterval(timer);
+    }, [timerActive, timeLeft]);
     
     // Handle answer selection for quiz type games
     const handleAnswer = (optionIndex) => {
@@ -66,6 +105,7 @@ const GameDetail = () => {
             setScore(score + 1);
             setXp(xp + 5);
             setStreak(streak + 1);
+            setCorrectAnswers(correctAnswers + 1);
         } else {
             setStreak(0);
         }
@@ -78,7 +118,8 @@ const GameDetail = () => {
             if (currentQuestion < game.questions.length - 1) {
                 setCurrentQuestion(currentQuestion + 1);
             } else {
-                // End the game
+                // Fin du jeu - arrêter le timer
+                setTimerActive(false);
                 submitGameResults(correct);
             }
         }, 2000);
@@ -92,11 +133,14 @@ const GameDetail = () => {
             
             const finalScore = Math.round(((score + (lastQuestionCorrect ? 1 : 0)) / game.questions.length) * 100);
             
+            const totalCorrect = correctAnswers + (lastQuestionCorrect ? 1 : 0);
+            
             const response = await axios.post(
                 `http://localhost:5000/api/games/${gameId}/results`,
                 {
                     score: finalScore,
-                    timeSpent: timeSpent
+                    timeSpent: timeSpent,
+                    correctAnswers: totalCorrect
                 },
                 {
                     headers: { Authorization: `Bearer ${token}` }
@@ -120,6 +164,10 @@ const GameDetail = () => {
         setGameCompleted(false);
         setXp(0);
         setStreak(0);
+        setCorrectAnswers(0);
+        // Relancer le timer
+        setTimeLeft(totalTime);
+        setTimerActive(true);
     };
     
     // Render loading state
@@ -208,18 +256,19 @@ const GameDetail = () => {
                                     <FaStar />
                                 </div>
                                 <div className="stat-label">XP Gagnée</div>
-                                <div className="stat-value">+{Math.round(score * game.xpReward / 100)}</div>
+                                <div className="stat-value">+{xp}</div>
                             </div>
                         </div>
                         
                         <div className="result-message">
                             {score >= 70 ? (
                                 <p className="success-message">
-                                    Félicitations ! Tu as réussi ce jeu !
+                                    Félicitations ! Tu as réussi ce jeu en {Math.floor((totalTime - timeLeft) / 60)}:{((totalTime - timeLeft) % 60).toString().padStart(2, '0')} !
                                 </p>
                             ) : (
                                 <p className="try-again-message">
                                     Presque ! Essaie encore pour gagner plus de points !
+                                    {timeLeft > 0 && <span> Temps utilisé: {Math.floor((totalTime - timeLeft) / 60)}:{((totalTime - timeLeft) % 60).toString().padStart(2, '0')}</span>}
                                 </p>
                             )}
                         </div>
@@ -267,6 +316,9 @@ const GameDetail = () => {
                                 </div>
                                 <div className="streak-display">
                                     Streak: {streak}
+                                </div>
+                                <div className={`timer-display ${timeLeft <= 10 ? 'timer-urgent' : ''}`}>
+                                    ⏰ {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
                                 </div>
                             </div>
                             
