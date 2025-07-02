@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 const db = require('../config/db');
+const { calculateLevel } = require('../utils/levelUtils');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'kaizenverse_secret_key';
 
@@ -93,6 +94,17 @@ exports.getProfile = async (req, res) => {
         }
 
         const user = rows[0];
+        
+        // Récupérer l'XP total depuis user_game_progress
+        const [xpRows] = await db.execute(
+            'SELECT COALESCE(SUM(total_xp), 0) as totalXP FROM user_game_progress WHERE user_id = ?',
+            [req.user.id]
+        );
+        const totalXP = xpRows[0].totalXP;
+        
+        // Calculer le niveau basé sur l'XP total
+        const levelInfo = calculateLevel(totalXP);
+
         res.json({
             id: user.id,
             name: user.name,
@@ -100,12 +112,16 @@ exports.getProfile = async (req, res) => {
             email: user.email,
             accountType: user.account_type,
             profilePicture: user.profile_picture,
-            level: user.level,
+            level: levelInfo.level,
             quests_completed: user.quests_completed,
             fragments: user.fragments,
             badges: user.badges,
             rank: user.user_rank,
-            style: user.style
+            style: user.style,
+            totalXP: totalXP,
+            currentLevelXP: levelInfo.currentLevelXP,
+            nextLevelXP: levelInfo.nextLevelXP,
+            xpToNextLevel: levelInfo.xpToNextLevel
         });
     } catch (err) {
         console.error(err);

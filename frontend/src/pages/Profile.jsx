@@ -142,6 +142,31 @@ function Profile() {
                     <div className="stat-info">
                         <h3>Niveau</h3>
                         <p className="stat-value">{profileData.level || 1}</p>
+                        {profileData.xpToNextLevel !== undefined && (
+                            <div className="level-progress">
+                                <div className="progress-bar">
+                                    <div 
+                                        className="progress-fill" 
+                                        style={{ 
+                                            width: `${((profileData.currentLevelXP || 0) / (profileData.nextLevelXP || 1)) * 100}%` 
+                                        }}
+                                    ></div>
+                                </div>
+                                <small className="progress-text">
+                                    {profileData.xpToNextLevel || 0} XP jusqu'au prochain niveau
+                                </small>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="stat-card">
+                    <div className="stat-icon">
+                        <FaStar />
+                    </div>
+                    <div className="stat-info">
+                        <h3>XP Total</h3>
+                        <p className="stat-value">{profileData.totalXP || 0}</p>
                     </div>
                 </div>
 
@@ -347,6 +372,8 @@ function Profile() {
                             </p>
                             <div className="profile-quick-stats">
                                 <span>Niveau {profileData.level || 1}</span>
+                                <span>•</span>
+                                <span>{profileData.totalXP || 0} XP</span>
                                 <span>•</span>
                                 <span>{profileData.fragments || 0} fragments</span>
                                 <span>•</span>

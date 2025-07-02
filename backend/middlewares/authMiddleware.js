@@ -55,4 +55,4 @@ const isChildOrStudent = (req, res, next) => {
         return res.status(403).json({ error: 'Accès réservé aux élèves/enfants' });
     }
 };
-module.exports = { verifyToken };
+module.exports = { verifyToken, isChildOrStudent };

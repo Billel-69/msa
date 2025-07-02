@@ -240,6 +240,74 @@
     transform: translateY(0.5px);
 }
 
+/* Coming Soon Styles */
+.minigames-card.coming-soon {
+    opacity: 0.7;
+    position: relative;
+}
+
+.minigames-card.coming-soon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.coming-soon-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 3;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+    }
+}
+
+.minigames-card.coming-soon .minigames-card-img {
+    filter: grayscale(0.5) brightness(0.8);
+}
+
+.minigames-card.coming-soon h3 {
+    color: #888;
+}
+
+.minigames-play-btn.disabled {
+    background: linear-gradient(45deg, #666, #444);
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+    border-color: #444;
+}
+
+.minigames-play-btn.disabled:hover {
+    background: linear-gradient(45deg, #666, #444);
+    transform: none;
+    box-shadow: none;
+    border-color: #444;
+}
+
 /* No Games Message */
 .no-games-message {
     grid-column: 1 / -1;

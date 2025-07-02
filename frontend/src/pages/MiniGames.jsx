@@ -103,38 +103,48 @@ const MiniGames = () => {
         </div>
         <div className="minigames-grid">
           {games.length > 0 ? (
-            games.map(game => (
-              <div
-                key={game.id}
-                className={`minigames-card${hovered === game.id ? ' hovered' : ''}`}
-                onMouseEnter={() => setHovered(game.id)}
-                onMouseLeave={() => setHovered(null)}
-              >
-                <div className="card-glow" style={{ opacity: hovered === game.id ? 1 : 0 }}></div>
-                <div className="minigames-card-img">
-                  <img src={game.imageUrl || '/assets/default-game.png'} alt={game.name} />
-                </div>
-                <h3>{game.name}</h3>
-                <p>{game.description}</p>
-                <div style={{ fontSize: 12, color: '#b2eaff', marginBottom: 8 }}>Gagne de l'XP pour chaque bonne réponse !</div>
-                <button
-                  className="minigames-play-btn"
-                  onClick={() => {
-                    console.log('Clicking on game:', game);
-                    console.log('Game ID:', game.id);
-                    const params = [];
-                    if (selectedSubject) params.push(`subject=${encodeURIComponent(selectedSubject)}`);
-                    if (selectedNiveau) params.push(`niveau=${encodeURIComponent(selectedNiveau)}`);
-                    const query = params.length ? `?${params.join('&')}` : '';
-                    const url = `/jeu/${game.id}${query}`;
-                    console.log('Navigating to:', url);
-                    navigate(url);
-                  }}
+            games.map(game => {
+              // Seul Battle Quiz est disponible, les autres sont "Coming soon"
+              const isComingSoon = game.name !== 'Battle Quiz';
+              
+              return (
+                <div
+                  key={game.id}
+                  className={`minigames-card${hovered === game.id ? ' hovered' : ''}${isComingSoon ? ' coming-soon' : ''}`}
+                  onMouseEnter={() => setHovered(game.id)}
+                  onMouseLeave={() => setHovered(null)}
                 >
-                  <FaPlay /> <span>Jouer</span>
-                </button>
-              </div>
-            ))
+                  <div className="card-glow" style={{ opacity: hovered === game.id ? 1 : 0 }}></div>
+                  {isComingSoon && <div className="coming-soon-overlay">Bientôt disponible</div>}
+                  <div className="minigames-card-img">
+                    <img src={game.imageUrl || '/assets/default-game.png'} alt={game.name} />
+                  </div>
+                  <h3>{game.name}</h3>
+                  <p>{game.description}</p>
+                  <div style={{ fontSize: 12, color: '#b2eaff', marginBottom: 8 }}>
+                    {isComingSoon ? 'En développement...' : 'Gagne de l\'XP pour chaque bonne réponse !'}
+                  </div>
+                  <button
+                    className={`minigames-play-btn${isComingSoon ? ' disabled' : ''}`}
+                    disabled={isComingSoon}
+                    onClick={() => {
+                      if (isComingSoon) return;
+                      console.log('Clicking on game:', game);
+                      console.log('Game ID:', game.id);
+                      const params = [];
+                      if (selectedSubject) params.push(`subject=${encodeURIComponent(selectedSubject)}`);
+                      if (selectedNiveau) params.push(`niveau=${encodeURIComponent(selectedNiveau)}`);
+                      const query = params.length ? `?${params.join('&')}` : '';
+                      const url = `/jeu/${game.id}${query}`;
+                      console.log('Navigating to:', url);
+                      navigate(url);
+                    }}
+                  >
+                    <FaPlay /> <span>{isComingSoon ? 'Bientôt' : 'Jouer'}</span>
+                  </button>
+                </div>
+              );
+            })
           ) : (
             <div className="no-games-message">
               <h3>Aucun mini-jeu disponible pour le moment</h3>
