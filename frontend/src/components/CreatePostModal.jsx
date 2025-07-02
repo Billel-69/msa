@@ -24,17 +24,22 @@ function CreatePostModal({ isOpen, onClose, onPostCreated }) {
             }
 
             const formData = new FormData();
-            formData.append('text', content);
+            formData.append('content', content); // ✅ CHANGÉ: 'text' -> 'content'
             if (image) {
                 formData.append('image', image);
             }
 
-            await axios.post('http://localhost:5000/api/posts', formData, {
+            // Debug logs (à retirer après correction)
+            console.log('Envoi du post:', { content, hasImage: !!image });
+
+            const response = await axios.post('http://localhost:5000/api/posts', formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
                 }
             });
+
+            console.log('Post créé avec succès:', response.data);
 
             // Reset form
             setContent('');
@@ -48,6 +53,7 @@ function CreatePostModal({ isOpen, onClose, onPostCreated }) {
 
         } catch (error) {
             console.error('Erreur lors de la création du post:', error);
+            console.error('Détails de l\'erreur:', error.response?.data);
             alert('Erreur lors de la publication du post');
         } finally {
             setLoading(false);

@@ -87,7 +87,7 @@ router.get('/my-sessions', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// ROUTE: Créer une nouvelle session
+// ROUTE: Créer une nouvelle session - CORRECTION
 // ==========================================
 router.post('/create-session', verifyToken, async (req, res) => {
     try {
@@ -113,11 +113,11 @@ router.post('/create-session', verifyToken, async (req, res) => {
         // Générer un code de salle unique
         const roomCode = await generateRoomCode();
 
-        // Insérer la session
+        // Insérer la session avec statut 'waiting' par défaut
         const [result] = await db.execute(`
             INSERT INTO live_sessions
-            (teacher_id, title, description, subject, max_participants, room_code, password, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'waiting')
+            (teacher_id, title, description, subject, max_participants, room_code, password, status, current_participants)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'waiting', 0)
         `, [
             teacherId,
             title.trim(),
@@ -128,12 +128,13 @@ router.post('/create-session', verifyToken, async (req, res) => {
             password ? password.trim() : null
         ]);
 
-        console.log('Session créée avec succès:', result.insertId, 'Code:', roomCode);
+        console.log('Session créée avec succès:', result.insertId, 'Code:', roomCode, 'Status: waiting');
 
         res.status(201).json({
             message: 'Session créée avec succès',
             sessionId: result.insertId,
-            roomCode: roomCode
+            roomCode: roomCode,
+            status: 'waiting'
         });
 
     } catch (error) {
@@ -183,24 +184,29 @@ router.get('/session-by-code/:code', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// ROUTE: Démarrer une session
+// ROUTE: Démarrer une session - AMÉLIORÉE
 // ==========================================
 router.post('/start-session/:sessionId', verifyToken, async (req, res) => {
     try {
         const sessionId = parseInt(req.params.sessionId);
         const userId = req.user.id;
 
-        console.log('Démarrage de session:', sessionId, 'par utilisateur:', userId);
+        console.log('=== DÉMARRAGE SESSION ===');
+        console.log('SessionId:', sessionId, 'par utilisateur:', userId);
 
-        // Vérifier que la session appartient à l'utilisateur
+        // Vérifier que la session appartient à l'utilisateur et est en attente
         const [sessions] = await db.execute(`
             SELECT * FROM live_sessions
             WHERE id = ? AND teacher_id = ? AND status = 'waiting'
         `, [sessionId, userId]);
 
         if (sessions.length === 0) {
+            console.log('Session introuvable, non autorisée ou déjà démarrée');
             return res.status(404).json({ error: 'Session introuvable ou déjà démarrée' });
         }
+
+        const session = sessions[0];
+        console.log('Session trouvée:', session.title);
 
         // Démarrer la session
         await db.execute(`
@@ -209,12 +215,22 @@ router.post('/start-session/:sessionId', verifyToken, async (req, res) => {
             WHERE id = ?
         `, [sessionId]);
 
+        // Ajouter un message système dans le chat
+        await db.execute(`
+            INSERT INTO live_chat (session_id, user_id, message, message_type)
+            VALUES (?, ?, '🎥 La session a commencé !', 'system')
+        `, [sessionId, userId]);
+
         console.log('Session démarrée avec succès:', sessionId);
-        res.json({ message: 'Session démarrée avec succès' });
+        res.json({
+            message: 'Session démarrée avec succès',
+            status: 'live',
+            startedAt: new Date().toISOString()
+        });
 
     } catch (error) {
-        console.error('Erreur lors du démarrage:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        console.error('=== ERREUR DÉMARRAGE SESSION ===', error);
+        res.status(500).json({ error: 'Erreur serveur lors du démarrage' });
     }
 });
 
@@ -251,6 +267,12 @@ router.post('/end-session/:sessionId', verifyToken, async (req, res) => {
             SET is_active = 0, left_at = NOW()
             WHERE session_id = ? AND is_active = 1
         `, [sessionId]);
+
+        // Ajouter un message système
+        await db.execute(`
+            INSERT INTO live_chat (session_id, user_id, message, message_type)
+            VALUES (?, ?, '🔚 La session est terminée', 'system')
+        `, [sessionId, userId]);
 
         console.log('Session terminée avec succès:', sessionId);
         res.json({ message: 'Session terminée avec succès' });
@@ -300,7 +322,7 @@ router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
 
         // Compter les participants actuels
         const [participantCount] = await db.execute(`
-            SELECT COUNT(*) as count FROM live_participants 
+            SELECT COUNT(*) as count FROM live_participants
             WHERE session_id = ? AND is_active = 1
         `, [sessionId]);
 
@@ -343,11 +365,11 @@ router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
         await db.execute(`
             INSERT INTO live_participants (session_id, user_id, role, is_active, joined_at)
             VALUES (?, ?, ?, 1, NOW())
-            ON DUPLICATE KEY UPDATE 
-                is_active = 1, 
-                joined_at = NOW(), 
-                left_at = NULL,
-                role = VALUES(role)
+                ON DUPLICATE KEY UPDATE
+                                     is_active = 1,
+                                     joined_at = NOW(),
+                                     left_at = NULL,
+                                     role = VALUES(role)
         `, [sessionId, userId, role]);
 
         // Mettre à jour le nombre de participants dans la session
@@ -361,6 +383,15 @@ router.post('/join-session/:sessionId', verifyToken, async (req, res) => {
             SET current_participants = ?
             WHERE id = ?
         `, [newCount[0].count, sessionId]);
+
+        // Ajouter un message système pour l'arrivée
+        const roleText = role === 'teacher' ? 'Le professeur' :
+            role === 'parent' ? 'Un parent' : 'Un élève';
+
+        await db.execute(`
+            INSERT INTO live_chat (session_id, user_id, message, message_type)
+            VALUES (?, ?, ?, 'system')
+        `, [sessionId, userId, `👋 ${roleText} ${req.user.name} a rejoint la session`]);
 
         console.log('=== CONNEXION RÉUSSIE ===');
         console.log('Nouveaux participants:', newCount[0].count);
@@ -388,6 +419,14 @@ router.post('/leave-session/:sessionId', verifyToken, async (req, res) => {
 
         console.log('Utilisateur quitte la session:', sessionId, userId);
 
+        // Récupérer les infos du participant
+        const [participant] = await db.execute(`
+            SELECT lp.*, u.name 
+            FROM live_participants lp
+            LEFT JOIN users u ON lp.user_id = u.id
+            WHERE lp.session_id = ? AND lp.user_id = ? AND lp.is_active = 1
+        `, [sessionId, userId]);
+
         // Marquer le participant comme inactif
         await db.execute(`
             UPDATE live_participants
@@ -404,6 +443,17 @@ router.post('/leave-session/:sessionId', verifyToken, async (req, res) => {
             )
             WHERE id = ?
         `, [sessionId, sessionId]);
+
+        // Ajouter un message système pour le départ
+        if (participant.length > 0) {
+            const roleText = participant[0].role === 'teacher' ? 'Le professeur' :
+                participant[0].role === 'parent' ? 'Un parent' : 'Un élève';
+
+            await db.execute(`
+                INSERT INTO live_chat (session_id, user_id, message, message_type)
+                VALUES (?, ?, ?, 'system')
+            `, [sessionId, userId, `👋 ${roleText} ${participant[0].name} a quitté la session`]);
+        }
 
         res.json({ message: 'Session quittée avec succès' });
 
@@ -490,7 +540,7 @@ router.get('/session/:sessionId', verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// ROUTES CHAT LIVE
+// ROUTES CHAT LIVE - AMÉLIORÉES
 // ==========================================
 
 // ROUTE: Obtenir les messages du chat d'une session
@@ -501,39 +551,84 @@ router.get('/session/:sessionId/chat', verifyToken, async (req, res) => {
         const limit = parseInt(req.query.limit) || 50;
         const offset = parseInt(req.query.offset) || 0;
 
-        console.log('Récupération du chat pour session:', sessionId);
+        console.log('=== RÉCUPÉRATION CHAT ===');
+        console.log('SessionId:', sessionId);
+        console.log('UserId:', userId);
+        console.log('User:', req.user.name || req.user.username);
 
-        // Vérifier que l'utilisateur fait partie de la session
+        // Vérifier que sessionId est valide
+        if (!sessionId || isNaN(sessionId)) {
+            console.log('SessionId invalide:', req.params.sessionId);
+            return res.status(400).json({ error: 'ID de session invalide' });
+        }
+
+        // Vérifier que la session existe
+        const [session] = await db.execute(`
+            SELECT id, teacher_id, status FROM live_sessions WHERE id = ?
+        `, [sessionId]);
+
+        if (session.length === 0) {
+            console.log('Session introuvable:', sessionId);
+            return res.status(404).json({ error: 'Session introuvable' });
+        }
+
+        console.log('Session trouvée:', {
+            id: session[0].id,
+            teacher_id: session[0].teacher_id,
+            status: session[0].status
+        });
+
+        // Vérifier que l'utilisateur fait partie de la session OU est le professeur
         const [participant] = await db.execute(`
             SELECT * FROM live_participants
             WHERE session_id = ? AND user_id = ? AND is_active = 1
         `, [sessionId, userId]);
 
-        const [session] = await db.execute(`
-            SELECT teacher_id FROM live_sessions WHERE id = ?
-        `, [sessionId]);
-
-        const isTeacher = session.length > 0 && session[0].teacher_id === userId;
+        const isTeacher = session[0].teacher_id === userId;
         const isParticipant = participant.length > 0 || isTeacher;
 
+        console.log('Permissions:', {
+            isTeacher,
+            isParticipant,
+            participantRecord: participant.length > 0
+        });
+
         if (!isParticipant) {
-            return res.status(403).json({ error: 'Vous devez être dans la session pour voir le chat' });
+            console.log('Utilisateur non autorisé pour le chat');
+            return res.status(403).json({
+                error: 'Vous devez être dans la session pour voir le chat'
+            });
         }
 
-        // Récupérer les messages
-        const [messages] = await db.execute(`
-            SELECT
-                lc.*,
-                u.name as user_name,
-                u.username,
-                u.profile_picture,
-                u.account_type
-            FROM live_chat lc
-                     LEFT JOIN users u ON lc.user_id = u.id
-            WHERE lc.session_id = ?
-            ORDER BY lc.created_at DESC
+        // Récupérer les messages avec gestion d'erreur robuste
+        let messages = [];
+        try {
+            const [messageResults] = await db.execute(`
+                SELECT
+                    lc.id,
+                    lc.session_id,
+                    lc.user_id,
+                    lc.message,
+                    lc.message_type,
+                    lc.created_at,
+                    COALESCE(u.name, 'Utilisateur supprimé') as user_name,
+                    u.username,
+                    u.profile_picture,
+                    u.account_type
+                FROM live_chat lc
+                LEFT JOIN users u ON lc.user_id = u.id
+                WHERE lc.session_id = ?
+                ORDER BY lc.created_at DESC
                 LIMIT ? OFFSET ?
-        `, [sessionId, limit, offset]);
+            `, [sessionId, limit, offset]);
+
+            messages = messageResults || [];
+            console.log(`Messages récupérés: ${messages.length}`);
+
+        } catch (messageError) {
+            console.error('Erreur récupération messages:', messageError);
+            messages = [];
+        }
 
         // Inverser pour avoir les messages dans l'ordre chronologique
         messages.reverse();
@@ -541,19 +636,27 @@ router.get('/session/:sessionId/chat', verifyToken, async (req, res) => {
         res.json(messages);
 
     } catch (error) {
-        console.error('Erreur lors de la récupération du chat:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        console.error('=== ERREUR RÉCUPÉRATION CHAT ===');
+        console.error('Error:', error.message);
+        console.error('Stack:', error.stack);
+
+        res.status(500).json({
+            error: 'Erreur serveur lors de la récupération du chat',
+            details: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+        });
     }
 });
 
-// ROUTE: Envoyer un message dans le chat
+// ROUTE: Envoyer un message dans le chat - VERSION AMÉLIORÉE
 router.post('/session/:sessionId/chat', verifyToken, async (req, res) => {
     try {
         const sessionId = parseInt(req.params.sessionId);
         const userId = req.user.id;
         const { message, messageType = 'text' } = req.body;
 
-        console.log('Envoi de message dans session:', sessionId, 'par:', userId);
+        console.log('=== ENVOI MESSAGE CHAT ===');
+        console.log('SessionId:', sessionId, 'UserId:', userId);
+        console.log('Message:', message?.substring(0, 50) + '...');
 
         // Validation
         if (!message || message.trim().length === 0) {
@@ -564,12 +667,7 @@ router.post('/session/:sessionId/chat', verifyToken, async (req, res) => {
             return res.status(400).json({ error: 'Message trop long (max 500 caractères)' });
         }
 
-        // Vérifier que l'utilisateur fait partie de la session
-        const [participant] = await db.execute(`
-            SELECT * FROM live_participants
-            WHERE session_id = ? AND user_id = ? AND is_active = 1
-        `, [sessionId, userId]);
-
+        // Vérifier que la session existe
         const [session] = await db.execute(`
             SELECT teacher_id, status FROM live_sessions WHERE id = ?
         `, [sessionId]);
@@ -578,6 +676,12 @@ router.post('/session/:sessionId/chat', verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'Session introuvable' });
         }
 
+        // Vérifier que l'utilisateur fait partie de la session
+        const [participant] = await db.execute(`
+            SELECT * FROM live_participants
+            WHERE session_id = ? AND user_id = ? AND is_active = 1
+        `, [sessionId, userId]);
+
         const isTeacher = session[0].teacher_id === userId;
         const isParticipant = participant.length > 0 || isTeacher;
 
@@ -585,8 +689,14 @@ router.post('/session/:sessionId/chat', verifyToken, async (req, res) => {
             return res.status(403).json({ error: 'Vous devez être dans la session pour envoyer des messages' });
         }
 
-        if (session[0].status !== 'live') {
-            return res.status(400).json({ error: 'La session doit être en cours pour envoyer des messages' });
+        // MODIFICATION : Permettre les messages dans les sessions en attente aussi (pour les messages système)
+        // La session doit être live OU waiting pour les messages normaux, tous statuts pour les messages système
+        if (session[0].status === 'ended') {
+            return res.status(400).json({ error: 'La session est terminée' });
+        }
+
+        if (session[0].status === 'waiting' && messageType !== 'system' && !isTeacher) {
+            return res.status(400).json({ error: 'Seul le professeur peut envoyer des messages avant le début de la session' });
         }
 
         // Insérer le message
@@ -608,12 +718,15 @@ router.post('/session/:sessionId/chat', verifyToken, async (req, res) => {
             WHERE lc.id = ?
         `, [result.insertId]);
 
-        console.log('Message envoyé avec succès:', result.insertId);
+        console.log(`Message envoyé avec succès: ID ${result.insertId}`);
         res.status(201).json(newMessage[0]);
 
     } catch (error) {
-        console.error('Erreur lors de l\'envoi du message:', error);
-        res.status(500).json({ error: 'Erreur serveur' });
+        console.error('=== ERREUR ENVOI MESSAGE ===', error);
+        res.status(500).json({
+            error: 'Erreur serveur lors de l\'envoi du message',
+            details: process.env.NODE_ENV === 'development' ? error.message : 'Erreur interne'
+        });
     }
 });
 

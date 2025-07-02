@@ -1,4 +1,4 @@
-/* LiveSession.css - Session live avec chat temps réel - VERSION FINALE CORRIGÉE */
+/* LiveSession.css - FICHIER COMPLET CORRIGÉ avec classe unique pour le bouton retour */
 
 .live-session-container {
     min-height: 100vh;
@@ -8,16 +8,16 @@
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
-    padding-top: 45px; /* Espace pour la navbar compacte */
+    padding-top: 45px;
 }
 
 /* ==========================================
-   HEADER DE LA SESSION - CORRIGÉ
+   HEADER DE LA SESSION - CORRIGÉ avec classe unique
    ========================================== */
 .session-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 12px 20px;
     background: rgba(27, 20, 68, 0.95);
     border-bottom: 2px solid rgba(0, 224, 255, 0.2);
@@ -25,19 +25,22 @@
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 10;
-    min-height: 65px;
+    min-height: 75px;
     flex-shrink: 0;
+    gap: 15px;
 }
 
 .header-left {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 15px;
     flex: 1;
     min-width: 0;
+    padding-top: 5px;
 }
 
-.back-button {
+/* NOUVELLE CLASSE UNIQUE pour éviter les conflits */
+.live-session-back-button {
     background: rgba(0, 224, 255, 0.1);
     border: 2px solid rgba(0, 224, 255, 0.3);
     color: #00e0ff;
@@ -52,24 +55,42 @@
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
     flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    z-index: 3;
 }
 
-.back-button:hover {
+.live-session-back-button:hover {
     background: rgba(0, 224, 255, 0.2);
     border-color: #00e0ff;
     transform: scale(1.05);
     box-shadow: 0 4px 12px rgba(0, 224, 255, 0.3);
 }
 
+.live-session-back-button:focus {
+    outline: 2px solid #00e0ff;
+    outline-offset: 2px;
+}
+
+/* Protection contre les conflits CSS */
+.session-header .back-button:not(.live-session-back-button) {
+    display: none !important;
+}
+
+.live-session-container .back-button:not(.live-session-back-button) {
+    display: none !important;
+}
+
 .session-info {
     flex: 1;
     min-width: 0;
     overflow: hidden;
+    margin-left: 0;
 }
 
 .session-info h1 {
-    font-size: 1.5rem;
-    margin: 0 0 4px 0;
+    font-size: 1.4rem;
+    margin: 0 0 6px 0;
     background: linear-gradient(45deg, #00e0ff, #ffffff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -77,6 +98,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.2;
+    position: relative;
+    z-index: 2;
 }
 
 .session-details {
@@ -87,6 +111,9 @@
     align-items: center;
     font-size: 0.8rem;
     flex-wrap: wrap;
+    line-height: 1.3;
+    position: relative;
+    z-index: 2;
 }
 
 .session-status {
@@ -94,6 +121,8 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
 }
 
 .status-indicator {
@@ -124,9 +153,10 @@
 
 .header-right {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 15px;
     flex-shrink: 0;
+    padding-top: 5px;
 }
 
 .connection-status {
@@ -154,8 +184,6 @@
     background: #dc3545;
     box-shadow: 0 0 6px rgba(220, 53, 69, 0.6);
 }
-
-/* Nouveaux styles pour les contrôles du professeur et média */
 
 /* Controls du professeur dans le header */
 .teacher-controls {
@@ -242,166 +270,33 @@
     transform: scale(1.05);
 }
 
-/* Conteneur de partage d'écran */
-.screen-share-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
+.video-btn {
+    border-color: rgba(0, 123, 255, 0.5);
+    color: rgba(0, 123, 255, 0.8);
 }
 
-.screen-video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #000;
+.video-btn.active {
+    background: rgba(0, 123, 255, 0.2);
+    border-color: #007bff;
+    color: #007bff;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
 }
 
-.screen-share-overlay {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(0, 123, 255, 0.9);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    backdrop-filter: blur(10px);
+.video-btn:hover {
+    background: rgba(0, 123, 255, 0.1);
+    transform: scale(1.05);
 }
 
-/* Conteneur de documents */
-.document-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: #f8f9fa;
-    border-radius: 12px;
-    overflow: hidden;
+.expand-btn {
+    border-color: rgba(156, 39, 176, 0.5);
+    color: rgba(156, 39, 176, 0.8);
 }
 
-.document-viewer {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: 12px;
-}
-
-.document-image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #fff;
-}
-
-.document-overlay {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    background: rgba(0, 224, 255, 0.9);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    backdrop-filter: blur(10px);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.close-document {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.close-document:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-/* Audio indicator dans participants */
-.audio-indicator {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
-    margin-left: auto;
-}
-
-.mic-icon {
-    font-size: 0.8rem;
-}
-
-.mic-icon.active {
-    color: #28a745;
-    animation: audioWave 1.5s ease-in-out infinite;
-}
-
-.mic-icon.muted {
-    color: #dc3545;
-}
-
-@keyframes audioWave {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* Audio element caché */
-.teacher-audio {
-    display: none;
-}
-
-/* Responsive pour les contrôles */
-@media (max-width: 768px) {
-    .teacher-controls {
-        gap: 6px;
-        margin-right: 10px;
-    }
-
-    .control-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
-
-    .screen-share-overlay,
-    .document-overlay {
-        top: 5px;
-        left: 5px;
-        right: 5px;
-        padding: 6px 8px;
-        font-size: 0.7rem;
-    }
-
-    .audio-indicator {
-        font-size: 0.6rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .teacher-controls {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .control-btn {
-        width: 28px;
-        height: 28px;
-        font-size: 11px;
-    }
+.expand-btn:hover {
+    background: rgba(156, 39, 176, 0.1);
+    border-color: #9c27b0;
+    color: #9c27b0;
+    transform: scale(1.05);
 }
 
 .leave-button {
@@ -430,7 +325,7 @@
 }
 
 /* ==========================================
-   CONTENU PRINCIPAL - CORRIGÉ
+   CONTENU PRINCIPAL
    ========================================== */
 .session-content {
     display: flex;
@@ -438,12 +333,12 @@
     gap: 15px;
     padding: 15px;
     min-height: 0;
-    height: calc(100vh - 130px);
+    height: calc(100vh - 140px);
     overflow: hidden;
 }
 
 /* ==========================================
-   SECTION VIDÉO ET PARTICIPANTS - CORRIGÉ
+   SECTION VIDÉO ET PARTICIPANTS
    ========================================== */
 .video-section {
     flex: 2;
@@ -505,7 +400,223 @@
 }
 
 /* ==========================================
-   PANEL PARTICIPANTS - CORRIGÉ
+   VIDÉO PRINCIPALE ET PARTAGES
+   ========================================== */
+.main-video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+}
+
+.primary-content {
+    flex: 1;
+    position: relative;
+    min-height: 300px;
+}
+
+.screen-share-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.screen-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+.screen-share-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+}
+
+.document-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #f8f9fa;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.document-viewer {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+}
+
+.document-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff;
+}
+
+.document-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    background: rgba(0, 224, 255, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-document {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.close-document:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================
+   VIDÉO DU PROFESSEUR
+   ========================================== */
+.teacher-video-container {
+    position: absolute;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 3px solid rgba(0, 224, 255, 0.6);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.teacher-video-container.pip {
+    bottom: 20px;
+    right: 20px;
+    width: 220px;
+    height: 165px;
+}
+
+.teacher-video-container.expanded {
+    top: 20px;
+    right: 20px;
+    width: 320px;
+    height: 240px;
+}
+
+.teacher-video-container:hover {
+    border-color: rgba(0, 224, 255, 0.9);
+    box-shadow: 0 12px 35px rgba(0, 224, 255, 0.3);
+    transform: scale(1.02);
+}
+
+.teacher-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #1a1a2e;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    background: rgba(0, 224, 255, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2;
+}
+
+.video-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.layout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.layout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.layout-btn.active {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Layout côte à côte */
+.session-content.side-by-side .main-video-container {
+    flex-direction: row;
+}
+
+.session-content.side-by-side .teacher-video-container {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 350px;
+    height: 100%;
+    border-radius: 0 16px 16px 0;
+    flex-shrink: 0;
+}
+
+.session-content.side-by-side .primary-content {
+    border-radius: 16px 0 0 16px;
+}
+
+.teacher-audio {
+    display: none;
+}
+
+/* ==========================================
+   PANEL PARTICIPANTS
    ========================================== */
 .participants-panel {
     background: linear-gradient(135deg, rgba(47, 47, 79, 0.9), rgba(30, 30, 50, 0.9));
@@ -529,6 +640,7 @@
     font-weight: bold;
     font-size: 1rem;
     flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
 .participants-list {
@@ -648,8 +760,52 @@
     right: 3px;
 }
 
+.audio-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    margin-left: auto;
+}
+
+.mic-icon {
+    font-size: 0.8rem;
+}
+
+.mic-icon.active {
+    color: #28a745;
+    animation: audioWave 1.5s ease-in-out infinite;
+}
+
+.mic-icon.muted {
+    color: #dc3545;
+}
+
+@keyframes audioWave {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.video-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    margin-left: 8px;
+}
+
+.video-icon.active {
+    color: #007bff;
+    animation: videoActive 2s ease-in-out infinite;
+}
+
+@keyframes videoActive {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 /* ==========================================
-   SECTION CHAT - CORRIGÉ
+   SECTION CHAT - CORRECTIONS POUR LES MESSAGES
    ========================================== */
 .chat-section {
     flex: 1;
@@ -714,7 +870,7 @@
 }
 
 /* ==========================================
-   MESSAGES - CORRIGÉ
+   MESSAGES - CORRECTION PRINCIPALE POUR L'AFFICHAGE
    ========================================== */
 .message {
     display: flex;
@@ -722,6 +878,7 @@
     animation: messageSlide 0.3s ease-out;
     max-width: 100%;
     word-wrap: break-word;
+    align-items: flex-start;
 }
 
 .message.own {
@@ -756,6 +913,7 @@
     gap: 3px;
     max-width: 75%;
     word-wrap: break-word;
+    align-self: center;
 }
 
 .system-message time {
@@ -777,6 +935,7 @@
     overflow: hidden;
     flex-shrink: 0;
     box-shadow: 0 2px 4px rgba(0, 224, 255, 0.3);
+    margin-top: 2px;
 }
 
 .message-avatar img {
@@ -787,9 +946,11 @@
 
 .message-content {
     flex: 1;
-    max-width: 70%;
+    max-width: 75%;
     min-width: 0;
     word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
 }
 
 .message-header {
@@ -807,12 +968,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
 }
 
 .message-time {
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.5);
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .message-bubble {
@@ -824,6 +987,8 @@
     word-wrap: break-word;
     overflow-wrap: break-word;
     hyphens: auto;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .message.own .message-bubble {
@@ -846,11 +1011,11 @@
     overflow-wrap: break-word;
     hyphens: auto;
     font-size: 0.85rem;
+    white-space: pre-wrap;
 }
 
-
 /* ==========================================
-   INPUT CHAT - CORRIGÉ
+   INPUT CHAT
    ========================================== */
 .chat-input-form {
     padding: 15px;
@@ -876,6 +1041,7 @@
     outline: none;
     transition: all 0.3s ease;
     min-width: 0;
+    resize: none;
 }
 
 .chat-input:focus {
@@ -1004,12 +1170,13 @@
 }
 
 /* ==========================================
-   RESPONSIVE DESIGN - CORRIGÉ
+   RESPONSIVE DESIGN - CORRECTIONS
    ========================================== */
 @media (max-width: 1200px) {
     .session-content {
         gap: 12px;
         padding: 12px;
+        height: calc(100vh - 130px);
     }
 
     .chat-section {
@@ -1023,11 +1190,47 @@
         padding-top: 40px;
     }
 
+    .session-header {
+        min-height: 85px;
+        padding: 10px 15px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .header-left, .header-right {
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0;
+    }
+
+    .session-info {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .session-info h1 {
+        font-size: 1.2rem;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .session-details {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .teacher-controls {
+        margin-right: 0;
+        gap: 6px;
+    }
+
     .session-content {
         flex-direction: column;
         gap: 12px;
         height: auto;
-        min-height: calc(100vh - 110px);
+        min-height: calc(100vh - 150px);
     }
 
     .video-section {
@@ -1051,6 +1254,24 @@
         min-height: 220px;
         padding: 25px;
     }
+
+    .teacher-video-container.pip {
+        width: 180px;
+        height: 135px;
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .teacher-video-container.expanded {
+        width: 260px;
+        height: 195px;
+        top: 15px;
+        right: 15px;
+    }
+
+    .session-content.side-by-side .teacher-video-container {
+        width: 280px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1059,35 +1280,38 @@
     }
 
     .session-header {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-        min-height: auto;
-        padding: 12px 15px;
+        min-height: 95px;
+        padding: 8px 12px;
     }
 
-    .header-left,
-    .header-right {
-        width: 100%;
-        justify-content: center;
+    .live-session-back-button {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
     }
 
     .session-info h1 {
-        font-size: 1.3rem;
-        white-space: normal;
-        text-align: center;
+        font-size: 1.1rem;
     }
 
-    .session-details {
-        flex-direction: column;
+    .teacher-controls {
         gap: 4px;
-        align-items: center;
+    }
+
+    .control-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 11px;
+    }
+
+    .leave-button {
+        padding: 6px 12px;
+        font-size: 0.75rem;
     }
 
     .session-content {
-        padding: 12px;
-        height: auto;
-        min-height: calc(100vh - 140px);
+        padding: 10px;
+        min-height: calc(100vh - 160px);
     }
 
     .chat-section {
@@ -1110,6 +1334,55 @@
     .chat-input-form {
         padding: 12px;
     }
+
+    .main-video-container {
+        flex-direction: column;
+    }
+
+    .teacher-video-container.pip {
+        width: 150px;
+        height: 113px;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .teacher-video-container.expanded {
+        width: 200px;
+        height: 150px;
+        top: 10px;
+        right: 10px;
+    }
+
+    .session-content.side-by-side .main-video-container {
+        flex-direction: column;
+    }
+
+    .session-content.side-by-side .teacher-video-container {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 150px;
+        height: 113px;
+        border-radius: 12px;
+    }
+
+    .session-content.side-by-side .primary-content {
+        border-radius: 16px;
+    }
+
+    .video-overlay {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    .video-controls {
+        gap: 2px;
+    }
+
+    .layout-btn {
+        padding: 1px 4px;
+        font-size: 0.6rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1118,26 +1391,61 @@
     }
 
     .session-header {
-        padding: 8px 12px;
+        min-height: 105px;
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    .header-left {
+        flex-direction: row;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .session-info {
+        flex: 1;
     }
 
     .session-info h1 {
-        font-size: 1.1rem;
+        font-size: 1rem;
+        line-height: 1.1;
+        margin-bottom: 4px;
     }
 
-    .back-button {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
+    .session-details {
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    .live-session-back-button {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        margin-top: 0;
+        flex-shrink: 0;
+    }
+
+    .teacher-controls {
+        flex-wrap: wrap;
+        gap: 3px;
+        justify-content: center;
+    }
+
+    .control-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
     }
 
     .leave-button {
-        padding: 6px 12px;
-        font-size: 0.75rem;
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        gap: 3px;
     }
 
     .session-content {
         padding: 8px;
+        min-height: calc(100vh - 170px);
     }
 
     .video-placeholder {
@@ -1180,5 +1488,149 @@
         width: 32px;
         height: 32px;
         font-size: 12px;
+    }
+
+    .teacher-video-container.pip {
+        width: 120px;
+        height: 90px;
+        bottom: 8px;
+        right: 8px;
+    }
+
+    .teacher-video-container.expanded {
+        width: 160px;
+        height: 120px;
+        top: 8px;
+        right: 8px;
+    }
+
+    .video-overlay {
+        top: 5px;
+        left: 5px;
+        right: 5px;
+        padding: 3px 6px;
+        font-size: 0.65rem;
+    }
+
+    .participants-header {
+        font-size: 0.9rem;
+    }
+
+    .participant {
+        padding: 6px;
+        gap: 8px;
+    }
+
+    .participant-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+
+    .participant-name {
+        font-size: 0.8rem;
+    }
+
+    .participant-role {
+        font-size: 0.65rem;
+    }
+
+    .message-avatar {
+        width: 24px;
+        height: 24px;
+        font-size: 9px;
+    }
+
+    .message-author {
+        font-size: 0.7rem;
+    }
+
+    .message-time {
+        font-size: 0.65rem;
+    }
+
+    .message-bubble p {
+        font-size: 0.8rem;
+    }
+}
+
+/* ==========================================
+   ANIMATIONS ET TRANSITIONS
+   ========================================== */
+.teacher-video-container {
+    animation: videoSlideIn 0.5s ease-out;
+}
+
+@keyframes videoSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.session-content.screen-only .teacher-video-container {
+    display: none;
+}
+
+.teacher-video-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2000;
+    border-radius: 0;
+    border: none;
+}
+
+.teacher-video-container.fullscreen .teacher-video {
+    object-fit: contain;
+}
+
+.teacher-video-container.fullscreen .video-overlay {
+    top: 20px;
+    left: 20px;
+    right: 20px;
+}
+
+.teacher-video-container:hover .video-overlay {
+    background: rgba(0, 224, 255, 1);
+}
+
+.message:hover .message-bubble {
+    transform: translateX(2px);
+}
+
+.participant:hover .participant-avatar {
+    transform: scale(1.1);
+}
+
+.connection-indicator.connected {
+    animation: connectedPulse 2s ease-in-out infinite;
+}
+
+@keyframes connectedPulse {
+    0%, 100% {
+        box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+    }
+    50% {
+        box-shadow: 0 0 12px rgba(40, 167, 69, 0.9);
+    }
+}
+
+.connection-indicator.disconnected {
+    animation: disconnectedBlink 1s ease-in-out infinite;
+}
+
+@keyframes disconnectedBlink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0.3;
     }
 }

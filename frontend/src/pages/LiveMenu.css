@@ -1,4 +1,4 @@
-/* LiveMenu.css - Menu principal pour les sessions live - VERSION COMPLÈTE ET CORRIGÉE */
+/* LiveMenu.css - CORRECTIONS APPLIQUÉES */
 
 .live-menu-container {
     min-height: 100vh;
@@ -6,7 +6,7 @@
     color: #ffffff;
     padding: 15px;
     font-family: 'Arial', sans-serif;
-    padding-top: 50px; /* Espace pour la navbar compacte */
+    padding-top: 50px;
     box-sizing: border-box;
     overflow-x: hidden;
 }
@@ -52,7 +52,7 @@
     margin: 0;
 }
 
-/* Actions bar - Corrigée */
+/* Actions bar - CORRECTION PRINCIPALE POUR LA LOUPE */
 .live-actions {
     display: flex;
     justify-content: space-between;
@@ -60,12 +60,14 @@
     margin-bottom: 30px;
     gap: 15px;
     flex-wrap: wrap;
+    position: relative; /* AJOUTÉ pour éviter les problèmes de positionnement */
 }
 
 .search-section {
     flex: 1;
     max-width: 450px;
     min-width: 280px;
+    position: relative; /* AJOUTÉ */
 }
 
 .search-input-group {
@@ -73,9 +75,11 @@
     align-items: center;
     background: rgba(47, 47, 79, 0.8);
     border-radius: 20px;
-    padding: 4px;
+    padding: 4px 4px 4px 12px; /* MODIFIÉ pour un meilleur espacement */
     border: 2px solid rgba(0, 224, 255, 0.3);
     transition: all 0.3s ease;
+    position: relative; /* AJOUTÉ */
+    overflow: hidden; /* AJOUTÉ pour éviter les débordements */
 }
 
 .search-input-group:focus-within {
@@ -84,10 +88,12 @@
 }
 
 .search-icon {
-    margin: 0 12px;
+    margin-right: 12px; /* MODIFIÉ : margin spécifique à droite */
     color: #00e0ff;
     font-size: 1.1rem;
     flex-shrink: 0;
+    position: relative; /* AJOUTÉ */
+    z-index: 1; /* AJOUTÉ pour s'assurer qu'elle reste visible */
 }
 
 .search-input {
@@ -122,6 +128,7 @@
     letter-spacing: 0.5px;
     white-space: nowrap;
     flex-shrink: 0;
+    margin-left: 8px; /* AJOUTÉ pour espacement */
 }
 
 .search-btn:hover {
@@ -155,7 +162,7 @@
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
-/* Sessions sections - Corrigées */
+/* Sessions sections */
 .sessions-section {
     margin-bottom: 40px;
 }
@@ -176,14 +183,14 @@
     flex-shrink: 0;
 }
 
-/* Sessions grid - Corrigée */
+/* Sessions grid */
 .sessions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 20px;
 }
 
-/* Session cards - Corrigées */
+/* Session cards */
 .session-card {
     background: linear-gradient(135deg, rgba(47, 47, 79, 0.9), rgba(30, 30, 50, 0.9));
     border-radius: 16px;
@@ -234,7 +241,7 @@
     opacity: 0.7;
 }
 
-/* Session content - Corrigé */
+/* Session content */
 .session-content {
     position: relative;
     z-index: 1;
@@ -337,7 +344,7 @@
     gap: 4px;
 }
 
-/* Session actions - Corrigées */
+/* Session actions */
 .session-actions {
     display: flex;
     gap: 8px;
@@ -407,7 +414,7 @@
     cursor: not-allowed;
 }
 
-/* No sessions state - Corrigé */
+/* No sessions state */
 .no-sessions {
     text-align: center;
     padding: 40px 20px;
@@ -456,7 +463,7 @@
     transform: translateY(-1px);
 }
 
-/* Modal styles - Corrigés */
+/* Modal styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -522,7 +529,7 @@
     padding: 25px;
 }
 
-/* Form styles - Corrigés */
+/* Form styles */
 .form-group {
     margin-bottom: 18px;
 }
@@ -608,7 +615,7 @@
     transform: translateY(-1px);
 }
 
-/* Loading states - Corrigés */
+/* Loading states */
 .loading-spinner {
     display: flex;
     flex-direction: column;
@@ -634,7 +641,7 @@
     100% { transform: rotate(360deg); }
 }
 
-/* Responsive design - Corrigé */
+/* Responsive design - CORRECTIONS POUR MOBILE */
 @media (max-width: 1024px) {
     .live-menu-container {
         padding: 12px;
@@ -650,11 +657,13 @@
     .live-actions {
         flex-direction: column;
         gap: 12px;
+        align-items: stretch; /* MODIFIÉ pour étirer les éléments */
     }
 
     .search-section {
         max-width: none;
         min-width: auto;
+        width: 100%; /* AJOUTÉ */
     }
 
     .sessions-grid {
@@ -712,15 +721,26 @@
         flex-direction: column;
     }
 
+    /* CORRECTIONS SEARCH INPUT POUR MOBILE */
     .search-input-group {
-        flex-direction: column;
-        padding: 8px;
-        gap: 8px;
+        flex-direction: row; /* GARDÉ en row pour mobile */
+        padding: 6px; /* MODIFIÉ pour un meilleur espacement */
+        border-radius: 20px;
+    }
+
+    .search-icon {
+        margin-right: 8px; /* RÉDUIT pour mobile */
+    }
+
+    .search-input {
+        padding: 8px 6px;
+        font-size: 0.85rem;
     }
 
     .search-btn {
-        width: 100%;
-        margin: 0;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        margin-left: 6px; /* RÉDUIT pour mobile */
     }
 }
 
@@ -766,17 +786,24 @@
     }
 
     .search-input-group {
-        border-radius: 15px;
+        border-radius: 16px;
+        padding: 4px;
+    }
+
+    .search-icon {
+        margin-right: 6px;
+        font-size: 1rem;
     }
 
     .search-input {
         font-size: 0.8rem;
-        padding: 8px 6px;
+        padding: 8px 4px;
     }
 
     .search-btn {
-        padding: 8px 12px;
+        padding: 8px 10px;
         font-size: 0.8rem;
+        margin-left: 4px;
     }
 
     .create-session-btn {
@@ -799,4 +826,235 @@
     .no-sessions span {
         font-size: 0.85rem;
     }
+}
+/* CORRECTION CONFLIT CSS - Bouton retour unique pour LiveSession */
+
+/* NOUVELLE CLASSE UNIQUE pour éviter les conflits */
+.live-session-back-button {
+    background: rgba(0, 224, 255, 0.1);
+    border: 2px solid rgba(0, 224, 255, 0.3);
+    color: #00e0ff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    z-index: 3; /* Plus élevé pour éviter tout conflit */
+}
+
+.live-session-back-button:hover {
+    background: rgba(0, 224, 255, 0.2);
+    border-color: #00e0ff;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 224, 255, 0.3);
+}
+
+.live-session-back-button:focus {
+    outline: 2px solid #00e0ff;
+    outline-offset: 2px;
+}
+
+/* CORRECTION DU HEADER avec la nouvelle classe */
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 20px;
+    background: rgba(27, 20, 68, 0.95);
+    border-bottom: 2px solid rgba(0, 224, 255, 0.2);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 10;
+    min-height: 75px;
+    flex-shrink: 0;
+    gap: 15px;
+}
+
+.header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    flex: 1;
+    min-width: 0;
+    padding-top: 5px;
+}
+
+/* IMPORTANT : Désactiver tous les autres .back-button dans ce contexte */
+.session-header .back-button:not(.live-session-back-button) {
+    display: none !important;
+}
+
+.session-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    margin-left: 0;
+}
+
+.session-info h1 {
+    font-size: 1.4rem;
+    margin: 0 0 6px 0;
+    background: linear-gradient(45deg, #00e0ff, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.2;
+    position: relative;
+    z-index: 2;
+}
+
+.session-details {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    line-height: 1.3;
+    position: relative;
+    z-index: 2;
+}
+
+.session-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+}
+
+.status-indicator.live {
+    background: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+}
+
+.status-indicator.waiting {
+    background: #ffc107;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
+}
+
+.status-text {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.header-right {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    flex-shrink: 0;
+    padding-top: 5px;
+}
+
+/* RESPONSIVE avec la nouvelle classe */
+@media (max-width: 768px) {
+    .session-header {
+        min-height: 95px;
+        padding: 8px 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .header-left, .header-right {
+        width: 100%;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0;
+    }
+
+    .session-info {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .session-info h1 {
+        font-size: 1.2rem;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .session-details {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .live-session-back-button {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .session-header {
+        min-height: 105px;
+        padding: 6px 8px;
+        gap: 8px;
+    }
+
+    .header-left {
+        flex-direction: row;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .session-info {
+        flex: 1;
+    }
+
+    .session-info h1 {
+        font-size: 1rem;
+        line-height: 1.1;
+        margin-bottom: 4px;
+    }
+
+    .session-details {
+        font-size: 0.7rem;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .live-session-back-button {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        margin-top: 0;
+        flex-shrink: 0;
+    }
+}
+
+/* PROTECTION supplémentaire contre les conflits */
+.live-session-container .back-button:not(.live-session-back-button) {
+    display: none !important;
+}
+
+/* S'assurer que seul notre bouton est visible */
+.session-header > .header-left > .live-session-back-button {
+    display: flex !important;
 }

@@ -41,9 +41,9 @@ router.get('/posts/user/:userId', verifyToken, async (req, res) => {
                    COUNT(DISTINCT pl.id) as likeCount,
                    COUNT(DISTINCT c.id) as commentCount
             FROM posts p
-            LEFT JOIN users u ON p.user_id = u.id
-            LEFT JOIN post_likes pl ON p.id = pl.post_id
-            LEFT JOIN comments c ON p.id = c.post_id
+                     LEFT JOIN users u ON p.user_id = u.id
+                     LEFT JOIN post_likes pl ON p.id = pl.post_id
+                     LEFT JOIN comments c ON p.id = c.post_id
             WHERE p.user_id = ?
             GROUP BY p.id
             ORDER BY p.created_at DESC

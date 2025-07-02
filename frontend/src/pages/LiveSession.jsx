@@ -18,7 +18,11 @@ import {
     FaStop,
     FaFileUpload,
     FaVolumeUp,
-    FaVolumeMute
+    FaVolumeMute,
+    FaVideoSlash,
+    FaExpand,
+    FaCompress,
+    FaPlay
 } from 'react-icons/fa';
 import './LiveSession.css';
 
@@ -38,18 +42,25 @@ function LiveSession() {
     const [error, setError] = useState(null);
     const [isParticipant, setIsParticipant] = useState(false);
 
-    // Nouveaux états pour audio/vidéo
+    // États pour audio/vidéo
     const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+    const [isVideoEnabled, setIsVideoEnabled] = useState(false);
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
     const [audioStream, setAudioStream] = useState(null);
+    const [videoStream, setVideoStream] = useState(null);
     const [screenStream, setScreenStream] = useState(null);
     const [uploadedDocument, setUploadedDocument] = useState(null);
+
+    // États pour l'interface vidéo
+    const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+    const [videoLayout, setVideoLayout] = useState('picture-in-picture');
 
     // Refs
     const messagesEndRef = useRef(null);
     const messageInputRef = useRef(null);
     const audioRef = useRef(null);
+    const videoRef = useRef(null);
     const screenVideoRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -88,11 +99,14 @@ function LiveSession() {
             if (audioStream) {
                 audioStream.getTracks().forEach(track => track.stop());
             }
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
             if (screenStream) {
                 screenStream.getTracks().forEach(track => track.stop());
             }
         };
-    }, [audioStream, screenStream]);
+    }, [audioStream, videoStream, screenStream]);
 
     // Écouteurs Socket.io
     useEffect(() => {
@@ -251,12 +265,94 @@ function LiveSession() {
             if (audioStream) {
                 audioStream.getTracks().forEach(track => track.stop());
             }
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
             if (screenStream) {
                 screenStream.getTracks().forEach(track => track.stop());
             }
 
             leaveSession(sessionId);
             navigate('/live');
+        }
+    };
+
+    // NOUVELLE FONCTION : Démarrer une session directement depuis la session
+    const handleStartSession = async () => {
+        if (!isTeacher) return;
+
+        try {
+            console.log('Démarrage de la session depuis l\'interface...');
+
+            await axios.post(`http://localhost:5000/api/live/start-session/${sessionId}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            console.log('Session démarrée avec succès');
+
+            // Mettre à jour l'état local
+            setSession(prev => ({
+                ...prev,
+                status: 'live',
+                started_at: new Date().toISOString()
+            }));
+
+            // Envoyer un message système
+            if (connected) {
+                sendMessage(sessionId, '🎥 La session a commencé !');
+            }
+
+        } catch (error) {
+            console.error('Erreur lors du démarrage:', error);
+            setError('Impossible de démarrer la session');
+        }
+    };
+
+    // Camera functions
+    const toggleVideo = async () => {
+        if (!isTeacher) return;
+
+        try {
+            if (!isVideoEnabled) {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: false // Audio géré séparément
+                });
+
+                setVideoStream(stream);
+                setIsVideoEnabled(true);
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    videoRef.current.play();
+                }
+
+                if (connected) {
+                    sendMessage(sessionId, "📹 Le professeur a activé sa caméra");
+                }
+
+            } else {
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                }
+                setVideoStream(null);
+                setIsVideoEnabled(false);
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = null;
+                }
+
+                if (connected) {
+                    sendMessage(sessionId, "📹❌ Le professeur a désactivé sa caméra");
+                }
+            }
+        } catch (error) {
+            console.error('Erreur caméra:', error);
+            setError('Impossible d\'accéder à la caméra');
         }
     };
 
@@ -282,8 +378,9 @@ function LiveSession() {
                     audioRef.current.play();
                 }
 
-                // Send notification to chat
-                sendMessage(sessionId, "🎤 Le professeur a activé son microphone");
+                if (connected) {
+                    sendMessage(sessionId, "🎤 Le professeur a activé son microphone");
+                }
 
             } else {
                 if (audioStream) {
@@ -297,7 +394,9 @@ function LiveSession() {
                     audioRef.current.srcObject = null;
                 }
 
-                sendMessage(sessionId, "🔇 Le professeur a désactivé son microphone");
+                if (connected) {
+                    sendMessage(sessionId, "🔇 Le professeur a désactivé son microphone");
+                }
             }
         } catch (error) {
             console.error('Erreur audio:', error);
@@ -341,7 +440,9 @@ function LiveSession() {
                     stopScreenShare();
                 };
 
-                sendMessage(sessionId, "🖥️ Le professeur partage son écran");
+                if (connected) {
+                    sendMessage(sessionId, "🖥️ Le professeur partage son écran");
+                }
 
             } else {
                 stopScreenShare();
@@ -363,7 +464,18 @@ function LiveSession() {
             screenVideoRef.current.srcObject = null;
         }
 
-        sendMessage(sessionId, "🚫 Le professeur a arrêté le partage d'écran");
+        if (connected) {
+            sendMessage(sessionId, "🚫 Le professeur a arrêté le partage d'écran");
+        }
+    };
+
+    // Layout functions
+    const toggleVideoExpanded = () => {
+        setIsVideoExpanded(!isVideoExpanded);
+    };
+
+    const changeVideoLayout = (layout) => {
+        setVideoLayout(layout);
     };
 
     // Document upload
@@ -392,7 +504,9 @@ function LiveSession() {
                 type: file.type,
                 url: e.target.result
             });
-            sendMessage(sessionId, `📄 Le professeur a partagé un document: ${file.name}`);
+            if (connected) {
+                sendMessage(sessionId, `📄 Le professeur a partagé un document: ${file.name}`);
+            }
         };
         reader.readAsDataURL(file);
     };
@@ -444,10 +558,11 @@ function LiveSession() {
 
     return (
         <div className="live-session-container">
-            {/* Header de la session */}
+            {/* Header de la session - VERSION AVEC CLASSE UNIQUE */}
             <div className="session-header">
                 <div className="header-left">
-                    <button onClick={() => navigate('/live')} className="back-button">
+                    {/* NOUVELLE CLASSE UNIQUE pour éviter les conflits */}
+                    <button onClick={() => navigate('/live')} className="live-session-back-button">
                         <FaArrowLeft />
                     </button>
                     <div className="session-info">
@@ -469,9 +584,44 @@ function LiveSession() {
                 </div>
 
                 <div className="header-right">
-                    {/* Controls pour professeur */}
-                    {isTeacher && isParticipant && (
+                    {/* NOUVEAU : Bouton pour démarrer la session si c'est le professeur et que la session est en attente */}
+                    {isTeacher && session?.status === 'waiting' && (
+                        <button
+                            onClick={handleStartSession}
+                            className="start-session-btn"
+                            style={{
+                                background: 'linear-gradient(45deg, #28a745, #20c997)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '0.85rem',
+                                marginRight: '15px',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseOver={(e) => e.target.style.transform = 'translateY(-1px)'}
+                            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+                        >
+                            <FaPlay /> Démarrer la session
+                        </button>
+                    )}
+
+                    {/* Controls pour professeur - SEULEMENT SI SESSION LIVE */}
+                    {isTeacher && isParticipant && session?.status === 'live' && (
                         <div className="teacher-controls">
+                            <button
+                                onClick={toggleVideo}
+                                className={`control-btn video-btn ${isVideoEnabled ? 'active' : ''}`}
+                                title={isVideoEnabled ? 'Désactiver la caméra' : 'Activer la caméra'}
+                            >
+                                {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
+                            </button>
+
                             <button
                                 onClick={toggleAudio}
                                 className={`control-btn audio-btn ${isAudioEnabled ? 'active' : ''}`}
@@ -512,6 +662,16 @@ function LiveSession() {
                             >
                                 <FaFileUpload />
                             </button>
+
+                            {isVideoEnabled && (
+                                <button
+                                    onClick={toggleVideoExpanded}
+                                    className="control-btn expand-btn"
+                                    title={isVideoExpanded ? 'Réduire' : 'Agrandir la vidéo'}
+                                >
+                                    {isVideoExpanded ? <FaCompress /> : <FaExpand />}
+                                </button>
+                            )}
                         </div>
                     )}
 
@@ -527,95 +687,152 @@ function LiveSession() {
             </div>
 
             {/* Contenu principal */}
-            <div className="session-content">
+            <div className={`session-content ${videoLayout}`}>
                 {/* Zone vidéo/présentation */}
                 <div className="video-section">
-                    <div className="video-placeholder">
-                        {isScreenSharing ? (
-                            <div className="screen-share-container">
-                                <video
-                                    ref={screenVideoRef}
-                                    className="screen-video"
-                                    controls={false}
-                                    muted
-                                />
-                                <div className="screen-share-overlay">
-                                    <span>🖥️ Partage d'écran actif</span>
+                    <div className="main-video-container">
+                        {/* Contenu principal (écran partagé ou document) */}
+                        <div className="primary-content">
+                            {isScreenSharing ? (
+                                <div className="screen-share-container">
+                                    <video
+                                        ref={screenVideoRef}
+                                        className="screen-video"
+                                        controls={false}
+                                        muted
+                                    />
+                                    <div className="screen-share-overlay">
+                                        <span>🖥️ Partage d'écran actif</span>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : uploadedDocument ? (
-                            <div className="document-container">
-                                {uploadedDocument.type === 'application/pdf' ? (
-                                    <iframe
-                                        src={uploadedDocument.url}
-                                        className="document-viewer"
-                                        title={uploadedDocument.name}
-                                    />
-                                ) : (
-                                    <img
-                                        src={uploadedDocument.url}
-                                        alt={uploadedDocument.name}
-                                        className="document-image"
-                                    />
-                                )}
-                                <div className="document-overlay">
-                                    <span>📄 {uploadedDocument.name}</span>
+                            ) : uploadedDocument ? (
+                                <div className="document-container">
+                                    {uploadedDocument.type === 'application/pdf' ? (
+                                        <iframe
+                                            src={uploadedDocument.url}
+                                            className="document-viewer"
+                                            title={uploadedDocument.name}
+                                        />
+                                    ) : (
+                                        <img
+                                            src={uploadedDocument.url}
+                                            alt={uploadedDocument.name}
+                                            className="document-image"
+                                        />
+                                    )}
+                                    <div className="document-overlay">
+                                        <span>📄 {uploadedDocument.name}</span>
+                                        {isTeacher && (
+                                            <button
+                                                onClick={() => setUploadedDocument(null)}
+                                                className="close-document"
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="video-placeholder">
+                                    <FaVideo className="video-icon" />
+                                    <h3>Zone de présentation</h3>
+                                    <p>
+                                        {isTeacher ?
+                                            session?.status === 'waiting' ?
+                                                'Démarrez la session pour commencer le partage' :
+                                                'Utilisez les boutons ci-dessus pour partager votre écran, un document ou activer votre caméra'
+                                            :
+                                            'En attente du partage du professeur...'
+                                        }
+                                    </p>
+
+                                    {/* MESSAGE POUR SESSION EN ATTENTE */}
+                                    {session?.status !== 'live' && (
+                                        <div className="waiting-message">
+                                            <p>
+                                                {isTeacher ?
+                                                    '⏳ Cliquez sur "Démarrer la session" pour commencer' :
+                                                    '⏳ En attente du début de la session...'
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {!isParticipant && (
+                                        <div className="waiting-message">
+                                            <p>📝 Connexion à la session en cours...</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Vidéo du professeur (Picture-in-Picture ou côte à côte) - SEULEMENT SI SESSION LIVE */}
+                        {isVideoEnabled && session?.status === 'live' && (
+                            <div className={`teacher-video-container ${isVideoExpanded ? 'expanded' : 'pip'} ${videoLayout}`}>
+                                <video
+                                    ref={videoRef}
+                                    className="teacher-video"
+                                    controls={false}
+                                    muted={true} // Toujours muted pour éviter le feedback
+                                    autoPlay
+                                />
+                                <div className="video-overlay">
+                                    <span>📹 {session?.teacher_name}</span>
                                     {isTeacher && (
-                                        <button
-                                            onClick={() => setUploadedDocument(null)}
-                                            className="close-document"
-                                        >
-                                            ×
-                                        </button>
+                                        <div className="video-controls">
+                                            <button
+                                                onClick={() => changeVideoLayout('picture-in-picture')}
+                                                className={`layout-btn ${videoLayout === 'picture-in-picture' ? 'active' : ''}`}
+                                                title="Picture-in-Picture"
+                                            >
+                                                PiP
+                                            </button>
+                                            <button
+                                                onClick={() => changeVideoLayout('side-by-side')}
+                                                className={`layout-btn ${videoLayout === 'side-by-side' ? 'active' : ''}`}
+                                                title="Côte à côte"
+                                            >
+                                                ⚏
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
-                        ) : (
-                            <>
-                                <FaVideo className="video-icon" />
-                                <h3>Zone de présentation</h3>
-                                <p>
-                                    {isTeacher ?
-                                        'Utilisez les boutons ci-dessus pour partager votre écran ou un document' :
-                                        'En attente du partage du professeur...'
-                                    }
-                                </p>
-
-                                {session?.status !== 'live' && (
-                                    <div className="waiting-message">
-                                        <p>⏳ En attente du début de la session...</p>
-                                    </div>
-                                )}
-
-                                {!isParticipant && (
-                                    <div className="waiting-message">
-                                        <p>📝 Connexion à la session en cours...</p>
-                                    </div>
-                                )}
-                            </>
-                        )}
-
-                        {/* Audio element for teacher's voice */}
-                        {isAudioEnabled && (
-                            <audio
-                                ref={audioRef}
-                                className="teacher-audio"
-                                controls={false}
-                                muted={false}
-                            />
                         )}
                     </div>
+
+                    {/* Audio element for teacher's voice - SEULEMENT SI SESSION LIVE */}
+                    {isAudioEnabled && session?.status === 'live' && (
+                        <audio
+                            ref={audioRef}
+                            className="teacher-audio"
+                            controls={false}
+                            muted={false}
+                        />
+                    )}
 
                     {/* Participants */}
                     <div className="participants-panel">
                         <div className="participants-header">
                             <FaUsers />
                             <span>Participants ({participants.length})</span>
-                            {isAudioEnabled && (
-                                <div className="audio-indicator">
-                                    <FaMicrophone className={`mic-icon ${isMuted ? 'muted' : 'active'}`} />
-                                    <span>Audio {isMuted ? 'coupé' : 'actif'}</span>
-                                </div>
+                            {/* INDICATEURS SEULEMENT SI SESSION LIVE */}
+                            {session?.status === 'live' && (
+                                <>
+                                    {isAudioEnabled && (
+                                        <div className="audio-indicator">
+                                            <FaMicrophone className={`mic-icon ${isMuted ? 'muted' : 'active'}`} />
+                                            <span>Audio {isMuted ? 'coupé' : 'actif'}</span>
+                                        </div>
+                                    )}
+                                    {isVideoEnabled && (
+                                        <div className="video-indicator">
+                                            <FaVideo className="video-icon active" />
+                                            <span>Vidéo active</span>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                         <div className="participants-list">
@@ -702,15 +919,21 @@ function LiveSession() {
                                 type="text"
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder={connected && isParticipant ? "Tapez votre message..." : "Connexion au chat..."}
+                                placeholder={
+                                    connected && isParticipant ?
+                                        session?.status === 'live' ?
+                                            "Tapez votre message..." :
+                                            "En attente du début de la session..."
+                                        : "Connexion au chat..."
+                                }
                                 className="chat-input"
                                 maxLength={500}
-                                disabled={!connected || !isParticipant}
+                                disabled={!connected || !isParticipant || session?.status !== 'live'}
                             />
                             <button
                                 type="submit"
                                 className="send-button"
-                                disabled={!newMessage.trim() || !connected || !isParticipant}
+                                disabled={!newMessage.trim() || !connected || !isParticipant || session?.status !== 'live'}
                             >
                                 <FaPaperPlane />
                             </button>
@@ -718,7 +941,8 @@ function LiveSession() {
                         <div className="chat-status">
                             {!isConnected && <span className="status-offline">❌ Déconnecté</span>}
                             {isConnected && !connected && <span className="status-connecting">🔄 Connexion...</span>}
-                            {isConnected && connected && isParticipant && <span className="status-online">✅ En ligne</span>}
+                            {isConnected && connected && isParticipant && session?.status === 'live' && <span className="status-online">✅ En ligne</span>}
+                            {isConnected && connected && isParticipant && session?.status === 'waiting' && <span className="status-connecting">⏳ En attente du début</span>}
                             {!isParticipant && <span className="status-connecting">📝 Rejointe de la session...</span>}
                         </div>
                     </form>
