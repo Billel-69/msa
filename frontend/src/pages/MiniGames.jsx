@@ -1,3 +1,4 @@
+//MiniGames.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -129,14 +130,13 @@ const MiniGames = () => {
                     disabled={isComingSoon}
                     onClick={() => {
                       if (isComingSoon) return;
-                      console.log('Clicking on game:', game);
-                      console.log('Game ID:', game.id);
+                      const normalizedSubject = selectedSubject ? selectedSubject.toLowerCase() : '';
+                      const normalizedNiveau = selectedNiveau ? selectedNiveau : '';
                       const params = [];
-                      if (selectedSubject) params.push(`subject=${encodeURIComponent(selectedSubject)}`);
-                      if (selectedNiveau) params.push(`niveau=${encodeURIComponent(selectedNiveau)}`);
+                      if (normalizedSubject) params.push(`subject=${encodeURIComponent(normalizedSubject)}`);
+                      if (normalizedNiveau) params.push(`niveau=${encodeURIComponent(normalizedNiveau)}`);
                       const query = params.length ? `?${params.join('&')}` : '';
                       const url = `/jeu/${game.id}${query}`;
-                      console.log('Navigating to:', url);
                       navigate(url);
                     }}
                   >

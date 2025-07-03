@@ -1,8 +1,10 @@
+//gameRoute.js
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middlewares/authMiddleware');
 const db = require('../config/db');
 const mysqlGameProgressService = require('../services/mysqlGameProgressService');
+const openaiController = require('../controllers/openaiController');
 
 // Fonction pour générer des questions selon niveau et matière (à remplacer par l'API IA)
 async function generateGameQuestions(gameType, subject, niveau) {
@@ -76,18 +78,14 @@ router.get('/available', verifyToken, async (req, res) => {
 router.get('/:id', verifyToken, async (req, res) => {
     try {
         const { subject, niveau } = req.query; // Récupérer matière et niveau depuis les paramètres URL
-        
         const [games] = await db.execute(
             'SELECT * FROM mini_games WHERE id = ?',
             [req.params.id]
         );
-        
         if (games.length === 0) {
             return res.status(404).json({ error: 'Template de jeu non trouvé' });
         }
-        
         const game = games[0];
-        
         if (!game.is_active) {
             return res.status(403).json({ error: 'Ce jeu n\'est pas disponible actuellement' });
         }
@@ -107,14 +105,9 @@ router.get('/:id', verifyToken, async (req, res) => {
         
         // Générer le contenu dynamiquement selon le type de jeu
         if (formattedGame.type === 'quiz') {
-            formattedGame.questions = await generateGameQuestions(
-                formattedGame.type, 
-                subject, 
-                niveau
-            );
+            formattedGame.questions = await openaiController.generateQuizQuestions(subject, niveau, 5);
+            console.log(`Questions générées: ${formattedGame.questions.length}`);
         }
-        // TODO: Ajouter d'autres types plus tard (memory, puzzle)
-        
         res.json({ game: formattedGame });
     } catch (err) {
         console.error('Error fetching game details:', err);

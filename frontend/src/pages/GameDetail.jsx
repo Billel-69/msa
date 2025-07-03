@@ -40,9 +40,18 @@ const GameDetail = () => {
                 setLoading(true);
                 console.log('Fetching game with ID:', gameId);
                 
-                const response = await axios.get(`http://localhost:5000/api/games/${gameId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                // Récupérer les paramètres de l'URL
+                const urlParams = new URLSearchParams(location.search);
+                const subject = urlParams.get('subject') || '';
+                const niveau = urlParams.get('niveau') || '';
+                
+                const response = await axios.get(
+                    `http://localhost:5000/api/games/${gameId}`,
+                    {
+                        params: { subject, niveau },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
                 
                 console.log('Game fetched successfully:', response.data.game);
                 const gameData = response.data.game;
@@ -66,7 +75,7 @@ const GameDetail = () => {
         };
         
         fetchGameDetails();
-    }, [gameId, token]);
+    }, [gameId, location.search, token]);
     
     // Gestion du timer
     useEffect(() => {
