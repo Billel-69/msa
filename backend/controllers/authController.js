@@ -95,12 +95,37 @@ exports.getProfile = async (req, res) => {
 
         const user = rows[0];
         
-        // Récupérer l'XP total depuis user_game_progress
+        // Récupérer l'XP total et les sessions totales depuis user_game_progress
         const [xpRows] = await db.execute(
             'SELECT COALESCE(SUM(total_xp), 0) as totalXP FROM user_game_progress WHERE user_id = ?',
             [req.user.id]
         );
         const totalXP = xpRows[0].totalXP;
+        
+        // Récupérer le total des sessions (quêtes complétées)
+        const [sessionsRows] = await db.execute(
+            'SELECT COALESCE(SUM(total_sessions), 0) as totalSessions FROM user_game_progress WHERE user_id = ?',
+            [req.user.id]
+        );
+        const totalSessions = sessionsRows[0].totalSessions;
+        
+        // Récupérer le temps de jeu total (avec fallback si la colonne n'existe pas encore)
+        let totalTimePlayed = 0;
+        try {
+            const [timeRows] = await db.execute(
+                'SELECT COALESCE(SUM(total_time_played), 0) as totalTimePlayed FROM user_game_progress WHERE user_id = ?',
+                [req.user.id]
+            );
+            totalTimePlayed = timeRows[0].totalTimePlayed;
+        } catch (error) {
+            // Si la colonne n'existe pas encore, utiliser 0 comme valeur par défaut
+            if (error.code === 'ER_BAD_FIELD_ERROR') {
+                console.log('Column total_time_played not found, using default value 0');
+                totalTimePlayed = 0;
+            } else {
+                throw error;
+            }
+        }
         
         // Calculer le niveau basé sur l'XP total
         const levelInfo = calculateLevel(totalXP);
@@ -113,12 +138,13 @@ exports.getProfile = async (req, res) => {
             accountType: user.account_type,
             profilePicture: user.profile_picture,
             level: levelInfo.level,
-            quests_completed: user.quests_completed,
+            quests_completed: totalSessions,
             fragments: user.fragments,
             badges: user.badges,
             rank: user.user_rank,
             style: user.style,
             totalXP: totalXP,
+            totalTimePlayed: totalTimePlayed,
             currentLevelXP: levelInfo.currentLevelXP,
             nextLevelXP: levelInfo.nextLevelXP,
             xpToNextLevel: levelInfo.xpToNextLevel

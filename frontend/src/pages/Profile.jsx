@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -16,7 +16,13 @@ import {
     FaGem,
     FaChevronLeft,
     FaChevronRight,
-    FaExclamationCircle
+    FaExclamationCircle,
+    FaCrown,
+    FaFire,
+    FaCalendarAlt,
+    FaShare,
+    FaEye,
+    FaThumbsUp
 } from 'react-icons/fa';
 import './Profile.css';
 
@@ -29,7 +35,7 @@ function Profile() {
         posts: 0
     });
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview'); // overview, posts, stats
+    const [activeTab, setActiveTab] = useState('overview');
     const [notification, setNotification] = useState({ show: false, message: '', type: 'info' });
     const [postsPage, setPostsPage] = useState(1);
     const [totalPostsPages, setTotalPostsPages] = useState(1);
@@ -51,7 +57,6 @@ function Profile() {
             return;
         }
         
-        // Fetch all data in parallel
         const fetchAllData = async () => {
             setLoading(true);
             try {
@@ -172,13 +177,11 @@ function Profile() {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             showNotification('La taille du fichier ne doit pas dépasser 5MB', 'error');
             return;
         }
 
-        // Validate file type
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             showNotification('Format de fichier non supporté. Utilisez JPG, PNG, GIF ou WebP', 'error');
@@ -202,7 +205,6 @@ function Profile() {
                 }
             );
 
-            // Mettre à jour les données du profil
             await fetchProfileData();
             showNotification('Photo de profil mise à jour avec succès!', 'success');
         } catch (error) {
@@ -213,263 +215,16 @@ function Profile() {
 
     if (loading || !profileData) {
         return (
-            <div className="profile-page loading">
-                <div className="loading-spinner">
-                    <div className="spinner"></div>
+            <div className="profile-page">
+                <div className="profile-loading">
+                    <div className="loading-spinner">
+                        <div className="spinner-ring"></div>
+                    </div>
                     <p>Chargement du profil...</p>
                 </div>
             </div>
         );
     }
-
-    const renderOverviewTab = () => (
-        <div className="overview-tab">
-            <div className="profile-stats">
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaTrophy />
-                    </div>
-                    <div className="stat-info">
-                        <h3>Niveau</h3>
-                        <p className="stat-value">{profileData.level || 1}</p>
-                        {profileData.xpToNextLevel !== undefined && (
-                            <div className="level-progress">
-                                <div className="progress-bar">
-                                    <div 
-                                        className="progress-fill" 
-                                        style={{ 
-                                            width: `${((profileData.currentLevelXP || 0) / (profileData.nextLevelXP || 1)) * 100}%` 
-                                        }}
-                                    ></div>
-                                </div>
-                                <small className="progress-text">
-                                    {profileData.xpToNextLevel || 0} XP jusqu'au prochain niveau
-                                </small>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaStar />
-                    </div>
-                    <div className="stat-info">
-                        <h3>XP Total</h3>
-                        <p className="stat-value">{profileData.totalXP || 0}</p>
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaGem />
-                    </div>
-                    <div className="stat-info">
-                        <h3>Fragments</h3>
-                        <p className="stat-value">{profileData.fragments || 0}</p>
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaGamepad />
-                    </div>
-                    <div className="stat-info">
-                        <h3>Quêtes</h3>
-                        <p className="stat-value">{profileData.quests_completed || 0}</p>
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon">
-                        <FaUsers />
-                    </div>
-                    <div className="stat-info">
-                        <h3>Abonnés</h3>
-                        <p className="stat-value">{stats.followers}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div className="recent-achievements">
-                <h3>Derniers accomplissements</h3>
-                {loadingStates.achievements ? (
-                    <div className="loading-section">
-                        <div className="spinner-small"></div>
-                        <p>Chargement des accomplissements...</p>
-                    </div>
-                ) : achievements.length > 0 ? (
-                    <div className="achievements-list">
-                        {achievements.slice(0, 3).map((achievement) => (
-                            <div key={achievement.id} className="achievement-item">
-                                <div className="achievement-icon">{achievement.icon || '🏆'}</div>
-                                <div className="achievement-details">
-                                    <h4>{achievement.name}</h4>
-                                    <p>{achievement.description}</p>
-                                    <small>{new Date(achievement.earned_at).toLocaleDateString('fr-FR')}</small>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="no-achievements">
-                        <p>Aucun accomplissement pour le moment. Continue tes quêtes!</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Boutons d'action selon le type de compte */}
-            <div className="profile-actions">
-                <Link to="/modifier-profil" className="action-btn primary">
-                    <FaEdit /> Modifier le profil
-                </Link>
-
-                {user.accountType === 'parent' && (
-                    <Link to="/parent-dashboard" className="action-btn secondary">
-                        <FaUserPlus /> Gestion Enfants
-                    </Link>
-                )}
-
-                <Link to="/reseau" className="action-btn secondary">
-                    <FaUsers /> Réseau Social
-                </Link>
-            </div>
-        </div>
-    );
-
-    const renderPostsTab = () => {
-        const startIndex = (postsPage - 1) * POSTS_PER_PAGE;
-        const paginatedPosts = posts.slice(startIndex, startIndex + POSTS_PER_PAGE);
-
-        return (
-            <div className="posts-tab">
-                <div className="posts-header">
-                    <h3>Mes publications ({stats.posts})</h3>
-                    <Link to="/create-post" className="create-post-btn">
-                        <FaEdit /> Nouvelle publication
-                    </Link>
-                </div>
-
-                {loadingStates.posts ? (
-                    <div className="loading-section">
-                        <div className="spinner"></div>
-                        <p>Chargement des publications...</p>
-                    </div>
-                ) : posts.length === 0 ? (
-                <div className="no-posts">
-                    <FaComment className="no-posts-icon" />
-                    <h4>Aucune publication</h4>
-                    <p>Partagez vos premiers moments avec la communauté !</p>
-                    <Link to="/create-post" className="action-btn primary">
-                        Créer ma première publication
-                    </Link>
-                </div>
-                ) : (
-                    <>
-                        <div className="posts-grid">
-                            {paginatedPosts.map((post) => (
-                                <div key={post.id} className="post-preview">
-                                    {post.image && (
-                                        <div className="post-image">
-                                            <img
-                                                src={`http://localhost:5000/uploads/${encodeURIComponent(post.image)}`}
-                                                alt={`Publication de ${profileData?.name || 'utilisateur'}`}
-                                                loading="lazy"
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none';
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="post-content">
-                                        <p>{post.content}</p>
-                                        <div className="post-stats">
-                                            <span><FaHeart /> {post.likeCount || 0}</span>
-                                            <span><FaComment /> {post.commentCount || 0}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        
-                        {totalPostsPages > 1 && (
-                            <div className="pagination">
-                                <button
-                                    className="pagination-btn"
-                                    onClick={() => fetchUserPosts(postsPage - 1)}
-                                    disabled={postsPage === 1}
-                                >
-                                    <FaChevronLeft />
-                                </button>
-                                <span className="pagination-info">
-                                    Page {postsPage} sur {totalPostsPages}
-                                </span>
-                                <button
-                                    className="pagination-btn"
-                                    onClick={() => fetchUserPosts(postsPage + 1)}
-                                    disabled={postsPage === totalPostsPages}
-                                >
-                                    <FaChevronRight />
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
-        );
-    };
-
-    const renderStatsTab = () => (
-        <div className="stats-tab">
-            <div className="detailed-stats">
-                <div className="stats-section">
-                    <h3>Statistiques de jeu</h3>
-                    <div className="stats-grid">
-                        <div className="stat-detail">
-                            <span className="stat-label">Temps de jeu total</span>
-                            <span className="stat-value">24h 30m</span>
-                        </div>
-                        <div className="stat-detail">
-                            <span className="stat-label">Quêtes complétées</span>
-                            <span className="stat-value">{profileData.quests_completed || 0}</span>
-                        </div>
-                        <div className="stat-detail">
-                            <span className="stat-label">Fragments collectés</span>
-                            <span className="stat-value">{profileData.fragments || 0}</span>
-                        </div>
-                        <div className="stat-detail">
-                            <span className="stat-label">Rang actuel</span>
-                            <span className="stat-value">{profileData.rank || 'Débutant'}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="stats-section">
-                    <h3>Statistiques sociales</h3>
-                    <div className="stats-grid">
-                        <div className="stat-detail">
-                            <span className="stat-label">Abonnés</span>
-                            <span className="stat-value">{stats.followers}</span>
-                        </div>
-                        <div className="stat-detail">
-                            <span className="stat-label">Abonnements</span>
-                            <span className="stat-value">{stats.following}</span>
-                        </div>
-                        <div className="stat-detail">
-                            <span className="stat-label">Publications</span>
-                            <span className="stat-value">{stats.posts}</span>
-                        </div>
-                        <div className="stat-detail">
-                            <span className="stat-label">Membre depuis</span>
-                            <span className="stat-value">
-                                {new Date(profileData.created_at || Date.now()).toLocaleDateString('fr-FR')}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 
     return (
         <div className="profile-page">
@@ -479,84 +234,364 @@ function Profile() {
                     {notification.message}
                 </div>
             )}
-            <div className="profile-header">
-                <div className="profile-cover">
-                    <div className="profile-avatar-section">
-                        <div className="profile-avatar">
+
+            {/* Hero Section */}
+            <div className="profile-hero">
+                <div className="hero-background">
+                    <div className="hero-gradient"></div>
+                </div>
+                
+                <div className="hero-content">
+                    <div className="profile-avatar-container">
+                        <div className="avatar-wrapper">
                             {profileData.profilePicture ? (
                                 <img
                                     src={`http://localhost:5000/uploads/${encodeURIComponent(profileData.profilePicture)}`}
                                     alt={`Photo de profil de ${profileData.name}`}
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                        e.target.nextSibling.style.display = 'flex';
-                                    }}
+                                    className="profile-avatar"
                                 />
                             ) : (
                                 <div className="avatar-placeholder">
                                     {profileData.name?.charAt(0).toUpperCase() || '?'}
                                 </div>
                             )}
-                            <label className="avatar-upload" htmlFor="avatar-upload-input" aria-label="Télécharger une photo de profil">
+                            <label className="avatar-upload-btn">
                                 <FaCamera />
                                 <input
-                                    id="avatar-upload-input"
                                     type="file"
                                     accept="image/jpeg,image/png,image/gif,image/webp"
                                     onChange={handleProfilePictureUpload}
                                     style={{ display: 'none' }}
-                                    aria-label="Sélectionner une photo de profil"
                                 />
                             </label>
                         </div>
+                        
+                        <div className="level-badge">
+                            <FaCrown />
+                            <span>Niveau {profileData.level || 1}</span>
+                        </div>
+                    </div>
 
-                        <div className="profile-info">
-                            <h1>{profileData.name}</h1>
-                            <p className="username">@{profileData.username}</p>
-                            <p className="account-type">
-                                Compte {profileData.accountType === 'child' ? 'Enfant' :
-                                profileData.accountType === 'parent' ? 'Parent' : 'Professeur'}
-                            </p>
-                            <div className="profile-quick-stats">
-                                <span>Niveau {profileData.level || 1}</span>
-                                <span>•</span>
-                                <span>{profileData.totalXP || 0} XP</span>
-                                <span>•</span>
-                                <span>{profileData.fragments || 0} fragments</span>
-                                <span>•</span>
-                                <span>{stats.followers} abonnés</span>
+                    <div className="profile-info">
+                        <h1 className="profile-name">{profileData.name}</h1>
+                        <p className="profile-username">@{profileData.username}</p>
+                        <div className="profile-badges">
+                            <span className={`account-badge ${profileData.accountType}`}>
+                                {profileData.accountType === 'child' ? 'Élève' :
+                                 profileData.accountType === 'parent' ? 'Parent' : 'Professeur'}
+                            </span>
+                            {profileData.verified && (
+                                <span className="verified-badge">
+                                    <FaStar /> Vérifié
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="quick-stats">
+                            <div className="stat-item">
+                                <span className="stat-value">{profileData.totalXP || 0}</span>
+                                <span className="stat-label">XP Total</span>
                             </div>
+                            <div className="stat-separator"></div>
+                            <div className="stat-item">
+                                <span className="stat-value">
+                                    {new Date(profileData.created_at || Date.now()).toLocaleDateString('fr-FR', { 
+                                        month: 'short', 
+                                        year: 'numeric' 
+                                    })}
+                                </span>
+                                <span className="stat-label">Membre depuis</span>
+                            </div>
+                        </div>
+
+                        <div className="profile-actions">
+                            <Link to="/modifier-profil" className="btn-primary">
+                                <FaEdit /> Modifier
+                            </Link>
+                            {user.accountType === 'parent' && (
+                                <Link to="/parent-dashboard" className="btn-secondary">
+                                    <FaUserPlus /> Gestion
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Main Content */}
             <div className="profile-content">
+                {/* Navigation Tabs */}
                 <div className="profile-tabs">
                     <button
                         className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
                         onClick={() => setActiveTab('overview')}
                     >
-                        <FaUser /> Vue d'ensemble
-                    </button>
-                    <button
-                        className={`tab-btn ${activeTab === 'posts' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('posts')}
-                    >
-                        <FaComment /> Publications
+                        <FaUser />
+                        <span>Vue d'ensemble</span>
                     </button>
                     <button
                         className={`tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
                         onClick={() => setActiveTab('stats')}
                     >
-                        <FaTrophy /> Statistiques
+                        <FaTrophy />
+                        <span>Statistiques</span>
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'posts' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('posts')}
+                    >
+                        <FaComment />
+                        <span>Publications</span>
+                        <span className="post-count">{stats.posts}</span>
                     </button>
                 </div>
 
+                {/* Tab Content */}
                 <div className="tab-content">
-                    {activeTab === 'overview' && renderOverviewTab()}
-                    {activeTab === 'posts' && renderPostsTab()}
-                    {activeTab === 'stats' && renderStatsTab()}
+                    {activeTab === 'overview' && (
+                        <div className="overview-content">
+                            {/* Progress Section */}
+                            <div className="progress-section">
+                                <div className="section-header">
+                                    <h3>Progression</h3>
+                                    <FaFire className="section-icon" />
+                                </div>
+                                
+                                <div className="progress-card">
+                                    <div className="level-info">
+                                        <div className="current-level">
+                                            <span className="level-number">{profileData.level || 1}</span>
+                                            <span className="level-label">Niveau actuel</span>
+                                        </div>
+                                        <div className="xp-info">
+                                            <span className="xp-current">{profileData.currentLevelXP || 0}</span>
+                                            <span className="xp-separator">/</span>
+                                            <span className="xp-needed">{profileData.nextLevelXP || 100}</span>
+                                            <span className="xp-label">XP</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="progress-bar">
+                                        <div 
+                                            className="progress-fill"
+                                            style={{ 
+                                                width: `${((profileData.currentLevelXP || 0) / (profileData.nextLevelXP || 1)) * 100}%` 
+                                            }}
+                                        ></div>
+                                    </div>
+                                    
+                                    <p className="progress-text">
+                                        {profileData.xpToNextLevel || 0} XP jusqu'au niveau {(profileData.level || 1) + 1}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Stats Grid */}
+                            <div className="stats-grid">
+                                <div className="stat-card">
+                                    <div className="stat-icon">
+                                        <FaGamepad />
+                                    </div>
+                                    <div className="stat-content">
+                                        <h4>Quêtes Complétées</h4>
+                                        <span className="stat-number">{profileData.quests_completed || 0}</span>
+                                    </div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="stat-icon">
+                                        <FaGem />
+                                    </div>
+                                    <div className="stat-content">
+                                        <h4>Fragments Collectés</h4>
+                                        <span className="stat-number">{profileData.fragments || 0}</span>
+                                    </div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="stat-icon">
+                                        <FaUsers />
+                                    </div>
+                                    <div className="stat-content">
+                                        <h4>Réseau</h4>
+                                        <span className="stat-number">{stats.followers + stats.following}</span>
+                                    </div>
+                                </div>
+
+                                <div className="stat-card">
+                                    <div className="stat-icon">
+                                        <FaCalendarAlt />
+                                    </div>
+                                    <div className="stat-content">
+                                        <h4>Membre depuis</h4>
+                                        <span className="stat-number">
+                                            {new Date(profileData.created_at || Date.now()).toLocaleDateString('fr-FR', { 
+                                                month: 'short', 
+                                                year: 'numeric' 
+                                            })}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Recent Achievements */}
+                            <div className="achievements-section">
+                                <div className="section-header">
+                                    <h3>Derniers Accomplissements</h3>
+                                    <FaTrophy className="section-icon" />
+                                </div>
+                                
+                                {loadingStates.achievements ? (
+                                    <div className="loading-state">
+                                        <div className="spinner-small"></div>
+                                        <span>Chargement...</span>
+                                    </div>
+                                ) : achievements.length > 0 ? (
+                                    <div className="achievements-grid">
+                                        {achievements.slice(0, 3).map((achievement) => (
+                                            <div key={achievement.id} className="achievement-card">
+                                                <div className="achievement-icon">
+                                                    {achievement.icon || '🏆'}
+                                                </div>
+                                                <div className="achievement-info">
+                                                    <h4>{achievement.name}</h4>
+                                                    <p>{achievement.description}</p>
+                                                    <span className="achievement-date">
+                                                        {new Date(achievement.earned_at).toLocaleDateString('fr-FR')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="empty-state">
+                                        <FaTrophy />
+                                        <h4>Aucun accomplissement</h4>
+                                        <p>Continue tes quêtes pour débloquer des récompenses !</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'stats' && (
+                        <div className="stats-content">
+                            <div className="detailed-stats">
+                                <div className="stats-category">
+                                    <h3>Statistiques de Jeu</h3>
+                                    <div className="stats-list">
+                                        <div className="stat-row">
+                                            <span className="stat-label">Quêtes complétées</span>
+                                            <span className="stat-value">{profileData.quests_completed || 0}</span>
+                                        </div>
+                                        <div className="stat-row">
+                                            <span className="stat-label">Fragments collectés</span>
+                                            <span className="stat-value">{profileData.fragments || 0}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="stats-category">
+                                    <h3>Statistiques Sociales</h3>
+                                    <div className="stats-list">
+                                        <div className="stat-row">
+                                            <span className="stat-label">Abonnés</span>
+                                            <span className="stat-value">{stats.followers}</span>
+                                        </div>
+                                        <div className="stat-row">
+                                            <span className="stat-label">Abonnements</span>
+                                            <span className="stat-value">{stats.following}</span>
+                                        </div>
+                                        <div className="stat-row">
+                                            <span className="stat-label">Publications</span>
+                                            <span className="stat-value">{stats.posts}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'posts' && (
+                        <div className="posts-content">
+                            <div className="posts-header">
+                                <h3>Mes Publications</h3>
+                                <Link to="/reseau" className="btn-primary">
+                                    <FaEdit /> Nouvelle publication
+                                </Link>
+                            </div>
+
+                            {loadingStates.posts ? (
+                                <div className="loading-state">
+                                    <div className="spinner-small"></div>
+                                    <span>Chargement des publications...</span>
+                                </div>
+                            ) : posts.length === 0 ? (
+                                <div className="empty-state">
+                                    <FaComment />
+                                    <h4>Aucune publication</h4>
+                                    <p>Partagez vos premiers moments avec la communauté !</p>
+                                    <Link to="/reseau" className="btn-primary">
+                                        Créer ma première publication
+                                    </Link>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="posts-grid">
+                                        {posts.slice((postsPage - 1) * POSTS_PER_PAGE, postsPage * POSTS_PER_PAGE).map((post) => (
+                                            <div key={post.id} className="post-card">
+                                                {post.image && (
+                                                    <div className="post-image">
+                                                        <img
+                                                            src={`http://localhost:5000/uploads/${encodeURIComponent(post.image)}`}
+                                                            alt="Publication"
+                                                            loading="lazy"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="post-content">
+                                                    <p>{post.content}</p>
+                                                    <div className="post-stats">
+                                                        <span className="post-stat">
+                                                            <FaHeart /> {post.likeCount || 0}
+                                                        </span>
+                                                        <span className="post-stat">
+                                                            <FaComment /> {post.commentCount || 0}
+                                                        </span>
+                                                        <span className="post-stat">
+                                                            <FaEye /> {post.viewCount || 0}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    {totalPostsPages > 1 && (
+                                        <div className="pagination">
+                                            <button
+                                                className="pagination-btn"
+                                                onClick={() => fetchUserPosts(postsPage - 1)}
+                                                disabled={postsPage === 1}
+                                            >
+                                                <FaChevronLeft />
+                                            </button>
+                                            <span className="pagination-info">
+                                                {postsPage} / {totalPostsPages}
+                                            </span>
+                                            <button
+                                                className="pagination-btn"
+                                                onClick={() => fetchUserPosts(postsPage + 1)}
+                                                disabled={postsPage === totalPostsPages}
+                                            >
+                                                <FaChevronRight />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

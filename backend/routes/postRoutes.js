@@ -57,4 +57,22 @@ router.get('/posts/user/:userId', verifyToken, async (req, res) => {
     }
 });
 
+// GET /api/posts/user/:userId/count - Récupérer le nombre de posts d'un utilisateur
+router.get('/posts/user/:userId/count', verifyToken, async (req, res) => {
+    try {
+        const userId = req.params.userId;
+
+        const [countResult] = await db.execute(`
+            SELECT COUNT(*) as count
+            FROM posts
+            WHERE user_id = ?
+        `, [userId]);
+
+        res.json({ count: countResult[0].count });
+    } catch (err) {
+        console.error('Erreur lors du comptage des posts:', err);
+        res.status(500).json({ error: 'Erreur serveur' });
+    }
+});
+
 module.exports = router;

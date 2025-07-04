@@ -8,6 +8,7 @@ const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const gameRoutes = require('./routes/gameRoutes');
+const achievementsRoutes = require('./routes/achievementsRoutes');
 
 const connectMongoDB = require('./config/mongodb'); // MongoDB connection
 
@@ -36,6 +37,7 @@ app.use('/api', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/games', gameRoutes);
+app.use('/api/achievements', achievementsRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
