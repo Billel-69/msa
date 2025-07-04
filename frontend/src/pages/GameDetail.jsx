@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { 
@@ -11,6 +11,7 @@ import '../styles/GameDetail.css';
 const GameDetail = () => {
     const { id: gameId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { token } = useAuth();
     
     // Debug log

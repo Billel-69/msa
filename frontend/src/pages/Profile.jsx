@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -12,7 +12,11 @@ import {
     FaUserPlus,
     FaUsers,
     FaHeart,
-    FaComment
+    FaComment,
+    FaGem,
+    FaChevronLeft,
+    FaChevronRight,
+    FaExclamationCircle
 } from 'react-icons/fa';
 import './Profile.css';
 
@@ -26,6 +30,17 @@ function Profile() {
     });
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview'); // overview, posts, stats
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'info' });
+    const [postsPage, setPostsPage] = useState(1);
+    const [totalPostsPages, setTotalPostsPages] = useState(1);
+    const [achievements, setAchievements] = useState([]);
+    const [loadingStates, setLoadingStates] = useState({
+        profile: true,
+        posts: true,
+        stats: true,
+        achievements: true
+    });
+    const POSTS_PER_PAGE = 6;
 
     const { user, token } = useAuth();
     const navigate = useNavigate();
@@ -35,12 +50,36 @@ function Profile() {
             navigate('/connexion');
             return;
         }
-        fetchProfileData();
-        fetchUserPosts();
-        fetchUserStats();
+        
+        // Fetch all data in parallel
+        const fetchAllData = async () => {
+            setLoading(true);
+            try {
+                await Promise.all([
+                    fetchProfileData(),
+                    fetchUserPosts(),
+                    fetchUserStats(),
+                    fetchAchievements()
+                ]);
+            } catch (error) {
+                console.error('Error fetching profile data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        fetchAllData();
     }, [user, token, navigate]);
 
+    const showNotification = useCallback((message, type = 'info') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => {
+            setNotification({ show: false, message: '', type: 'info' });
+        }, 3000);
+    }, []);
+
     const fetchProfileData = async () => {
+        setLoadingStates(prev => ({ ...prev, profile: true }));
         try {
             const response = await axios.get(
                 'http://localhost:5000/api/auth/me',
@@ -51,45 +90,81 @@ function Profile() {
             setProfileData(response.data);
         } catch (error) {
             console.error('Erreur lors de la récupération du profil:', error);
+            showNotification('Erreur lors du chargement du profil', 'error');
+        } finally {
+            setLoadingStates(prev => ({ ...prev, profile: false }));
         }
     };
 
-    const fetchUserPosts = async () => {
+    const fetchUserPosts = async (page = 1) => {
+        setLoadingStates(prev => ({ ...prev, posts: true }));
         try {
             const response = await axios.get(
                 `http://localhost:5000/api/posts/user/${user.id}`,
                 {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: {
+                        page,
+                        limit: POSTS_PER_PAGE
+                    }
                 }
             );
-            setPosts(response.data);
+            setPosts(response.data.posts || response.data || []);
+            setTotalPostsPages(response.data.totalPages || Math.ceil((response.data.length || 0) / POSTS_PER_PAGE));
+            setPostsPage(page);
         } catch (error) {
             console.error('Erreur lors de la récupération des posts:', error);
-            setPosts([]); // Fallback si pas de posts
+            setPosts([]);
+            showNotification('Erreur lors du chargement des publications', 'error');
+        } finally {
+            setLoadingStates(prev => ({ ...prev, posts: false }));
         }
     };
 
     const fetchUserStats = async () => {
+        setLoadingStates(prev => ({ ...prev, stats: true }));
         try {
-            const [followersRes, followingRes] = await Promise.all([
+            const [followersRes, followingRes, postsRes] = await Promise.all([
                 axios.get('http://localhost:5000/api/auth/followers', {
                     headers: { Authorization: `Bearer ${token}` }
                 }),
                 axios.get('http://localhost:5000/api/auth/following', {
                     headers: { Authorization: `Bearer ${token}` }
-                })
+                }),
+                axios.get(`http://localhost:5000/api/posts/user/${user.id}/count`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }).catch(() => ({ data: { count: 0 } }))
             ]);
 
             setStats({
-                followers: followersRes.data.length,
-                following: followingRes.data.length,
-                posts: posts.length
+                followers: followersRes.data.length || 0,
+                following: followingRes.data.length || 0,
+                posts: postsRes.data.count || posts.length || 0
             });
         } catch (error) {
             console.error('Erreur lors de la récupération des statistiques:', error);
             setStats({ followers: 0, following: 0, posts: 0 });
+            showNotification('Erreur lors du chargement des statistiques', 'error');
         } finally {
-            setLoading(false);
+            setLoadingStates(prev => ({ ...prev, stats: false }));
+        }
+    };
+
+    const fetchAchievements = async () => {
+        setLoadingStates(prev => ({ ...prev, achievements: true }));
+        try {
+            const response = await axios.get(
+                `http://localhost:5000/api/achievements/user/${user.id}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            setAchievements(response.data || []);
+        } catch (error) {
+            console.error('Erreur lors de la récupération des accomplissements:', error);
+            setAchievements([]);
+        } finally {
+            setLoadingStates(prev => ({ ...prev, achievements: false }));
         }
     };
 
@@ -97,10 +172,25 @@ function Profile() {
         const file = event.target.files[0];
         if (!file) return;
 
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('La taille du fichier ne doit pas dépasser 5MB', 'error');
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            showNotification('Format de fichier non supporté. Utilisez JPG, PNG, GIF ou WebP', 'error');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('profilePicture', file);
 
         try {
+            showNotification('Téléchargement en cours...', 'info');
+            
             await axios.put(
                 'http://localhost:5000/api/auth/me/profile-picture',
                 formData,
@@ -113,11 +203,11 @@ function Profile() {
             );
 
             // Mettre à jour les données du profil
-            fetchProfileData();
-            alert('Photo de profil mise à jour !');
+            await fetchProfileData();
+            showNotification('Photo de profil mise à jour avec succès!', 'success');
         } catch (error) {
             console.error('Erreur lors de la mise à jour de la photo:', error);
-            alert('Erreur lors de la mise à jour de la photo');
+            showNotification('Erreur lors de la mise à jour de la photo', 'error');
         }
     };
 
@@ -172,7 +262,7 @@ function Profile() {
 
                 <div className="stat-card">
                     <div className="stat-icon">
-                        <FaStar />
+                        <FaGem />
                     </div>
                     <div className="stat-info">
                         <h3>Fragments</h3>
@@ -203,22 +293,29 @@ function Profile() {
 
             <div className="recent-achievements">
                 <h3>Derniers accomplissements</h3>
-                <div className="achievements-list">
-                    <div className="achievement-item">
-                        <div className="achievement-icon">🏆</div>
-                        <div className="achievement-details">
-                            <h4>Maître des Mathématiques</h4>
-                            <p>Complété 10 quêtes de mathématiques</p>
-                        </div>
+                {loadingStates.achievements ? (
+                    <div className="loading-section">
+                        <div className="spinner-small"></div>
+                        <p>Chargement des accomplissements...</p>
                     </div>
-                    <div className="achievement-item">
-                        <div className="achievement-icon">📚</div>
-                        <div className="achievement-details">
-                            <h4>Lecteur Assidu</h4>
-                            <p>Lu 5 histoires complètes</p>
-                        </div>
+                ) : achievements.length > 0 ? (
+                    <div className="achievements-list">
+                        {achievements.slice(0, 3).map((achievement) => (
+                            <div key={achievement.id} className="achievement-item">
+                                <div className="achievement-icon">{achievement.icon || '🏆'}</div>
+                                <div className="achievement-details">
+                                    <h4>{achievement.name}</h4>
+                                    <p>{achievement.description}</p>
+                                    <small>{new Date(achievement.earned_at).toLocaleDateString('fr-FR')}</small>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                </div>
+                ) : (
+                    <div className="no-achievements">
+                        <p>Aucun accomplissement pour le moment. Continue tes quêtes!</p>
+                    </div>
+                )}
             </div>
 
             {/* Boutons d'action selon le type de compte */}
@@ -240,16 +337,25 @@ function Profile() {
         </div>
     );
 
-    const renderPostsTab = () => (
-        <div className="posts-tab">
-            <div className="posts-header">
-                <h3>Mes publications ({posts.length})</h3>
-                <Link to="/create-post" className="create-post-btn">
-                    <FaEdit /> Nouvelle publication
-                </Link>
-            </div>
+    const renderPostsTab = () => {
+        const startIndex = (postsPage - 1) * POSTS_PER_PAGE;
+        const paginatedPosts = posts.slice(startIndex, startIndex + POSTS_PER_PAGE);
 
-            {posts.length === 0 ? (
+        return (
+            <div className="posts-tab">
+                <div className="posts-header">
+                    <h3>Mes publications ({stats.posts})</h3>
+                    <Link to="/create-post" className="create-post-btn">
+                        <FaEdit /> Nouvelle publication
+                    </Link>
+                </div>
+
+                {loadingStates.posts ? (
+                    <div className="loading-section">
+                        <div className="spinner"></div>
+                        <p>Chargement des publications...</p>
+                    </div>
+                ) : posts.length === 0 ? (
                 <div className="no-posts">
                     <FaComment className="no-posts-icon" />
                     <h4>Aucune publication</h4>
@@ -258,31 +364,60 @@ function Profile() {
                         Créer ma première publication
                     </Link>
                 </div>
-            ) : (
-                <div className="posts-grid">
-                    {posts.map((post) => (
-                        <div key={post.id} className="post-preview">
-                            {post.image && (
-                                <div className="post-image">
-                                    <img
-                                        src={`http://localhost:5000/uploads/${post.image}`}
-                                        alt="Post"
-                                    />
+                ) : (
+                    <>
+                        <div className="posts-grid">
+                            {paginatedPosts.map((post) => (
+                                <div key={post.id} className="post-preview">
+                                    {post.image && (
+                                        <div className="post-image">
+                                            <img
+                                                src={`http://localhost:5000/uploads/${encodeURIComponent(post.image)}`}
+                                                alt={`Publication de ${profileData?.name || 'utilisateur'}`}
+                                                loading="lazy"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="post-content">
+                                        <p>{post.content}</p>
+                                        <div className="post-stats">
+                                            <span><FaHeart /> {post.likeCount || 0}</span>
+                                            <span><FaComment /> {post.commentCount || 0}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            )}
-                            <div className="post-content">
-                                <p>{post.content}</p>
-                                <div className="post-stats">
-                                    <span><FaHeart /> {post.likeCount || 0}</span>
-                                    <span><FaComment /> {post.commentCount || 0}</span>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
+                        
+                        {totalPostsPages > 1 && (
+                            <div className="pagination">
+                                <button
+                                    className="pagination-btn"
+                                    onClick={() => fetchUserPosts(postsPage - 1)}
+                                    disabled={postsPage === 1}
+                                >
+                                    <FaChevronLeft />
+                                </button>
+                                <span className="pagination-info">
+                                    Page {postsPage} sur {totalPostsPages}
+                                </span>
+                                <button
+                                    className="pagination-btn"
+                                    onClick={() => fetchUserPosts(postsPage + 1)}
+                                    disabled={postsPage === totalPostsPages}
+                                >
+                                    <FaChevronRight />
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        );
+    };
 
     const renderStatsTab = () => (
         <div className="stats-tab">
@@ -338,27 +473,39 @@ function Profile() {
 
     return (
         <div className="profile-page">
+            {notification.show && (
+                <div className={`notification notification-${notification.type}`}>
+                    {notification.type === 'error' && <FaExclamationCircle />}
+                    {notification.message}
+                </div>
+            )}
             <div className="profile-header">
                 <div className="profile-cover">
                     <div className="profile-avatar-section">
                         <div className="profile-avatar">
                             {profileData.profilePicture ? (
                                 <img
-                                    src={`http://localhost:5000/uploads/${profileData.profilePicture}`}
-                                    alt="Profil"
+                                    src={`http://localhost:5000/uploads/${encodeURIComponent(profileData.profilePicture)}`}
+                                    alt={`Photo de profil de ${profileData.name}`}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        e.target.nextSibling.style.display = 'flex';
+                                    }}
                                 />
                             ) : (
                                 <div className="avatar-placeholder">
                                     {profileData.name?.charAt(0).toUpperCase() || '?'}
                                 </div>
                             )}
-                            <label className="avatar-upload">
+                            <label className="avatar-upload" htmlFor="avatar-upload-input" aria-label="Télécharger une photo de profil">
                                 <FaCamera />
                                 <input
+                                    id="avatar-upload-input"
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/png,image/gif,image/webp"
                                     onChange={handleProfilePictureUpload}
                                     style={{ display: 'none' }}
+                                    aria-label="Sélectionner une photo de profil"
                                 />
                             </label>
                         </div>
