@@ -1,11 +1,11 @@
 // Fichier: src/components/LiveSession.jsx
-// VERSION COMPLÈTEMENT CORRIGÉE - Audio/Vidéo bidirectionnel
+// VERSION CORRIGÉE - Résout les problèmes d'affichage vidéo et audio
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
-import { useAgoraLive } from '../hooks/useAgoraLive'; // Version corrigée
+import { useAgoraLive } from '../hooks/useAgoraLive';
 import axios from 'axios';
 import {
     FaArrowLeft,
@@ -27,7 +27,8 @@ import {
     FaExclamationTriangle,
     FaRedo,
     FaPlay,
-    FaPause
+    FaPause,
+    FaPlayCircle
 } from 'react-icons/fa';
 import './LiveSession.css';
 
@@ -261,6 +262,18 @@ function LiveSession() {
     }, [isTeacher, session, API_URL, token, isConnected, isParticipant, sendMessage, memoizedSessionId, agoraHook.leaveChannel, navigate]);
 
     // ==========================================
+    // NOUVEAU: Fonction pour débloquer l'audio
+    // ==========================================
+    const handleEnableAudioPlayback = useCallback(async () => {
+        try {
+            await agoraHook.enableAudioPlayback();
+            console.log('✅ Audio playback enabled');
+        } catch (error) {
+            console.error('❌ Failed to enable audio playback:', error);
+        }
+    }, [agoraHook.enableAudioPlayback]);
+
+    // ==========================================
     // EFFETS
     // ==========================================
 
@@ -347,55 +360,7 @@ function LiveSession() {
         }
     }, [agoraHook.localVideoTrack, agoraHook.isVideoEnabled, agoraHook.isScreenSharing, agoraHook.isJoined, isTeacher]);
 
-    // EFFET 6: Gestion des utilisateurs distants - CORRIGÉ
-    useEffect(() => {
-        console.log('👥 UTILISATEURS DISTANTS - Changement détecté:', {
-            nombreUtilisateurs: agoraHook.remoteUsers.length,
-            utilisateurs: agoraHook.remoteUsers.map(u => ({
-                uid: u.uid,
-                hasVideo: u.hasVideo,
-                hasAudio: u.hasAudio,
-                hasVideoTrack: !!u.videoTrack,
-                hasAudioTrack: !!u.audioTrack
-            })),
-            isTeacher: isTeacher
-        });
-
-        // IMPORTANT: Forcer la lecture audio pour TOUS les utilisateurs distants
-        if (agoraHook.remoteUsers.length > 0) {
-            agoraHook.remoteUsers.forEach((remoteUser, index) => {
-                console.log(`👤 Utilisateur distant ${index + 1}:`, {
-                    uid: remoteUser.uid,
-                    hasVideo: remoteUser.hasVideo,
-                    hasAudio: remoteUser.hasAudio,
-                    videoTrack: remoteUser.videoTrack,
-                    audioTrack: remoteUser.audioTrack
-                });
-
-                // CORRECTION: Forcer la lecture audio pour TOUS (pas seulement élèves)
-                if (remoteUser.audioTrack) {
-                    try {
-                        console.log('🔊 FORCER LECTURE AUDIO BIDIRECTIONNELLE pour:', remoteUser.uid);
-                        remoteUser.audioTrack.setVolume(100);
-                        remoteUser.audioTrack.play();
-                        console.log('✅ Audio en lecture pour:', remoteUser.uid);
-                    } catch (error) {
-                        console.error('❌ Erreur lecture audio:', error);
-                        // Retry
-                        setTimeout(() => {
-                            try {
-                                remoteUser.audioTrack.play();
-                            } catch (retryError) {
-                                console.error('❌ Retry audio échoué:', retryError);
-                            }
-                        }, 1000);
-                    }
-                }
-            });
-        }
-    }, [agoraHook.remoteUsers, isTeacher]);
-
-    // EFFET 7: Partage d'écran
+    // EFFET 6: Partage d'écran
     useEffect(() => {
         if (agoraHook.screenTrack && screenVideoRef.current) {
             try {
@@ -812,13 +777,24 @@ function LiveSession() {
                 </div>
             )}
 
+            {/* NOUVEAU: Bannière pour débloquer l'audio */}
+            {agoraHook.audioAutoplayBlocked && (
+                <div className="error-banner" style={{ background: 'linear-gradient(45deg, #ff9800, #f57c00)' }}>
+                    <FaPlayCircle />
+                    <span>Son bloqué par le navigateur. Cliquez pour activer l'audio.</span>
+                    <button onClick={handleEnableAudioPlayback} className="retry-connection-btn">
+                        <FaPlayCircle /> Activer le son
+                    </button>
+                </div>
+            )}
+
             {/* Contenu principal avec disposition améliorée */}
             <div className="session-content">
 
                 {/* Zone principale - Vidéo + Chat */}
                 <div className="main-content">
 
-                    {/* Zone vidéo/présentation - LOGIQUE SIMPLIFIÉE ET CORRIGÉE */}
+                    {/* Zone vidéo/présentation - LOGIQUE CORRIGÉE */}
                     <div className="video-section">
                         <div className="main-video-container">
                             <div className="video-display-area">
@@ -831,7 +807,7 @@ function LiveSession() {
                                         </div>
                                     </div>
                                 ) : (
-                                    /* Zone vidéo SIMPLIFIÉE ET CORRIGÉE */
+                                    /* Zone vidéo CORRIGÉE */
                                     <div className="video-streams-container">
 
                                         {/* PROFESSEUR - Voit SA caméra */}
@@ -1052,36 +1028,84 @@ function LiveSession() {
                                             ❌ {agoraHook.connectionError}
                                         </div>
                                     )}
+                                    {agoraHook.audioAutoplayBlocked && (
+                                        <div style={{ color: '#ff9800', marginTop: '5px' }}>
+                                            🔊 Audio bloqué
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Vidéos des participants distants - Liste secondaire */}
-                            {agoraHook.remoteUsers.length > 1 && (
+                            {/* CORRECTION MAJEURE: Vidéos des participants distants - AFFICHAGE CORRIGÉ */}
+                            {agoraHook.remoteUsers.length > 0 && (
                                 <div className="secondary-videos">
-                                    <h4>Autres participants ({agoraHook.remoteUsers.length - 1})</h4>
+                                    <h4>
+                                        {isTeacher
+                                            ? `Élèves connectés (${agoraHook.remoteUsers.length})`
+                                            : `Autres participants (${agoraHook.remoteUsers.length > 1 ? agoraHook.remoteUsers.length - 1 : 0})`
+                                        }
+                                    </h4>
                                     <div className="remote-videos-grid" style={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                                         gap: '12px',
                                         marginTop: '12px'
                                     }}>
-                                        {agoraHook.remoteUsers.slice(1).map((remoteUser) => (
-                                            <div key={remoteUser.uid} className="secondary-video-item">
-                                                <div className="secondary-video-container">
-                                                    {remoteUser.hasVideo && remoteUser.videoTrack ? (
-                                                        <RemoteVideoDisplay user={remoteUser} />
-                                                    ) : (
-                                                        <div className="video-placeholder-secondary">
-                                                            <FaVideo size={20} style={{ color: '#666' }} />
-                                                        </div>
-                                                    )}
+                                        {isTeacher ? (
+                                            /* PROFESSEUR: Affiche TOUS les élèves */
+                                            agoraHook.remoteUsers.map((remoteUser) => (
+                                                <div key={remoteUser.uid} className="secondary-video-item">
+                                                    <div className="secondary-video-container">
+                                                        {remoteUser.hasVideo && remoteUser.videoTrack ? (
+                                                            <RemoteVideoDisplay user={remoteUser} />
+                                                        ) : (
+                                                            <div className="video-placeholder-secondary" style={{
+                                                                width: '100%',
+                                                                height: '120px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                background: '#1a1a1a',
+                                                                borderRadius: '8px'
+                                                            }}>
+                                                                <FaVideo size={20} style={{ color: '#666' }} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="secondary-video-label">
+                                                        👤 Élève {remoteUser.uid}
+                                                        {remoteUser.hasAudio ? ' 🎤' : ' 🔇'}
+                                                    </div>
                                                 </div>
-                                                <div className="secondary-video-label">
-                                                    Participant {remoteUser.uid}
-                                                    {remoteUser.hasAudio ? ' 🎤' : ' 🔇'}
+                                            ))
+                                        ) : (
+                                            /* ÉLÈVE: Affiche les autres élèves (pas le prof qui est en grand) */
+                                            agoraHook.remoteUsers.slice(1).map((remoteUser) => (
+                                                <div key={remoteUser.uid} className="secondary-video-item">
+                                                    <div className="secondary-video-container">
+                                                        {remoteUser.hasVideo && remoteUser.videoTrack ? (
+                                                            <RemoteVideoDisplay user={remoteUser} />
+                                                        ) : (
+                                                            <div className="video-placeholder-secondary" style={{
+                                                                width: '100%',
+                                                                height: '120px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                background: '#1a1a1a',
+                                                                borderRadius: '8px'
+                                                            }}>
+                                                                <FaVideo size={20} style={{ color: '#666' }} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="secondary-video-label">
+                                                        👤 Participant {remoteUser.uid}
+                                                        {remoteUser.hasAudio ? ' 🎤' : ' 🔇'}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             )}

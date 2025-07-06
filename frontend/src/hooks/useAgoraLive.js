@@ -1,5 +1,5 @@
 // Fichier: src/hooks/useAgoraLive.js
-// VERSION COMPLÈTEMENT CORRIGÉE - Audio/Vidéo bidirectionnel
+// VERSION CORRIGÉE - Résout les problèmes audio/vidéo bidirectionnels
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
@@ -45,6 +45,9 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isMuted, setIsMuted] = useState(false);
 
+    // NOUVEAU: État pour l'autoplay audio
+    const [audioAutoplayBlocked, setAudioAutoplayBlocked] = useState(false);
+
     // Statistiques
     const [networkQuality, setNetworkQuality] = useState(0);
     const [participantCount, setParticipantCount] = useState(0);
@@ -53,11 +56,55 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
     const isJoiningRef = useRef(false);
     const localUidRef = useRef(null);
     const eventsConfiguredRef = useRef(false);
+    const pendingAudioTracks = useRef(new Map()); // NOUVEAU: Pour stocker les tracks audio en attente
 
     // Nom du canal généré une seule fois
     const channelName = useMemo(() => {
         return memoizedSessionId ? generateChannelName(memoizedSessionId) : null;
     }, [memoizedSessionId]);
+
+    // ==========================================
+    // FONCTION POUR GÉRER L'AUTOPLAY AUDIO - NOUVEAU
+    // ==========================================
+    const tryPlayAudio = useCallback(async (audioTrack, uid) => {
+        try {
+            audioTrack.setVolume(100);
+            await audioTrack.play();
+            console.log('✅ Audio en lecture pour:', uid);
+
+            // Retirer des tracks en attente si succès
+            pendingAudioTracks.current.delete(uid);
+            setAudioAutoplayBlocked(false);
+
+            return true;
+        } catch (error) {
+            console.warn('⚠️ Autoplay audio bloqué pour:', uid, error.message);
+
+            // Stocker pour lecture ultérieure
+            pendingAudioTracks.current.set(uid, audioTrack);
+            setAudioAutoplayBlocked(true);
+
+            return false;
+        }
+    }, []);
+
+    // NOUVEAU: Fonction pour débloquer l'audio après interaction utilisateur
+    const enableAudioPlayback = useCallback(async () => {
+        console.log('🔓 Tentative déblocage audio autoplay...');
+
+        // Essayer de jouer tous les tracks en attente
+        for (const [uid, audioTrack] of pendingAudioTracks.current) {
+            const success = await tryPlayAudio(audioTrack, uid);
+            if (success) {
+                console.log('✅ Audio débloqué pour:', uid);
+            }
+        }
+
+        // Si tous ont été débloqués, réinitialiser l'état
+        if (pendingAudioTracks.current.size === 0) {
+            setAudioAutoplayBlocked(false);
+        }
+    }, [tryPlayAudio]);
 
     // ==========================================
     // CRÉATION DU CLIENT AGORA - OPTIMISÉ
@@ -114,7 +161,7 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
     }, [memoizedSessionId]);
 
     // ==========================================
-    // CONFIGURATION DES ÉVÉNEMENTS AGORA
+    // CONFIGURATION DES ÉVÉNEMENTS AGORA - CORRIGÉE
     // ==========================================
 
     useEffect(() => {
@@ -127,7 +174,7 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
 
         const client = clientRef.current;
 
-        // Événement: Utilisateur publié - CORRIGÉ POUR BIDIRECTIONNALITÉ
+        // ÉVÉNEMENT CORRIGÉ: Utilisateur publié
         const handleUserPublished = async (remoteUser, mediaType) => {
             try {
                 console.log('👤 User published:', remoteUser.uid, mediaType);
@@ -135,33 +182,12 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
                 await client.subscribe(remoteUser, mediaType);
                 console.log('✅ Subscribed to', remoteUser.uid, mediaType);
 
-                // CORRECTION CRITIQUE: Forcer la lecture audio pour TOUS (pas seulement élèves)
+                // CORRECTION CRITIQUE: Gestion de l'audio avec autoplay
                 if (mediaType === 'audio' && remoteUser.audioTrack) {
-                    try {
-                        console.log('🔊 FORCER LECTURE AUDIO - BIDIRECTIONNELLE pour:', remoteUser.uid);
+                    console.log('🔊 TENTATIVE LECTURE AUDIO BIDIRECTIONNELLE pour:', remoteUser.uid);
 
-                        // Régler le volume à 100%
-                        remoteUser.audioTrack.setVolume(100);
-
-                        // Forcer la lecture avec retry
-                        try {
-                            await remoteUser.audioTrack.play();
-                            console.log('✅ Audio en lecture bidirectionnelle pour:', remoteUser.uid);
-                        } catch (playError) {
-                            console.warn('⚠️ Premier essai audio échoué, retry...', playError);
-                            setTimeout(async () => {
-                                try {
-                                    await remoteUser.audioTrack.play();
-                                    console.log('✅ Audio retry réussi pour:', remoteUser.uid);
-                                } catch (retryError) {
-                                    console.error('❌ Audio retry échoué:', retryError);
-                                }
-                            }, 500);
-                        }
-
-                    } catch (audioError) {
-                        console.error('❌ Erreur configuration audio:', audioError);
-                    }
+                    // Utiliser la nouvelle fonction qui gère l'autoplay
+                    await tryPlayAudio(remoteUser.audioTrack, remoteUser.uid);
                 }
 
                 // Préparer la vidéo
@@ -201,6 +227,11 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
         const handleUserUnpublished = (remoteUser, mediaType) => {
             console.log('👤 User unpublished:', remoteUser.uid, mediaType);
 
+            // NOUVEAU: Nettoyer les tracks audio en attente
+            if (mediaType === 'audio') {
+                pendingAudioTracks.current.delete(remoteUser.uid);
+            }
+
             setRemoteUsers(prevUsers =>
                 prevUsers.map(user =>
                     user.uid === remoteUser.uid
@@ -222,6 +253,9 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
 
         const handleUserLeft = (remoteUser, reason) => {
             console.log('👋 User left:', remoteUser.uid, reason);
+
+            // NOUVEAU: Nettoyer les tracks audio en attente
+            pendingAudioTracks.current.delete(remoteUser.uid);
 
             setRemoteUsers(prevUsers =>
                 prevUsers.filter(user => user.uid !== remoteUser.uid)
@@ -287,10 +321,10 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
             }
             eventsConfiguredRef.current = false;
         };
-    }, [clientReady]);
+    }, [clientReady, tryPlayAudio]);
 
     // ==========================================
-    // REJOINDRE LE CANAL
+    // REJOINDRE LE CANAL - CORRIGÉ TIMING
     // ==========================================
 
     const joinChannel = useCallback(async () => {
@@ -327,16 +361,26 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
 
             console.log('✅ Successfully joined channel with UID:', assignedUid);
             localUidRef.current = assignedUid;
+
+            // CORRECTION: Mettre à jour l'état AVANT l'activation des médias
             setIsJoined(true);
             setParticipantCount(1);
 
-            // Auto-activation pour le professeur
+            // CORRECTION: Attendre que l'état soit à jour, puis activer les médias
             if (memoizedIsTeacher) {
                 console.log('👨‍🏫 Teacher detected, enabling media...');
                 try {
-                    await enableCamera();
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    await enableAudio();
+                    // Activer avec un délai pour s'assurer que isJoined est à jour
+                    setTimeout(async () => {
+                        try {
+                            await enableCamera();
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                            await enableAudio();
+                            console.log('✅ Médias professeur activés avec succès');
+                        } catch (mediaError) {
+                            console.warn('⚠️ Failed to auto-enable media:', mediaError);
+                        }
+                    }, 300);
                 } catch (mediaError) {
                     console.warn('⚠️ Failed to auto-enable media:', mediaError);
                 }
@@ -366,35 +410,7 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
     }, [memoizedUserId, memoizedIsTeacher, isJoined, channelName]);
 
     // ==========================================
-    // QUITTER LE CANAL
-    // ==========================================
-
-    const leaveChannel = useCallback(async () => {
-        try {
-            console.log('🚪 Leaving channel...');
-
-            await disableCamera();
-            await disableAudio();
-            await stopScreenShare();
-
-            if (isJoined && clientRef.current) {
-                await clientRef.current.leave();
-                console.log('✅ Left channel successfully');
-            }
-
-            setIsJoined(false);
-            setRemoteUsers([]);
-            setParticipantCount(0);
-            setConnectionError(null);
-            localUidRef.current = null;
-
-        } catch (error) {
-            console.error('❌ Failed to leave channel:', error);
-        }
-    }, [isJoined]);
-
-    // ==========================================
-    // GESTION CAMÉRA - OPTIMISÉE
+    // GESTION CAMÉRA - CORRIGÉE TIMING PUBLICATION
     // ==========================================
 
     const enableCamera = useCallback(async () => {
@@ -421,19 +437,43 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
             setLocalVideoTrack(videoTrack);
             setIsVideoEnabled(true);
 
-            if (isJoined && clientRef.current) {
-                await clientRef.current.publish(videoTrack);
-                console.log('✅ Video track published');
+            // CORRECTION: Publier immédiatement si on est connecté
+            if (clientRef.current && localUidRef.current) {
+                try {
+                    await clientRef.current.publish(videoTrack);
+                    console.log('✅ Video track published immediately');
+                } catch (publishError) {
+                    console.warn('⚠️ Publish video failed, will retry:', publishError);
+
+                    // Retry après un délai
+                    setTimeout(async () => {
+                        try {
+                            if (clientRef.current && videoTrack) {
+                                await clientRef.current.publish(videoTrack);
+                                console.log('✅ Video track published on retry');
+                            }
+                        } catch (retryError) {
+                            console.error('❌ Video publish retry failed:', retryError);
+                        }
+                    }, 1000);
+                }
             }
 
             console.log('✅ Camera enabled');
 
         } catch (error) {
             console.error('❌ Failed to enable camera:', error);
-            setConnectionError('Impossible d\'accéder à la caméra');
+
+            if (error.name === 'NotAllowedError') {
+                setConnectionError('Permission caméra refusée. Veuillez autoriser l\'accès à la caméra.');
+            } else if (error.name === 'NotFoundError') {
+                setConnectionError('Aucune caméra trouvée sur cet appareil.');
+            } else {
+                setConnectionError('Impossible d\'accéder à la caméra');
+            }
             throw error;
         }
-    }, [localVideoTrack, isJoined]);
+    }, [localVideoTrack]);
 
     const disableCamera = useCallback(async () => {
         try {
@@ -441,9 +481,13 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
 
             console.log('📹 Disabling camera...');
 
-            if (isJoined && clientRef.current) {
-                await clientRef.current.unpublish(localVideoTrack);
-                console.log('✅ Video track unpublished');
+            if (clientRef.current && localUidRef.current) {
+                try {
+                    await clientRef.current.unpublish(localVideoTrack);
+                    console.log('✅ Video track unpublished');
+                } catch (unpublishError) {
+                    console.warn('⚠️ Video unpublish failed:', unpublishError);
+                }
             }
 
             localVideoTrack.stop();
@@ -457,10 +501,10 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
         } catch (error) {
             console.error('❌ Failed to disable camera:', error);
         }
-    }, [localVideoTrack, isJoined]);
+    }, [localVideoTrack]);
 
     // ==========================================
-    // GESTION AUDIO - OPTIMISÉE POUR BIDIRECTIONNALITÉ
+    // GESTION AUDIO - CORRIGÉE TIMING PUBLICATION
     // ==========================================
 
     const enableAudio = useCallback(async () => {
@@ -493,19 +537,43 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
             setIsAudioEnabled(true);
             setIsMuted(false);
 
-            if (isJoined && clientRef.current) {
-                await clientRef.current.publish(audioTrack);
-                console.log('✅ Audio track published');
+            // CORRECTION: Publier immédiatement si on est connecté
+            if (clientRef.current && localUidRef.current) {
+                try {
+                    await clientRef.current.publish(audioTrack);
+                    console.log('✅ Audio track published immediately');
+                } catch (publishError) {
+                    console.warn('⚠️ Publish audio failed, will retry:', publishError);
+
+                    // Retry après un délai
+                    setTimeout(async () => {
+                        try {
+                            if (clientRef.current && audioTrack) {
+                                await clientRef.current.publish(audioTrack);
+                                console.log('✅ Audio track published on retry');
+                            }
+                        } catch (retryError) {
+                            console.error('❌ Audio publish retry failed:', retryError);
+                        }
+                    }, 1000);
+                }
             }
 
             console.log('✅ Audio enabled with optimized settings');
 
         } catch (error) {
             console.error('❌ Failed to enable audio:', error);
-            setConnectionError('Impossible d\'accéder au microphone');
+
+            if (error.name === 'NotAllowedError') {
+                setConnectionError('Permission microphone refusée. Veuillez autoriser l\'accès au microphone.');
+            } else if (error.name === 'NotFoundError') {
+                setConnectionError('Aucun microphone trouvé sur cet appareil.');
+            } else {
+                setConnectionError('Impossible d\'accéder au microphone');
+            }
             throw error;
         }
-    }, [localAudioTrack, isJoined]);
+    }, [localAudioTrack]);
 
     const disableAudio = useCallback(async () => {
         try {
@@ -513,9 +581,13 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
 
             console.log('🎤 Disabling audio...');
 
-            if (isJoined && clientRef.current) {
-                await clientRef.current.unpublish(localAudioTrack);
-                console.log('✅ Audio track unpublished');
+            if (clientRef.current && localUidRef.current) {
+                try {
+                    await clientRef.current.unpublish(localAudioTrack);
+                    console.log('✅ Audio track unpublished');
+                } catch (unpublishError) {
+                    console.warn('⚠️ Audio unpublish failed:', unpublishError);
+                }
             }
 
             localAudioTrack.stop();
@@ -530,7 +602,7 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
         } catch (error) {
             console.error('❌ Failed to disable audio:', error);
         }
-    }, [localAudioTrack, isJoined]);
+    }, [localAudioTrack]);
 
     // ==========================================
     // COUPER/RÉTABLIR LE SON
@@ -552,7 +624,37 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
     }, [localAudioTrack, isMuted]);
 
     // ==========================================
-    // PARTAGE D'ÉCRAN
+    // QUITTER LE CANAL
+    // ==========================================
+
+    const leaveChannel = useCallback(async () => {
+        try {
+            console.log('🚪 Leaving channel...');
+
+            await disableCamera();
+            await disableAudio();
+            await stopScreenShare();
+
+            if (isJoined && clientRef.current) {
+                await clientRef.current.leave();
+                console.log('✅ Left channel successfully');
+            }
+
+            setIsJoined(false);
+            setRemoteUsers([]);
+            setParticipantCount(0);
+            setConnectionError(null);
+            setAudioAutoplayBlocked(false);
+            localUidRef.current = null;
+            pendingAudioTracks.current.clear();
+
+        } catch (error) {
+            console.error('❌ Failed to leave channel:', error);
+        }
+    }, [isJoined]);
+
+    // ==========================================
+    // PARTAGE D'ÉCRAN (inchangé)
     // ==========================================
 
     const startScreenShare = useCallback(async () => {
@@ -638,6 +740,9 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
         isScreenSharing,
         isMuted,
 
+        // NOUVEAU: État autoplay
+        audioAutoplayBlocked,
+
         // Tracks
         localVideoTrack,
         localAudioTrack,
@@ -654,6 +759,9 @@ export const useAgoraLive = (sessionId, user, isTeacher = false) => {
         toggleMute,
         startScreenShare,
         stopScreenShare,
+
+        // NOUVEAU: Fonction pour débloquer l'audio
+        enableAudioPlayback,
 
         // Utilitaires
         localUid: localUidRef.current,
