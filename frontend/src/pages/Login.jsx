@@ -18,6 +18,9 @@ function Login() {
     const { login, isAuthenticated, loading: authLoading } = useAuth();
     const navigate = useNavigate();
 
+    // Configuration API - utilise la variable d'environnement ou localhost par défaut
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
     // Rediriger si déjà connecté
     useEffect(() => {
         if (!authLoading && isAuthenticated) {
@@ -60,8 +63,9 @@ function Login() {
 
         try {
             console.log('Login - Tentative de connexion...');
+            console.log('Login - API_URL:', API_URL);
 
-            const response = await axios.post('http://localhost:5000/api/auth/login', {
+            const response = await axios.post(`${API_URL}/api/auth/login`, {
                 identifier: formData.identifier,
                 password: formData.password
             });
@@ -107,6 +111,8 @@ function Login() {
                 errorMessage = err.response.data.error;
             } else if (err.message) {
                 errorMessage = err.message;
+            } else if (err.code === 'ECONNREFUSED' || err.code === 'ERR_NETWORK') {
+                errorMessage = `Impossible de contacter le serveur (${API_URL}). Vérifiez que le serveur est démarré.`;
             }
 
             setErrors({ general: errorMessage });
@@ -121,7 +127,9 @@ function Login() {
             <div className="login-page">
                 <div className="login-container">
                     <div className="loading-auth">
-                        <div className="spinner"></div>
+                        <div className="loading-spinner">
+                            <div className="spinner"></div>
+                        </div>
                         <p>Vérification de l'authentification...</p>
                     </div>
                 </div>
@@ -154,6 +162,9 @@ function Login() {
                     </div>
                     <h1>Bon retour !</h1>
                     <p>Connectez-vous pour continuer votre aventure</p>
+                    <small style={{ color: '#666', fontSize: '12px' }}>
+                        Serveur: {API_URL}
+                    </small>
                 </div>
 
                 <div className="login-box">
@@ -175,6 +186,7 @@ function Login() {
                                     onChange={handleChange}
                                     className={errors.identifier ? 'error' : ''}
                                     disabled={loading}
+                                    autoComplete="username"
                                 />
                             </div>
                             {errors.identifier && <span className="error-message">{errors.identifier}</span>}
@@ -191,6 +203,7 @@ function Login() {
                                     onChange={handleChange}
                                     className={errors.password ? 'error' : ''}
                                     disabled={loading}
+                                    autoComplete="current-password"
                                 />
                                 <button
                                     type="button"
@@ -222,7 +235,6 @@ function Login() {
                         >
                             {loading ? (
                                 <div className="loading-spinner">
-                                    <div className="spinner"></div>
                                     Connexion...
                                 </div>
                             ) : (

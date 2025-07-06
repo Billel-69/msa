@@ -1,13 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+// Fichier: src/components/LiveSession.jsx
+// VERSION COMPLÈTEMENT CORRIGÉE - Audio/Vidéo bidirectionnel
+
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../hooks/useSocket';
+import { useAgoraLive } from '../hooks/useAgoraLive'; // Version corrigée
 import axios from 'axios';
 import {
     FaArrowLeft,
     FaPaperPlane,
     FaUsers,
     FaVideo,
+    FaVideoSlash,
     FaCrown,
     FaUserGraduate,
     FaChild,
@@ -16,165 +21,434 @@ import {
     FaMicrophoneSlash,
     FaDesktop,
     FaStop,
-    FaFileUpload,
     FaVolumeUp,
     FaVolumeMute,
-    FaVideoSlash,
-    FaExpand,
-    FaCompress,
-    FaPlay
+    FaWifi,
+    FaExclamationTriangle,
+    FaRedo,
+    FaPlay,
+    FaPause
 } from 'react-icons/fa';
 import './LiveSession.css';
+
+// ==========================================
+// COMPOSANT VIDÉO DISTANTE - CORRIGÉ
+// ==========================================
+
+const RemoteVideoDisplay = React.memo(({ user, isMain = false }) => {
+    const videoRef = useRef(null);
+
+    useEffect(() => {
+        console.log('🎥 RemoteVideoDisplay - Tentative affichage:', {
+            uid: user.uid,
+            hasVideoTrack: !!user.videoTrack,
+            hasContainer: !!videoRef.current,
+            isMain
+        });
+
+        if (user.videoTrack && videoRef.current) {
+            try {
+                // IMPORTANT: Nettoyer d'abord le container
+                videoRef.current.innerHTML = '';
+
+                // Jouer la vidéo
+                user.videoTrack.play(videoRef.current);
+                console.log('✅ Vidéo distante affichée pour:', user.uid);
+            } catch (error) {
+                console.error('❌ Erreur affichage vidéo distante:', error, {
+                    uid: user.uid,
+                    track: user.videoTrack,
+                    container: videoRef.current
+                });
+            }
+        } else {
+            console.warn('⚠️ Conditions non remplies pour vidéo distante:', {
+                uid: user.uid,
+                hasTrack: !!user.videoTrack,
+                hasContainer: !!videoRef.current
+            });
+        }
+
+        // Cleanup
+        return () => {
+            if (videoRef.current) {
+                try {
+                    videoRef.current.innerHTML = '';
+                } catch (e) {
+                    // Ignore cleanup errors
+                }
+            }
+        };
+    }, [user.videoTrack, user.uid]);
+
+    const containerStyle = isMain ? {
+        width: '100%',
+        height: '400px',
+        background: '#000',
+        borderRadius: '12px'
+    } : {
+        width: '100%',
+        height: '100%',
+        background: '#000',
+        borderRadius: '6px'
+    };
+
+    return (
+        <div
+            ref={videoRef}
+            className={isMain ? "remote-video-main" : "remote-video"}
+            style={containerStyle}
+        />
+    );
+});
+
+// ==========================================
+// COMPOSANT PRINCIPAL
+// ==========================================
 
 function LiveSession() {
     const { sessionId } = useParams();
     const navigate = useNavigate();
     const { user, token } = useAuth();
-    const { isConnected, joinSession, leaveSession, sendMessage, onNewMessage, onJoinedSession, onError } = useSocket();
 
-    // États existants
+    // IMPORTANT: Mémoriser ces valeurs pour éviter les recréations
+    const memoizedSessionId = useMemo(() => sessionId, [sessionId]);
+    const memoizedUser = useMemo(() => user, [user?.id, user?.name, user?.accountType]);
+
+    // États de la session
     const [session, setSession] = useState(null);
     const [participants, setParticipants] = useState([]);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
-    const [connected, setConnected] = useState(false);
     const [error, setError] = useState(null);
     const [isParticipant, setIsParticipant] = useState(false);
 
-    // États pour audio/vidéo
-    const [isAudioEnabled, setIsAudioEnabled] = useState(false);
-    const [isVideoEnabled, setIsVideoEnabled] = useState(false);
-    const [isScreenSharing, setIsScreenSharing] = useState(false);
-    const [isMuted, setIsMuted] = useState(false);
-    const [audioStream, setAudioStream] = useState(null);
-    const [videoStream, setVideoStream] = useState(null);
-    const [screenStream, setScreenStream] = useState(null);
-    const [uploadedDocument, setUploadedDocument] = useState(null);
+    // États pour éviter les boucles
+    const [sessionLoaded, setSessionLoaded] = useState(false);
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-    // États pour l'interface vidéo
-    const [isVideoExpanded, setIsVideoExpanded] = useState(false);
-    const [videoLayout, setVideoLayout] = useState('picture-in-picture');
-
-    // Refs
+    // Refs pour éviter les boucles
+    const hasJoinedAgoraRef = useRef(false);
+    const isJoiningRef = useRef(false);
     const messagesEndRef = useRef(null);
     const messageInputRef = useRef(null);
-    const audioRef = useRef(null);
-    const videoRef = useRef(null);
+    const localVideoRef = useRef(null);
     const screenVideoRef = useRef(null);
-    const fileInputRef = useRef(null);
 
-    // Check if user is teacher
-    const isTeacher = user?.accountType === 'teacher' || session?.teacher_id === user?.id;
+    // Configuration API
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+    // Socket pour le chat
+    const { isConnected, joinSession, leaveSession, sendMessage, onNewMessage, onJoinedSession, onError } = useSocket();
+
+    // Déterminer si l'utilisateur est professeur STABLE
+    const isTeacher = useMemo(() => {
+        return user?.accountType === 'teacher' || (session && session.teacher_id === user?.id);
+    }, [user?.accountType, user?.id, session?.teacher_id]);
+
+    // Hook Agora avec paramètres stables
+    const agoraHook = useAgoraLive(memoizedSessionId, memoizedUser, isTeacher);
+
+    // ==========================================
+    // FONCTIONS PRINCIPALES
+    // ==========================================
+
+    // Rejoindre Agora
+    const handleJoinAgora = useCallback(async () => {
+        if (isJoiningRef.current || hasJoinedAgoraRef.current) {
+            console.log('⚠️ Agora: déjà en cours...');
+            return;
+        }
+
+        try {
+            isJoiningRef.current = true;
+            hasJoinedAgoraRef.current = true;
+
+            console.log('🎬 Agora: Connexion...');
+            await agoraHook.joinChannel();
+
+            console.log('✅ Agora: Connecté!');
+
+            // Message de connexion
+            if (isConnected && isParticipant) {
+                sendMessage(memoizedSessionId, `🎥 ${user.name} a rejoint la session vidéo`);
+            }
+
+        } catch (error) {
+            console.error('❌ Agora: Erreur connexion', error);
+            setError('Impossible de rejoindre la session vidéo');
+            hasJoinedAgoraRef.current = false;
+        } finally {
+            isJoiningRef.current = false;
+        }
+    }, [agoraHook.joinChannel, isConnected, isParticipant, user?.name, memoizedSessionId, sendMessage]);
+
+    // Démarrer le live
+    const handleStartLive = useCallback(async () => {
+        if (!isTeacher || !session) {
+            return;
+        }
+
+        try {
+            console.log('▶️ Démarrage du live...');
+
+            const response = await axios.post(`${API_URL}/api/live/start-session/${session.id}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            console.log('✅ Live démarré:', response.data);
+
+            setSession(prev => ({
+                ...prev,
+                status: 'live',
+                started_at: new Date().toISOString()
+            }));
+
+            if (isConnected && isParticipant) {
+                sendMessage(memoizedSessionId, `🎬 Le professeur a démarré le live !`);
+            }
+
+            if (!agoraHook.isJoined) {
+                await handleJoinAgora();
+            }
+
+        } catch (error) {
+            console.error('❌ Erreur démarrage live:', error);
+            setError('Impossible de démarrer le live');
+        }
+    }, [isTeacher, session, API_URL, token, isConnected, isParticipant, sendMessage, memoizedSessionId, agoraHook.isJoined, handleJoinAgora]);
+
+    // Arrêter le live
+    const handleStopLive = useCallback(async () => {
+        if (!isTeacher || !session) {
+            return;
+        }
+
+        if (!window.confirm('Êtes-vous sûr de vouloir arrêter le live ?')) {
+            return;
+        }
+
+        try {
+            console.log('⏹️ Arrêt du live...');
+
+            const response = await axios.post(`${API_URL}/api/live/end-session/${session.id}`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            console.log('✅ Live arrêté:', response.data);
+
+            setSession(prev => ({
+                ...prev,
+                status: 'ended',
+                ended_at: new Date().toISOString()
+            }));
+
+            if (isConnected && isParticipant) {
+                sendMessage(memoizedSessionId, `🔚 Le professeur a arrêté le live.`);
+            }
+
+            await agoraHook.leaveChannel();
+
+            setTimeout(() => {
+                navigate('/live');
+            }, 2000);
+
+        } catch (error) {
+            console.error('❌ Erreur arrêt live:', error);
+            setError('Impossible d\'arrêter le live');
+        }
+    }, [isTeacher, session, API_URL, token, isConnected, isParticipant, sendMessage, memoizedSessionId, agoraHook.leaveChannel, navigate]);
+
+    // ==========================================
+    // EFFETS
+    // ==========================================
+
+    // EFFET 1: Chargement initial UNIQUE
     useEffect(() => {
-        console.log('=== DEBUT CHARGEMENT SESSION ===');
-        console.log('Token disponible:', !!token);
-        console.log('User:', user);
-        console.log('SessionId:', sessionId);
+        if (!token || !user || initialLoadComplete) {
+            return;
+        }
 
-        if (!token || !user) {
-            console.log('Redirection vers connexion - pas de token ou user');
+        if (!user.id) {
             navigate('/connexion');
             return;
         }
 
+        console.log('🎯 PREMIÈRE FOIS - Chargement session...');
+        setInitialLoadComplete(true);
         fetchSessionDetails();
-    }, [sessionId, token, user, navigate]);
 
-    useEffect(() => {
-        if (isConnected && session && isParticipant && !connected) {
-            console.log('Tentative de connexion socket...');
-            handleJoinSession();
-        }
-    }, [isConnected, session, isParticipant, connected]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
-    // Cleanup streams on unmount
-    useEffect(() => {
         return () => {
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
-            }
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            if (screenStream) {
-                screenStream.getTracks().forEach(track => track.stop());
-            }
+            console.log('🧹 Nettoyage composant LiveSession');
         };
-    }, [audioStream, videoStream, screenStream]);
+    }, [token, user?.id, initialLoadComplete]);
 
-    // Écouteurs Socket.io
+    // EFFET 2: Rejoindre Agora UNE SEULE FOIS
     useEffect(() => {
-        const unsubscribeNewMessage = onNewMessage((message) => {
-            console.log('Nouveau message reçu:', message);
+        if (!sessionLoaded || !isParticipant || hasJoinedAgoraRef.current || agoraHook.isJoined || agoraHook.isConnecting || isJoiningRef.current) {
+            return;
+        }
+
+        console.log('🚀 CONDITIONS OK - Rejoindre Agora');
+        handleJoinAgora();
+    }, [sessionLoaded, isParticipant, agoraHook.isJoined, agoraHook.isConnecting, handleJoinAgora]);
+
+    // EFFET 3: Gestion des nouveaux messages
+    useEffect(() => {
+        if (!onNewMessage) return;
+
+        const unsubscribe = onNewMessage((message) => {
+            console.log('💬 Nouveau message:', message.message?.substring(0, 30) + '...');
             setMessages(prev => [...prev, message]);
         });
 
-        const unsubscribeJoined = onJoinedSession((data) => {
-            console.log('Session rejointe via socket:', data);
-            setConnected(true);
-            setError(null);
+        return unsubscribe;
+    }, [onNewMessage]);
+
+    // EFFET 4: Scroll des messages
+    useEffect(() => {
+        if (messages.length > 0) {
+            scrollToBottom();
+        }
+    }, [messages.length]);
+
+    // EFFET 5: Vidéo locale - CORRIGÉ
+    useEffect(() => {
+        console.log('🔄 EFFET VIDÉO LOCALE - État actuel:', {
+            hasLocalVideoTrack: !!agoraHook.localVideoTrack,
+            hasContainer: !!localVideoRef.current,
+            isVideoEnabled: agoraHook.isVideoEnabled,
+            isScreenSharing: agoraHook.isScreenSharing,
+            isJoined: agoraHook.isJoined,
+            isTeacher: isTeacher
         });
 
-        const unsubscribeError = onError((error) => {
-            console.error('Erreur Socket:', error);
-            setError(error.message);
+        if (agoraHook.localVideoTrack && localVideoRef.current && !agoraHook.isScreenSharing && agoraHook.isVideoEnabled) {
+            try {
+                console.log('🎥 ✅ AFFICHAGE VIDÉO LOCALE - Conditions remplies');
+
+                // Nettoyer d'abord
+                localVideoRef.current.innerHTML = '';
+
+                // Lancer la vidéo
+                agoraHook.localVideoTrack.play(localVideoRef.current);
+                console.log('✅ ✅ VIDÉO LOCALE LANCÉE AVEC SUCCÈS');
+            } catch (error) {
+                console.error('❌ ❌ ERREUR CRITIQUE VIDÉO LOCALE:', error);
+            }
+        } else {
+            console.log('⚠️ CONDITIONS NON REMPLIES pour vidéo locale:', {
+                hasTrack: !!agoraHook.localVideoTrack,
+                hasContainer: !!localVideoRef.current,
+                isEnabled: agoraHook.isVideoEnabled,
+                notScreenShare: !agoraHook.isScreenSharing
+            });
+        }
+    }, [agoraHook.localVideoTrack, agoraHook.isVideoEnabled, agoraHook.isScreenSharing, agoraHook.isJoined, isTeacher]);
+
+    // EFFET 6: Gestion des utilisateurs distants - CORRIGÉ
+    useEffect(() => {
+        console.log('👥 UTILISATEURS DISTANTS - Changement détecté:', {
+            nombreUtilisateurs: agoraHook.remoteUsers.length,
+            utilisateurs: agoraHook.remoteUsers.map(u => ({
+                uid: u.uid,
+                hasVideo: u.hasVideo,
+                hasAudio: u.hasAudio,
+                hasVideoTrack: !!u.videoTrack,
+                hasAudioTrack: !!u.audioTrack
+            })),
+            isTeacher: isTeacher
         });
 
-        return () => {
-            if (unsubscribeNewMessage) unsubscribeNewMessage();
-            if (unsubscribeJoined) unsubscribeJoined();
-            if (unsubscribeError) unsubscribeError();
-        };
-    }, [onNewMessage, onJoinedSession, onError]);
+        // IMPORTANT: Forcer la lecture audio pour TOUS les utilisateurs distants
+        if (agoraHook.remoteUsers.length > 0) {
+            agoraHook.remoteUsers.forEach((remoteUser, index) => {
+                console.log(`👤 Utilisateur distant ${index + 1}:`, {
+                    uid: remoteUser.uid,
+                    hasVideo: remoteUser.hasVideo,
+                    hasAudio: remoteUser.hasAudio,
+                    videoTrack: remoteUser.videoTrack,
+                    audioTrack: remoteUser.audioTrack
+                });
+
+                // CORRECTION: Forcer la lecture audio pour TOUS (pas seulement élèves)
+                if (remoteUser.audioTrack) {
+                    try {
+                        console.log('🔊 FORCER LECTURE AUDIO BIDIRECTIONNELLE pour:', remoteUser.uid);
+                        remoteUser.audioTrack.setVolume(100);
+                        remoteUser.audioTrack.play();
+                        console.log('✅ Audio en lecture pour:', remoteUser.uid);
+                    } catch (error) {
+                        console.error('❌ Erreur lecture audio:', error);
+                        // Retry
+                        setTimeout(() => {
+                            try {
+                                remoteUser.audioTrack.play();
+                            } catch (retryError) {
+                                console.error('❌ Retry audio échoué:', retryError);
+                            }
+                        }, 1000);
+                    }
+                }
+            });
+        }
+    }, [agoraHook.remoteUsers, isTeacher]);
+
+    // EFFET 7: Partage d'écran
+    useEffect(() => {
+        if (agoraHook.screenTrack && screenVideoRef.current) {
+            try {
+                console.log('🖥️ Affichage partage d\'écran');
+                agoraHook.screenTrack.play(screenVideoRef.current);
+            } catch (error) {
+                console.error('❌ Erreur partage d\'écran:', error);
+            }
+        }
+    }, [agoraHook.screenTrack]);
+
+    // ==========================================
+    // FONCTIONS MÉTIER
+    // ==========================================
 
     const fetchSessionDetails = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            console.log('=== FETCH SESSION DETAILS ===');
-            console.log('URL:', `http://localhost:5000/api/live/session/${sessionId}`);
+            console.log('📡 API: Récupération session', memoizedSessionId);
 
-            const response = await axios.get(`http://localhost:5000/api/live/session/${sessionId}`, {
+            const response = await axios.get(`${API_URL}/api/live/session/${memoizedSessionId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log('=== REPONSE RECUE ===');
-            console.log('Status:', response.status);
-            console.log('Data:', response.data);
+            const sessionData = response.data.session;
+            const participantsData = response.data.participants || [];
+            const isParticipantData = response.data.isParticipant;
 
-            setSession(response.data.session);
-            setParticipants(response.data.participants || []);
-            setIsParticipant(response.data.isParticipant);
+            console.log('✅ Données reçues:', {
+                session: sessionData?.title,
+                participants: participantsData.length,
+                isParticipant: isParticipantData
+            });
 
-            // Si pas encore participant, essayer de rejoindre automatiquement
-            if (!response.data.isParticipant) {
-                console.log('Pas encore participant, tentative de connexion...');
+            setSession(sessionData);
+            setParticipants(participantsData);
+            setIsParticipant(isParticipantData);
+
+            if (!isParticipantData) {
+                console.log('⚠️ Connexion nécessaire...');
                 await handleJoinSessionAPI();
             } else {
-                console.log('Utilisateur est participant, chargement des messages...');
+                console.log('✅ Déjà connecté, chargement messages...');
                 await loadMessages();
             }
 
-        } catch (error) {
-            console.log('=== ERREUR FETCH SESSION ===');
-            console.log('Error status:', error.response?.status);
-            console.log('Error data:', error.response?.data);
-            console.log('Error message:', error.message);
+            setSessionLoaded(true);
 
-            if (error.response?.status === 404) {
-                setError('Session introuvable');
-            } else if (error.response?.status === 403) {
-                setError('Accès refusé à cette session');
-            } else {
-                setError(error.response?.data?.error || 'Impossible de charger la session');
-            }
+        } catch (error) {
+            console.error('❌ Erreur fetch session:', error);
+            setError(error.response?.data?.error || 'Impossible de charger la session');
         } finally {
             setLoading(false);
         }
@@ -182,43 +456,33 @@ function LiveSession() {
 
     const handleJoinSessionAPI = async () => {
         try {
-            console.log('=== TENTATIVE CONNEXION API ===');
+            console.log('🔐 Connexion API...');
 
-            const response = await axios.post(`http://localhost:5000/api/live/join-session/${sessionId}`, {}, {
+            const response = await axios.post(`${API_URL}/api/live/join-session/${memoizedSessionId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log('Connexion API réussie:', response.data);
-
-            if (response.data.alreadyJoined || response.data.message.includes('réussie')) {
-                setIsParticipant(true);
-                // Recharger les données de session pour avoir les participants mis à jour
-                await fetchSessionDetails();
-                await loadMessages();
-            }
+            console.log('✅ Connexion API réussie');
+            setIsParticipant(true);
+            await loadMessages();
 
         } catch (error) {
-            console.error('=== ERREUR CONNEXION API ===', error);
+            console.error('❌ Erreur connexion API:', error);
 
             if (error.response?.status === 401) {
-                // Session protégée par mot de passe
-                const password = prompt('Cette session est protégée par un mot de passe :');
+                const password = prompt('Mot de passe requis :');
                 if (password) {
                     try {
-                        const passwordResponse = await axios.post(`http://localhost:5000/api/live/join-session/${sessionId}`,
+                        await axios.post(`${API_URL}/api/live/join-session/${memoizedSessionId}`,
                             { password },
                             { headers: { Authorization: `Bearer ${token}` } }
                         );
-                        console.log('Connexion avec mot de passe réussie:', passwordResponse.data);
                         setIsParticipant(true);
-                        await fetchSessionDetails();
                         await loadMessages();
                     } catch (passwordError) {
                         setError('Mot de passe incorrect');
                     }
                 }
-            } else if (error.response?.status === 400) {
-                setError('Session complète ou non disponible');
             } else {
                 setError('Impossible de rejoindre la session');
             }
@@ -227,289 +491,135 @@ function LiveSession() {
 
     const loadMessages = async () => {
         try {
-            console.log('Chargement des messages...');
-            const response = await axios.get(`http://localhost:5000/api/live/session/${sessionId}/chat`, {
+            console.log('💬 Chargement messages...');
+            const response = await axios.get(`${API_URL}/api/live/session/${memoizedSessionId}/chat`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            console.log('Messages chargés:', response.data.length);
-            setMessages(response.data);
+            setMessages(response.data || []);
         } catch (error) {
-            console.error('Erreur chargement messages:', error);
-            // Ne pas bloquer l'interface si les messages ne se chargent pas
+            console.warn('⚠️ Messages non disponibles:', error);
+            setMessages([]);
         }
     };
 
-    const handleJoinSession = () => {
-        if (session && isConnected && isParticipant) {
-            console.log('Connexion socket à la session...');
-            joinSession(sessionId);
-        }
-    };
+    const handleRetryAgora = useCallback(async () => {
+        setError(null);
+        hasJoinedAgoraRef.current = false;
+        isJoiningRef.current = false;
+        await handleJoinAgora();
+    }, [handleJoinAgora]);
 
-    const handleSendMessage = (e) => {
+    const handleSendMessage = useCallback((e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !connected) return;
 
-        console.log('Envoi message:', newMessage.trim());
-        sendMessage(sessionId, newMessage.trim());
+        if (!newMessage.trim() || !isConnected || !isParticipant) {
+            return;
+        }
+
+        console.log('💬 Envoi:', newMessage.trim());
+        sendMessage(memoizedSessionId, newMessage.trim());
         setNewMessage('');
 
         setTimeout(() => {
             messageInputRef.current?.focus();
         }, 100);
-    };
+    }, [newMessage, isConnected, isParticipant, sendMessage, memoizedSessionId]);
 
-    const handleLeaveSession = () => {
+    const handleLeaveSession = useCallback(async () => {
         if (window.confirm('Êtes-vous sûr de vouloir quitter cette session ?')) {
-            // Stop all streams before leaving
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
+            try {
+                await agoraHook.leaveChannel();
+                if (isConnected && isParticipant) {
+                    leaveSession(memoizedSessionId);
+                }
+                navigate('/live');
+            } catch (error) {
+                console.error('❌ Erreur départ:', error);
+                navigate('/live');
             }
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
-            if (screenStream) {
-                screenStream.getTracks().forEach(track => track.stop());
-            }
-
-            leaveSession(sessionId);
-            navigate('/live');
         }
-    };
+    }, [agoraHook.leaveChannel, isConnected, isParticipant, leaveSession, memoizedSessionId, navigate]);
 
-    // NOUVELLE FONCTION : Démarrer une session directement depuis la session
-    const handleStartSession = async () => {
-        if (!isTeacher) return;
+    // Contrôles média - CORRIGÉS
+    const handleToggleCamera = useCallback(async () => {
+        console.log('🎥 TOGGLE CAMÉRA - État actuel:', {
+            isVideoEnabled: agoraHook.isVideoEnabled,
+            hasLocalTrack: !!agoraHook.localVideoTrack,
+            isJoined: agoraHook.isJoined,
+            isTeacher: isTeacher
+        });
 
         try {
-            console.log('Démarrage de la session depuis l\'interface...');
-
-            await axios.post(`http://localhost:5000/api/live/start-session/${sessionId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            console.log('Session démarrée avec succès');
-
-            // Mettre à jour l'état local
-            setSession(prev => ({
-                ...prev,
-                status: 'live',
-                started_at: new Date().toISOString()
-            }));
-
-            // Envoyer un message système
-            if (connected) {
-                sendMessage(sessionId, '🎥 La session a commencé !');
-            }
-
-        } catch (error) {
-            console.error('Erreur lors du démarrage:', error);
-            setError('Impossible de démarrer la session');
-        }
-    };
-
-    // Camera functions
-    const toggleVideo = async () => {
-        if (!isTeacher) return;
-
-        try {
-            if (!isVideoEnabled) {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 640 },
-                        height: { ideal: 480 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: false // Audio géré séparément
-                });
-
-                setVideoStream(stream);
-                setIsVideoEnabled(true);
-
-                if (videoRef.current) {
-                    videoRef.current.srcObject = stream;
-                    videoRef.current.play();
+            if (agoraHook.isVideoEnabled) {
+                console.log('📹 DÉSACTIVATION caméra...');
+                await agoraHook.disableCamera();
+                if (isConnected && isParticipant) {
+                    sendMessage(memoizedSessionId, `📹 ${user.name} a désactivé sa caméra`);
                 }
-
-                if (connected) {
-                    sendMessage(sessionId, "📹 Le professeur a activé sa caméra");
-                }
-
+                console.log('✅ Caméra désactivée');
             } else {
-                if (videoStream) {
-                    videoStream.getTracks().forEach(track => track.stop());
+                console.log('📹 ACTIVATION caméra...');
+                await agoraHook.enableCamera();
+                if (isConnected && isParticipant) {
+                    sendMessage(memoizedSessionId, `📹 ${user.name} a activé sa caméra`);
                 }
-                setVideoStream(null);
-                setIsVideoEnabled(false);
-
-                if (videoRef.current) {
-                    videoRef.current.srcObject = null;
-                }
-
-                if (connected) {
-                    sendMessage(sessionId, "📹❌ Le professeur a désactivé sa caméra");
-                }
+                console.log('✅ Caméra activée');
             }
         } catch (error) {
-            console.error('Erreur caméra:', error);
-            setError('Impossible d\'accéder à la caméra');
+            console.error('❌ ❌ ERREUR CRITIQUE CAMÉRA:', error);
         }
-    };
+    }, [agoraHook.isVideoEnabled, agoraHook.enableCamera, agoraHook.disableCamera, isConnected, isParticipant, sendMessage, memoizedSessionId, user?.name, isTeacher]);
 
-    // Audio functions
-    const toggleAudio = async () => {
-        if (!isTeacher) return;
+    const handleToggleAudio = useCallback(async () => {
+        console.log('🎤 TOGGLE AUDIO - État actuel:', {
+            isAudioEnabled: agoraHook.isAudioEnabled,
+            hasLocalAudioTrack: !!agoraHook.localAudioTrack,
+            isJoined: agoraHook.isJoined,
+            isMuted: agoraHook.isMuted
+        });
 
         try {
-            if (!isAudioEnabled) {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    }
-                });
-
-                setAudioStream(stream);
-                setIsAudioEnabled(true);
-
-                if (audioRef.current) {
-                    audioRef.current.srcObject = stream;
-                    audioRef.current.play();
+            if (agoraHook.isAudioEnabled) {
+                console.log('🔇 DÉSACTIVATION audio...');
+                await agoraHook.disableAudio();
+                if (isConnected && isParticipant) {
+                    sendMessage(memoizedSessionId, `🎤 ${user.name} a désactivé son micro`);
                 }
-
-                if (connected) {
-                    sendMessage(sessionId, "🎤 Le professeur a activé son microphone");
-                }
-
+                console.log('✅ Audio désactivé');
             } else {
-                if (audioStream) {
-                    audioStream.getTracks().forEach(track => track.stop());
+                console.log('🔊 ACTIVATION audio...');
+                await agoraHook.enableAudio();
+                if (isConnected && isParticipant) {
+                    sendMessage(memoizedSessionId, `🎤 ${user.name} a activé son micro`);
                 }
-                setAudioStream(null);
-                setIsAudioEnabled(false);
-                setIsMuted(false);
-
-                if (audioRef.current) {
-                    audioRef.current.srcObject = null;
-                }
-
-                if (connected) {
-                    sendMessage(sessionId, "🔇 Le professeur a désactivé son microphone");
-                }
+                console.log('✅ Audio activé');
             }
         } catch (error) {
-            console.error('Erreur audio:', error);
-            setError('Impossible d\'accéder au microphone');
+            console.error('❌ ❌ ERREUR CRITIQUE AUDIO:', error);
         }
-    };
+    }, [agoraHook.isAudioEnabled, agoraHook.enableAudio, agoraHook.disableAudio, isConnected, isParticipant, sendMessage, memoizedSessionId, user?.name]);
 
-    const toggleMute = () => {
-        if (audioStream) {
-            audioStream.getAudioTracks().forEach(track => {
-                track.enabled = isMuted;
-            });
-            setIsMuted(!isMuted);
-        }
-    };
-
-    // Screen sharing functions
-    const toggleScreenShare = async () => {
-        if (!isTeacher) return;
-
+    const handleToggleScreenShare = useCallback(async () => {
         try {
-            if (!isScreenSharing) {
-                const stream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        cursor: 'always',
-                        frameRate: 30
-                    },
-                    audio: true
-                });
-
-                setScreenStream(stream);
-                setIsScreenSharing(true);
-
-                if (screenVideoRef.current) {
-                    screenVideoRef.current.srcObject = stream;
-                    screenVideoRef.current.play();
+            if (agoraHook.isScreenSharing) {
+                await agoraHook.stopScreenShare();
+                if (isConnected && isParticipant) {
+                    sendMessage(memoizedSessionId, `🖥️ ${user.name} a arrêté le partage d'écran`);
                 }
-
-                // Handle stream ending
-                stream.getVideoTracks()[0].onended = () => {
-                    stopScreenShare();
-                };
-
-                if (connected) {
-                    sendMessage(sessionId, "🖥️ Le professeur partage son écran");
-                }
-
             } else {
-                stopScreenShare();
+                await agoraHook.startScreenShare();
+                if (isConnected && isParticipant) {
+                    sendMessage(memoizedSessionId, `🖥️ ${user.name} partage son écran`);
+                }
             }
         } catch (error) {
-            console.error('Erreur partage d\'écran:', error);
-            setError('Impossible de partager l\'écran');
+            console.error('❌ Erreur partage d\'écran:', error);
         }
-    };
+    }, [agoraHook.isScreenSharing, agoraHook.startScreenShare, agoraHook.stopScreenShare, isConnected, isParticipant, sendMessage, memoizedSessionId, user?.name]);
 
-    const stopScreenShare = () => {
-        if (screenStream) {
-            screenStream.getTracks().forEach(track => track.stop());
-        }
-        setScreenStream(null);
-        setIsScreenSharing(false);
-
-        if (screenVideoRef.current) {
-            screenVideoRef.current.srcObject = null;
-        }
-
-        if (connected) {
-            sendMessage(sessionId, "🚫 Le professeur a arrêté le partage d'écran");
-        }
-    };
-
-    // Layout functions
-    const toggleVideoExpanded = () => {
-        setIsVideoExpanded(!isVideoExpanded);
-    };
-
-    const changeVideoLayout = (layout) => {
-        setVideoLayout(layout);
-    };
-
-    // Document upload
-    const handleFileUpload = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        // Check file type and size
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
-        const maxSize = 10 * 1024 * 1024; // 10MB
-
-        if (!allowedTypes.includes(file.type)) {
-            setError('Format de fichier non supporté. Utilisez PDF, images ou PowerPoint.');
-            return;
-        }
-
-        if (file.size > maxSize) {
-            setError('Le fichier est trop volumineux (max 10MB).');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setUploadedDocument({
-                name: file.name,
-                type: file.type,
-                url: e.target.result
-            });
-            if (connected) {
-                sendMessage(sessionId, `📄 Le professeur a partagé un document: ${file.name}`);
-            }
-        };
-        reader.readAsDataURL(file);
-    };
+    // ==========================================
+    // FONCTIONS UTILITAIRES
+    // ==========================================
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -530,6 +640,16 @@ function LiveSession() {
             default: return null;
         }
     };
+
+    const getNetworkQualityStatus = () => {
+        if (agoraHook.networkQuality >= 4) return { icon: FaWifi, color: '#28a745' };
+        if (agoraHook.networkQuality >= 2) return { icon: FaWifi, color: '#ffc107' };
+        return { icon: FaExclamationTriangle, color: '#dc3545' };
+    };
+
+    // ==========================================
+    // RENDU CONDITIONNEL
+    // ==========================================
 
     if (loading) {
         return (
@@ -556,20 +676,28 @@ function LiveSession() {
         );
     }
 
+    const networkStatus = getNetworkQualityStatus();
+    const NetworkIcon = networkStatus.icon;
+
+    // ==========================================
+    // RENDU PRINCIPAL
+    // ==========================================
+
     return (
         <div className="live-session-container">
-            {/* Header de la session - VERSION AVEC CLASSE UNIQUE */}
+            {/* Header de la session */}
             <div className="session-header">
                 <div className="header-left">
-                    {/* NOUVELLE CLASSE UNIQUE pour éviter les conflits */}
                     <button onClick={() => navigate('/live')} className="live-session-back-button">
                         <FaArrowLeft />
                     </button>
                     <div className="session-info">
                         <div className="session-status">
-                            <div className={`status-indicator ${session?.status}`}></div>
+                            <div className={`status-indicator ${session?.status === 'live' ? 'live' : session?.status === 'ended' ? 'ended' : 'waiting'}`}></div>
                             <span className="status-text">
-                                {session?.status === 'live' ? 'EN DIRECT' : 'EN ATTENTE'}
+                                {session?.status === 'live' ? 'EN DIRECT' :
+                                    session?.status === 'ended' ? 'TERMINÉ' :
+                                        'EN ATTENTE'}
                             </span>
                         </div>
                         <h1>{session?.title}</h1>
@@ -584,101 +712,86 @@ function LiveSession() {
                 </div>
 
                 <div className="header-right">
-                    {/* NOUVEAU : Bouton pour démarrer la session si c'est le professeur et que la session est en attente */}
-                    {isTeacher && session?.status === 'waiting' && (
-                        <button
-                            onClick={handleStartSession}
-                            className="start-session-btn"
-                            style={{
-                                background: 'linear-gradient(45deg, #28a745, #20c997)',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 16px',
-                                borderRadius: '20px',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontSize: '0.85rem',
-                                marginRight: '15px',
-                                transition: 'all 0.3s ease'
-                            }}
-                            onMouseOver={(e) => e.target.style.transform = 'translateY(-1px)'}
-                            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
-                        >
-                            <FaPlay /> Démarrer la session
-                        </button>
-                    )}
-
-                    {/* Controls pour professeur - SEULEMENT SI SESSION LIVE */}
-                    {isTeacher && isParticipant && session?.status === 'live' && (
-                        <div className="teacher-controls">
-                            <button
-                                onClick={toggleVideo}
-                                className={`control-btn video-btn ${isVideoEnabled ? 'active' : ''}`}
-                                title={isVideoEnabled ? 'Désactiver la caméra' : 'Activer la caméra'}
-                            >
-                                {isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
-                            </button>
-
-                            <button
-                                onClick={toggleAudio}
-                                className={`control-btn audio-btn ${isAudioEnabled ? 'active' : ''}`}
-                                title={isAudioEnabled ? 'Désactiver le micro' : 'Activer le micro'}
-                            >
-                                {isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
-                            </button>
-
-                            {isAudioEnabled && (
+                    {/* Bouton Démarrer/Arrêter pour le professeur */}
+                    {isTeacher && isParticipant && (
+                        <div className="live-control-section">
+                            {session?.status === 'waiting' && (
                                 <button
-                                    onClick={toggleMute}
-                                    className={`control-btn mute-btn ${isMuted ? 'muted' : ''}`}
-                                    title={isMuted ? 'Réactiver le son' : 'Couper le son'}
+                                    onClick={handleStartLive}
+                                    className="start-live-btn"
+                                    disabled={agoraHook.isConnecting}
                                 >
-                                    {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+                                    <FaPlay /> Démarrer le Live
                                 </button>
                             )}
 
-                            <button
-                                onClick={toggleScreenShare}
-                                className={`control-btn screen-btn ${isScreenSharing ? 'active' : ''}`}
-                                title={isScreenSharing ? 'Arrêter le partage' : 'Partager l\'écran'}
-                            >
-                                {isScreenSharing ? <FaStop /> : <FaDesktop />}
-                            </button>
-
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileUpload}
-                                accept=".pdf,.jpg,.jpeg,.png,.gif,.pptx"
-                                style={{ display: 'none' }}
-                            />
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="control-btn upload-btn"
-                                title="Partager un document"
-                            >
-                                <FaFileUpload />
-                            </button>
-
-                            {isVideoEnabled && (
+                            {session?.status === 'live' && (
                                 <button
-                                    onClick={toggleVideoExpanded}
-                                    className="control-btn expand-btn"
-                                    title={isVideoExpanded ? 'Réduire' : 'Agrandir la vidéo'}
+                                    onClick={handleStopLive}
+                                    className="stop-live-btn"
                                 >
-                                    {isVideoExpanded ? <FaCompress /> : <FaExpand />}
+                                    <FaStop /> Arrêter le Live
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Contrôles média - POUR TOUS LES PARTICIPANTS connectés */}
+                    {isParticipant && agoraHook.isJoined && (
+                        <div className="teacher-controls">
+                            <button
+                                onClick={handleToggleCamera}
+                                className={`control-btn video-btn ${agoraHook.isVideoEnabled ? 'active' : ''}`}
+                                title={agoraHook.isVideoEnabled ? 'Désactiver la caméra' : 'Activer la caméra'}
+                                disabled={agoraHook.isConnecting}
+                            >
+                                {agoraHook.isVideoEnabled ? <FaVideo /> : <FaVideoSlash />}
+                            </button>
+
+                            <button
+                                onClick={handleToggleAudio}
+                                className={`control-btn audio-btn ${agoraHook.isAudioEnabled ? 'active' : ''}`}
+                                title={agoraHook.isAudioEnabled ? 'Désactiver le micro' : 'Activer le micro'}
+                                disabled={agoraHook.isConnecting}
+                            >
+                                {agoraHook.isAudioEnabled ? <FaMicrophone /> : <FaMicrophoneSlash />}
+                            </button>
+
+                            {agoraHook.isAudioEnabled && (
+                                <button
+                                    onClick={agoraHook.toggleMute}
+                                    className={`control-btn mute-btn ${agoraHook.isMuted ? 'muted' : ''}`}
+                                    title={agoraHook.isMuted ? 'Réactiver le son' : 'Couper le son'}
+                                >
+                                    {agoraHook.isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+                                </button>
+                            )}
+
+                            {/* Partage d'écran - seulement pour le professeur */}
+                            {isTeacher && (
+                                <button
+                                    onClick={handleToggleScreenShare}
+                                    className={`control-btn screen-btn ${agoraHook.isScreenSharing ? 'active' : ''}`}
+                                    title={agoraHook.isScreenSharing ? 'Arrêter le partage' : 'Partager l\'écran'}
+                                    disabled={agoraHook.isConnecting || !agoraHook.isJoined}
+                                >
+                                    {agoraHook.isScreenSharing ? <FaStop /> : <FaDesktop />}
                                 </button>
                             )}
                         </div>
                     )}
 
                     <div className="connection-status">
-                        <div className={`connection-indicator ${isConnected && connected ? 'connected' : 'disconnected'}`}></div>
-                        <span>{isConnected && connected ? 'Connecté' : 'Déconnecté'}</span>
+                        <div className={`status-indicator ${isConnected && agoraHook.isJoined ? 'connected' : 'disconnected'}`}></div>
+                        <span>{isConnected && agoraHook.isJoined ? 'Connecté' : 'Déconnecté'}</span>
+                        <NetworkIcon style={{ color: networkStatus.color, marginLeft: '8px' }} />
                     </div>
+
+                    <div className="participants-count">
+                        <FaUsers />
+                        <span>{participants.length + agoraHook.remoteUsers.length}</span>
+                    </div>
+
                     <button onClick={handleLeaveSession} className="leave-button">
                         <FaSignOutAlt />
                         Quitter
@@ -686,266 +799,410 @@ function LiveSession() {
                 </div>
             </div>
 
-            {/* Contenu principal */}
-            <div className={`session-content ${videoLayout}`}>
-                {/* Zone vidéo/présentation */}
-                <div className="video-section">
-                    <div className="main-video-container">
-                        {/* Contenu principal (écran partagé ou document) */}
-                        <div className="primary-content">
-                            {isScreenSharing ? (
-                                <div className="screen-share-container">
-                                    <video
-                                        ref={screenVideoRef}
-                                        className="screen-video"
-                                        controls={false}
-                                        muted
-                                    />
-                                    <div className="screen-share-overlay">
-                                        <span>🖥️ Partage d'écran actif</span>
+            {/* Messages d'erreur */}
+            {(agoraHook.connectionError || error) && (
+                <div className="error-banner">
+                    <FaExclamationTriangle />
+                    <span>{agoraHook.connectionError || error}</span>
+                    {agoraHook.connectionError && (
+                        <button onClick={handleRetryAgora} className="retry-connection-btn">
+                            <FaRedo /> Réessayer
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* Contenu principal avec disposition améliorée */}
+            <div className="session-content">
+
+                {/* Zone principale - Vidéo + Chat */}
+                <div className="main-content">
+
+                    {/* Zone vidéo/présentation - LOGIQUE SIMPLIFIÉE ET CORRIGÉE */}
+                    <div className="video-section">
+                        <div className="main-video-container">
+                            <div className="video-display-area">
+                                {agoraHook.isScreenSharing && agoraHook.screenTrack ? (
+                                    /* Partage d'écran */
+                                    <div className="screen-share-container">
+                                        <div ref={screenVideoRef} className="screen-video" />
+                                        <div className="video-overlay">
+                                            🖥️ Partage d'écran - {user?.name}
+                                        </div>
                                     </div>
-                                </div>
-                            ) : uploadedDocument ? (
-                                <div className="document-container">
-                                    {uploadedDocument.type === 'application/pdf' ? (
-                                        <iframe
-                                            src={uploadedDocument.url}
-                                            className="document-viewer"
-                                            title={uploadedDocument.name}
-                                        />
-                                    ) : (
-                                        <img
-                                            src={uploadedDocument.url}
-                                            alt={uploadedDocument.name}
-                                            className="document-image"
-                                        />
-                                    )}
-                                    <div className="document-overlay">
-                                        <span>📄 {uploadedDocument.name}</span>
+                                ) : (
+                                    /* Zone vidéo SIMPLIFIÉE ET CORRIGÉE */
+                                    <div className="video-streams-container">
+
+                                        {/* PROFESSEUR - Voit SA caméra */}
                                         {isTeacher && (
-                                            <button
-                                                onClick={() => setUploadedDocument(null)}
-                                                className="close-document"
-                                            >
-                                                ×
-                                            </button>
+                                            <div className="teacher-own-video">
+                                                <div
+                                                    ref={localVideoRef}
+                                                    className="video-element"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '400px',
+                                                        background: '#000',
+                                                        borderRadius: '12px'
+                                                    }}
+                                                />
+                                                {!agoraHook.isVideoEnabled && (
+                                                    <div className="video-placeholder-overlay">
+                                                        <div className="video-placeholder-icon">
+                                                            <FaVideo size={60} />
+                                                        </div>
+                                                        <h3>👨‍🏫 Vous (Professeur)</h3>
+                                                        <p>Activez votre caméra pour que les élèves vous voient</p>
+                                                        <button
+                                                            onClick={handleToggleCamera}
+                                                            className="activate-camera-btn"
+                                                        >
+                                                            <FaVideo /> Activer la caméra
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <div className="video-overlay">
+                                                    👨‍🏫 Vous (Professeur) - Les élèves vous voient
+                                                    {agoraHook.isAudioEnabled ? (agoraHook.isMuted ? ' 🔇' : ' 🎤') : ' 🔇'}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* ÉLÈVE - Voit le PROFESSEUR - CORRIGÉ */}
+                                        {!isTeacher && (
+                                            <div className="student-sees-teacher">
+                                                {agoraHook.remoteUsers.length > 0 ? (
+                                                    /* Il y a un professeur connecté */
+                                                    <div className="teacher-video-for-student">
+                                                        {(() => {
+                                                            // Trouver le professeur avec vidéo
+                                                            const teacherWithVideo = agoraHook.remoteUsers.find(u => u.hasVideo && u.videoTrack);
+
+                                                            if (teacherWithVideo) {
+                                                                console.log('✅ PROFESSEUR AVEC VIDÉO TROUVÉ:', teacherWithVideo.uid);
+                                                                return (
+                                                                    <div style={{ position: 'relative', width: '100%', height: '400px' }}>
+                                                                        <RemoteVideoDisplay
+                                                                            user={teacherWithVideo}
+                                                                            isMain={true}
+                                                                        />
+                                                                        <div className="video-overlay">
+                                                                            👨‍🏫 Professeur {teacherWithVideo.uid}
+                                                                            {teacherWithVideo.hasAudio ? ' 🎤' : ' 🔇'}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            } else {
+                                                                // Professeur connecté mais pas de vidéo
+                                                                const anyTeacher = agoraHook.remoteUsers[0];
+                                                                console.log('⚠️ PROFESSEUR SANS VIDÉO:', anyTeacher?.uid);
+                                                                return (
+                                                                    <div style={{
+                                                                        width: '100%',
+                                                                        height: '400px',
+                                                                        background: '#1a1a1a',
+                                                                        borderRadius: '12px',
+                                                                        display: 'flex',
+                                                                        flexDirection: 'column',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        color: 'white',
+                                                                        position: 'relative'
+                                                                    }}>
+                                                                        <FaVideo style={{ fontSize: '60px', marginBottom: '20px', color: '#666' }} />
+                                                                        <h3>👨‍🏫 Professeur connecté</h3>
+                                                                        <p>En attente que le professeur active sa caméra...</p>
+                                                                        {anyTeacher && (
+                                                                            <div className="video-overlay">
+                                                                                👨‍🏫 Prof {anyTeacher.uid} (caméra éteinte)
+                                                                                {anyTeacher.hasAudio ? ' 🎤' : ' 🔇'}
+                                                                            </div>
+                                                                        )}
+
+                                                                        {/* IMPORTANT: Container caché pour la vidéo quand elle arrive */}
+                                                                        {anyTeacher && (
+                                                                            <div
+                                                                                style={{
+                                                                                    position: 'absolute',
+                                                                                    top: 0,
+                                                                                    left: 0,
+                                                                                    width: '100%',
+                                                                                    height: '100%',
+                                                                                    opacity: 0,
+                                                                                    pointerEvents: 'none'
+                                                                                }}
+                                                                            >
+                                                                                <RemoteVideoDisplay
+                                                                                    user={anyTeacher}
+                                                                                    isMain={true}
+                                                                                />
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            }
+                                                        })()}
+                                                    </div>
+                                                ) : (
+                                                    /* Pas de professeur */
+                                                    <div className="waiting-for-teacher-simple">
+                                                        <div style={{
+                                                            width: '100%',
+                                                            height: '400px',
+                                                            background: '#1a1a1a',
+                                                            borderRadius: '12px',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            color: 'white'
+                                                        }}>
+                                                            <FaVideo style={{ fontSize: '60px', marginBottom: '20px', color: '#666' }} />
+                                                            <h3>En attente du professeur...</h3>
+                                                            <p>Le professeur va bientôt se connecter</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* MINIATURE - SA propre caméra si activée */}
+                                                {agoraHook.localVideoTrack && agoraHook.isVideoEnabled && (
+                                                    <div className="self-video-miniature" style={{
+                                                        position: 'absolute',
+                                                        top: '20px',
+                                                        right: '20px',
+                                                        width: '200px',
+                                                        height: '150px',
+                                                        background: '#000',
+                                                        borderRadius: '8px',
+                                                        border: '2px solid #fff',
+                                                        zIndex: 10
+                                                    }}>
+                                                        <div
+                                                            ref={localVideoRef}
+                                                            style={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                borderRadius: '6px'
+                                                            }}
+                                                        />
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            bottom: '5px',
+                                                            left: '5px',
+                                                            background: 'rgba(0,0,0,0.8)',
+                                                            color: 'white',
+                                                            padding: '2px 6px',
+                                                            borderRadius: '4px',
+                                                            fontSize: '12px'
+                                                        }}>
+                                                            Vous
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="video-placeholder">
-                                    <FaVideo className="video-icon" />
-                                    <h3>Zone de présentation</h3>
-                                    <p>
-                                        {isTeacher ?
-                                            session?.status === 'waiting' ?
-                                                'Démarrez la session pour commencer le partage' :
-                                                'Utilisez les boutons ci-dessus pour partager votre écran, un document ou activer votre caméra'
-                                            :
-                                            'En attente du partage du professeur...'
-                                        }
-                                    </p>
+                                )}
 
-                                    {/* MESSAGE POUR SESSION EN ATTENTE */}
-                                    {session?.status !== 'live' && (
-                                        <div className="waiting-message">
-                                            <p>
-                                                {isTeacher ?
-                                                    '⏳ Cliquez sur "Démarrer la session" pour commencer' :
-                                                    '⏳ En attente du début de la session...'
-                                                }
-                                            </p>
-                                        </div>
+                                {/* Debug AMÉLIORÉ - TOUJOURS VISIBLE */}
+                                <div className="debug-simple" style={{
+                                    position: 'absolute',
+                                    top: '10px',
+                                    left: '10px',
+                                    background: 'rgba(0, 0, 0, 0.9)',
+                                    color: 'white',
+                                    padding: '10px',
+                                    borderRadius: '8px',
+                                    fontSize: '12px',
+                                    zIndex: 20,
+                                    fontFamily: 'monospace',
+                                    minWidth: '180px'
+                                }}>
+                                    <strong>{isTeacher ? '👨‍🏫 PROF' : '👤 ÉLÈVE'}</strong><br/>
+                                    Agora: {agoraHook.isJoined ? '✅' : '❌'}<br/>
+                                    {isTeacher ? (
+                                        <>
+                                            Ma caméra: {agoraHook.isVideoEnabled ? '✅' : '❌'}<br/>
+                                            Mon micro: {agoraHook.isAudioEnabled ? '✅' : '❌'}<br/>
+                                            Muté: {agoraHook.isMuted ? '🔇' : '🔊'}<br/>
+                                            Élèves: {agoraHook.remoteUsers.length}<br/>
+                                            {agoraHook.remoteUsers.map((u, i) => (
+                                                <span key={u.uid}>
+                                                    E{i+1}: V{u.hasVideo ? '✅' : '❌'} A{u.hasAudio ? '✅' : '❌'}<br/>
+                                                </span>
+                                            ))}
+                                        </>
+                                    ) : (
+                                        <>
+                                            Prof connecté: {agoraHook.remoteUsers.length > 0 ? '✅' : '❌'}<br/>
+                                            {agoraHook.remoteUsers.length > 0 && (
+                                                <>
+                                                    Vidéo prof: {agoraHook.remoteUsers.some(u => u.hasVideo && u.videoTrack) ? '✅' : '❌'}<br/>
+                                                    Audio prof: {agoraHook.remoteUsers.some(u => u.hasAudio && u.audioTrack) ? '✅' : '❌'}<br/>
+                                                    Prof UID: {agoraHook.remoteUsers[0]?.uid}<br/>
+                                                </>
+                                            )}
+                                            Ma caméra: {agoraHook.isVideoEnabled ? '✅' : '❌'}<br/>
+                                            Mon micro: {agoraHook.isAudioEnabled ? '✅' : '❌'}
+                                        </>
                                     )}
-
-                                    {!isParticipant && (
-                                        <div className="waiting-message">
-                                            <p>📝 Connexion à la session en cours...</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Vidéo du professeur (Picture-in-Picture ou côte à côte) - SEULEMENT SI SESSION LIVE */}
-                        {isVideoEnabled && session?.status === 'live' && (
-                            <div className={`teacher-video-container ${isVideoExpanded ? 'expanded' : 'pip'} ${videoLayout}`}>
-                                <video
-                                    ref={videoRef}
-                                    className="teacher-video"
-                                    controls={false}
-                                    muted={true} // Toujours muted pour éviter le feedback
-                                    autoPlay
-                                />
-                                <div className="video-overlay">
-                                    <span>📹 {session?.teacher_name}</span>
-                                    {isTeacher && (
-                                        <div className="video-controls">
-                                            <button
-                                                onClick={() => changeVideoLayout('picture-in-picture')}
-                                                className={`layout-btn ${videoLayout === 'picture-in-picture' ? 'active' : ''}`}
-                                                title="Picture-in-Picture"
-                                            >
-                                                PiP
-                                            </button>
-                                            <button
-                                                onClick={() => changeVideoLayout('side-by-side')}
-                                                className={`layout-btn ${videoLayout === 'side-by-side' ? 'active' : ''}`}
-                                                title="Côte à côte"
-                                            >
-                                                ⚏
-                                            </button>
+                                    {agoraHook.connectionError && (
+                                        <div style={{ color: '#ff4444', marginTop: '5px' }}>
+                                            ❌ {agoraHook.connectionError}
                                         </div>
                                     )}
                                 </div>
                             </div>
-                        )}
-                    </div>
 
-                    {/* Audio element for teacher's voice - SEULEMENT SI SESSION LIVE */}
-                    {isAudioEnabled && session?.status === 'live' && (
-                        <audio
-                            ref={audioRef}
-                            className="teacher-audio"
-                            controls={false}
-                            muted={false}
-                        />
-                    )}
-
-                    {/* Participants */}
-                    <div className="participants-panel">
-                        <div className="participants-header">
-                            <FaUsers />
-                            <span>Participants ({participants.length})</span>
-                            {/* INDICATEURS SEULEMENT SI SESSION LIVE */}
-                            {session?.status === 'live' && (
-                                <>
-                                    {isAudioEnabled && (
-                                        <div className="audio-indicator">
-                                            <FaMicrophone className={`mic-icon ${isMuted ? 'muted' : 'active'}`} />
-                                            <span>Audio {isMuted ? 'coupé' : 'actif'}</span>
-                                        </div>
-                                    )}
-                                    {isVideoEnabled && (
-                                        <div className="video-indicator">
-                                            <FaVideo className="video-icon active" />
-                                            <span>Vidéo active</span>
-                                        </div>
-                                    )}
-                                </>
+                            {/* Vidéos des participants distants - Liste secondaire */}
+                            {agoraHook.remoteUsers.length > 1 && (
+                                <div className="secondary-videos">
+                                    <h4>Autres participants ({agoraHook.remoteUsers.length - 1})</h4>
+                                    <div className="remote-videos-grid" style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                        gap: '12px',
+                                        marginTop: '12px'
+                                    }}>
+                                        {agoraHook.remoteUsers.slice(1).map((remoteUser) => (
+                                            <div key={remoteUser.uid} className="secondary-video-item">
+                                                <div className="secondary-video-container">
+                                                    {remoteUser.hasVideo && remoteUser.videoTrack ? (
+                                                        <RemoteVideoDisplay user={remoteUser} />
+                                                    ) : (
+                                                        <div className="video-placeholder-secondary">
+                                                            <FaVideo size={20} style={{ color: '#666' }} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="secondary-video-label">
+                                                    Participant {remoteUser.uid}
+                                                    {remoteUser.hasAudio ? ' 🎤' : ' 🔇'}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
                         </div>
-                        <div className="participants-list">
-                            {participants.map(participant => (
-                                <div key={participant.user_id} className={`participant ${participant.role}`}>
-                                    <div className="participant-avatar">
-                                        {participant.profile_picture ? (
-                                            <img src={`http://localhost:5000/uploads/${participant.profile_picture}`} alt={participant.user_name} />
-                                        ) : (
-                                            <span>{participant.user_name?.charAt(0).toUpperCase()}</span>
-                                        )}
-                                    </div>
-                                    <div className="participant-info">
-                                        <span className="participant-name">{participant.user_name}</span>
-                                        <div className="participant-role">
-                                            {getUserIcon(participant.role)}
-                                            {participant.role === 'teacher' ? 'Professeur' :
-                                                participant.role === 'parent' ? 'Parent' : 'Élève'}
+                    </div>
+
+                    {/* Chat */}
+                    <div className="chat-section">
+                        <div className="chat-header">
+                            <h3>💬 Chat de la session</h3>
+                            <div className="chat-status">
+                                <div className={`status-indicator ${isConnected ? 'connected' : 'disconnected'}`}></div>
+                                <span>{isConnected ? 'En ligne' : 'Hors ligne'}</span>
+                            </div>
+                        </div>
+
+                        <div className="chat-messages">
+                            {messages.map(message => (
+                                <div key={message.id} className={`message ${message.message_type} ${message.user_id === user.id ? 'own' : 'other'}`}>
+                                    {message.message_type === 'system' ? (
+                                        <div className="system-message">
+                                            <span>{message.message}</span>
+                                            <time>{formatTime(message.created_at)}</time>
                                         </div>
-                                    </div>
-                                    {participant.role === 'teacher' && (
-                                        <FaCrown className="teacher-crown" />
+                                    ) : (
+                                        <>
+                                            {message.user_id !== user.id && (
+                                                <div className="message-avatar">
+                                                    {message.profile_picture ? (
+                                                        <img src={`${API_URL}/uploads/${message.profile_picture}`} alt={message.user_name} />
+                                                    ) : (
+                                                        <span>{message.user_name?.charAt(0).toUpperCase()}</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            <div className="message-content">
+                                                {message.user_id !== user.id && (
+                                                    <div className="message-header">
+                                                        <span className="message-author">{message.user_name}</span>
+                                                        {getUserIcon(message.account_type)}
+                                                        <time className="message-time">{formatTime(message.created_at)}</time>
+                                                    </div>
+                                                )}
+                                                <div className="message-bubble">
+                                                    <p>{message.message}</p>
+                                                    {message.user_id === user.id && (
+                                                        <time className="message-time">{formatTime(message.created_at)}</time>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                             ))}
+                            <div ref={messagesEndRef} />
                         </div>
+
+                        <form onSubmit={handleSendMessage} className="chat-input-form">
+                            <div className="chat-input-container">
+                                <input
+                                    ref={messageInputRef}
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder={
+                                        !isParticipant ? "Rejoindre la session..." :
+                                            !isConnected ? "Chat hors ligne..." :
+                                                "Tapez votre message..."
+                                    }
+                                    className="chat-input"
+                                    maxLength={500}
+                                    disabled={!isConnected || !isParticipant}
+                                />
+                                <button
+                                    type="submit"
+                                    className="send-button"
+                                    disabled={!newMessage.trim() || !isConnected || !isParticipant}
+                                >
+                                    <FaPaperPlane />
+                                </button>
+                            </div>
+                            <div className="chat-status-footer">
+                                {!isParticipant && <span className="status-connecting">📝 Rejoindre la session...</span>}
+                                {!isConnected && isParticipant && <span className="status-offline">❌ Chat déconnecté</span>}
+                                {isConnected && !agoraHook.isJoined && <span className="status-connecting">🔄 Connexion vidéo...</span>}
+                                {isConnected && agoraHook.isJoined && isParticipant && <span className="status-online">✅ En ligne</span>}
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                {/* Chat */}
-                <div className="chat-section">
-                    <div className="chat-header">
-                        <h3>💬 Chat de la session</h3>
-                        {error && (
-                            <div className="chat-error">⚠️ {error}</div>
-                        )}
+                {/* Sidebar - Participants */}
+                <div className="participants-sidebar">
+                    <div className="participants-header">
+                        <FaUsers />
+                        <span>Participants ({participants.length})</span>
                     </div>
-
-                    <div className="chat-messages">
-                        {messages.map(message => (
-                            <div key={message.id} className={`message ${message.message_type} ${message.user_id === user.id ? 'own' : 'other'}`}>
-                                {message.message_type === 'system' ? (
-                                    <div className="system-message">
-                                        <span>{message.message}</span>
-                                        <time>{formatTime(message.created_at)}</time>
+                    <div className="participants-list">
+                        {participants.map(participant => (
+                            <div key={participant.user_id} className={`participant ${participant.role}`}>
+                                <div className="participant-avatar">
+                                    {participant.profile_picture ? (
+                                        <img src={`${API_URL}/uploads/${participant.profile_picture}`} alt={participant.user_name} />
+                                    ) : (
+                                        <span>{participant.user_name?.charAt(0).toUpperCase()}</span>
+                                    )}
+                                </div>
+                                <div className="participant-info">
+                                    <span className="participant-name">{participant.user_name}</span>
+                                    <div className="participant-role">
+                                        {getUserIcon(participant.role)}
+                                        {participant.role === 'teacher' ? 'Professeur' :
+                                            participant.role === 'parent' ? 'Parent' : 'Élève'}
                                     </div>
-                                ) : (
-                                    <>
-                                        {message.user_id !== user.id && (
-                                            <div className="message-avatar">
-                                                {message.profile_picture ? (
-                                                    <img src={`http://localhost:5000/uploads/${message.profile_picture}`} alt={message.user_name} />
-                                                ) : (
-                                                    <span>{message.user_name?.charAt(0).toUpperCase()}</span>
-                                                )}
-                                            </div>
-                                        )}
-                                        <div className="message-content">
-                                            {message.user_id !== user.id && (
-                                                <div className="message-header">
-                                                    <span className="message-author">{message.user_name}</span>
-                                                    {getUserIcon(message.account_type)}
-                                                    <time className="message-time">{formatTime(message.created_at)}</time>
-                                                </div>
-                                            )}
-                                            <div className="message-bubble">
-                                                <p>{message.message}</p>
-                                                {message.user_id === user.id && (
-                                                    <time className="message-time">{formatTime(message.created_at)}</time>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </>
+                                </div>
+                                {participant.role === 'teacher' && (
+                                    <FaCrown className="teacher-crown" />
                                 )}
                             </div>
                         ))}
-                        <div ref={messagesEndRef} />
                     </div>
-
-                    <form onSubmit={handleSendMessage} className="chat-input-form">
-                        <div className="chat-input-container">
-                            <input
-                                ref={messageInputRef}
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder={
-                                    connected && isParticipant ?
-                                        session?.status === 'live' ?
-                                            "Tapez votre message..." :
-                                            "En attente du début de la session..."
-                                        : "Connexion au chat..."
-                                }
-                                className="chat-input"
-                                maxLength={500}
-                                disabled={!connected || !isParticipant || session?.status !== 'live'}
-                            />
-                            <button
-                                type="submit"
-                                className="send-button"
-                                disabled={!newMessage.trim() || !connected || !isParticipant || session?.status !== 'live'}
-                            >
-                                <FaPaperPlane />
-                            </button>
-                        </div>
-                        <div className="chat-status">
-                            {!isConnected && <span className="status-offline">❌ Déconnecté</span>}
-                            {isConnected && !connected && <span className="status-connecting">🔄 Connexion...</span>}
-                            {isConnected && connected && isParticipant && session?.status === 'live' && <span className="status-online">✅ En ligne</span>}
-                            {isConnected && connected && isParticipant && session?.status === 'waiting' && <span className="status-connecting">⏳ En attente du début</span>}
-                            {!isParticipant && <span className="status-connecting">📝 Rejointe de la session...</span>}
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>

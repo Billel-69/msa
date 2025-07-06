@@ -1,0 +1,478 @@
+/* RemoteVideoPlayer.css - Styles optimisés pour audio/vidéo bidirectionnel */
+
+:root {
+    --primary-color: #2196f3;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --danger-color: #f44336;
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.15);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+/* ==========================================
+   CONTENEUR PRINCIPAL
+   ========================================== */
+
+.remote-video-player {
+    position: relative;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.remote-video-player.main-player {
+    width: 100%;
+    height: 400px;
+}
+
+.remote-video-player.secondary-player {
+    width: 200px;
+    height: auto;
+}
+
+.remote-video-player:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.remote-video-player.teacher {
+    border: 2px solid var(--warning-color);
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.3);
+}
+
+.remote-video-player.student {
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================
+   CONTENEUR VIDÉO
+   ========================================== */
+
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.remote-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+}
+
+/* ==========================================
+   PLACEHOLDER VIDÉO
+   ========================================== */
+
+.video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+    position: relative;
+}
+
+.avatar-icon {
+    color: #666;
+    margin-bottom: 12px;
+    opacity: 0.8;
+}
+
+.participant-initial {
+    font-weight: 600;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.participant-initial:hover {
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   OVERLAY VIDÉO
+   ========================================== */
+
+.video-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    color: white;
+    padding: 12px;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.participant-info {
+    flex: 1;
+}
+
+.participant-name {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.connection-time {
+    font-size: 12px;
+    color: #ccc;
+    opacity: 0.8;
+}
+
+/* ==========================================
+   INDICATEURS MÉDIA
+   ========================================== */
+
+.media-indicators {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.quality-indicator,
+.video-indicator,
+.audio-indicator {
+    transition: var(--transition);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+.quality-indicator.excellent {
+    color: var(--success-color);
+    animation: pulse-success 2s infinite;
+}
+
+.quality-indicator.good {
+    color: var(--warning-color);
+}
+
+.quality-indicator.poor {
+    color: var(--danger-color);
+    animation: blink-danger 1s infinite;
+}
+
+.video-indicator.active {
+    color: var(--success-color);
+}
+
+.video-indicator.inactive {
+    color: var(--danger-color);
+    opacity: 0.7;
+}
+
+.audio-indicator.active {
+    color: var(--success-color);
+    animation: audio-wave 1.5s infinite;
+}
+
+.audio-indicator.inactive {
+    color: var(--danger-color);
+    opacity: 0.7;
+}
+
+/* ==========================================
+   INFORMATIONS DÉTAILLÉES
+   ========================================== */
+
+.participant-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius);
+    font-size: 12px;
+    color: #ccc;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.participant-id {
+    font-family: 'Courier New', monospace;
+    opacity: 0.8;
+}
+
+.media-status {
+    display: flex;
+    gap: 4px;
+}
+
+.status-badge {
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-badge.video {
+    background: rgba(76, 175, 80, 0.2);
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.status-badge.audio {
+    background: rgba(76, 175, 80, 0.2);
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+
+.status-badge.offline {
+    background: rgba(244, 67, 54, 0.2);
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+}
+
+/* ==========================================
+   DEBUG INFO
+   ========================================== */
+
+.debug-info {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    line-height: 1.4;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    max-width: 150px;
+    word-break: break-all;
+}
+
+.debug-info div {
+    margin-bottom: 2px;
+}
+
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes pulse-success {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes blink-danger {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes audio-wave {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    25% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.9;
+    }
+    75% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Appliquer l'animation d'entrée */
+.remote-video-player {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* ==========================================
+   ÉTATS HOVER
+   ========================================== */
+
+.remote-video-player:hover .video-overlay {
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.95));
+}
+
+.remote-video-player:hover .participant-initial {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.5);
+}
+
+.remote-video-player:hover .media-indicators > * {
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 768px) {
+    .remote-video-player.secondary-player {
+        width: 150px;
+    }
+
+    .video-overlay {
+        padding: 8px;
+    }
+
+    .participant-name {
+        font-size: 12px;
+    }
+
+    .connection-time {
+        font-size: 10px;
+    }
+
+    .media-indicators {
+        gap: 4px;
+    }
+
+    .video-indicator,
+    .audio-indicator,
+    .quality-indicator {
+        font-size: 12px;
+    }
+
+    .debug-info {
+        font-size: 8px;
+        padding: 6px;
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .remote-video-player.secondary-player {
+        width: 120px;
+    }
+
+    .remote-video-player.main-player {
+        height: 300px;
+    }
+
+    .avatar-icon {
+        font-size: 40px;
+    }
+
+    .participant-initial {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .video-overlay {
+        padding: 6px;
+    }
+
+    .participant-name {
+        font-size: 11px;
+    }
+
+    .participant-details {
+        padding: 6px;
+        font-size: 10px;
+    }
+
+    .status-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+}
+
+/* ==========================================
+   AMÉLIORATIONS DE PERFORMANCE
+   ========================================== */
+
+.remote-video-player {
+    will-change: transform;
+}
+
+.remote-video {
+    object-fit: cover;
+    background: #000;
+}
+
+.video-overlay {
+    will-change: background;
+}
+
+/* ==========================================
+   ACCESSIBILITÉ
+   ========================================== */
+
+.remote-video-player:focus-within {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Amélioration du contraste */
+.participant-name,
+.connection-time {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Indicateurs plus visibles */
+.media-indicators > * {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+/* ==========================================
+   VARIANTES DE COULEUR
+   ========================================== */
+
+.remote-video-player.teacher .participant-initial {
+    background: linear-gradient(45deg, var(--warning-color), #f57c00);
+}
+
+.remote-video-player.student .participant-initial {
+    background: linear-gradient(45deg, var(--primary-color), #1976d2);
+}
+
+.remote-video-player.teacher:hover {
+    border-color: var(--warning-color);
+    box-shadow: 0 0 20px rgba(255, 152, 0, 0.4);
+}
+
+.remote-video-player.student:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(33, 150, 243, 0.4);
+}

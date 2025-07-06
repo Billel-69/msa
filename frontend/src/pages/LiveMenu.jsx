@@ -20,6 +20,9 @@ function LiveMenu() {
     const { user, token } = useAuth();
     const navigate = useNavigate();
 
+    // Configuration API
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
     // États principaux
     const [activeSessions, setActiveSessions] = useState([]);
     const [mySessions, setMySessions] = useState([]);
@@ -38,43 +41,53 @@ function LiveMenu() {
     });
 
     useEffect(() => {
+        console.log('🎯 LiveMenu - Initialisation');
+        console.log('User:', user);
+        console.log('Token présent:', !!token);
+        console.log('API_URL:', API_URL);
+
         if (!token) {
+            console.log('❌ Pas de token, redirection vers connexion');
             navigate('/connexion');
             return;
         }
         fetchLiveSessions();
-    }, [token, navigate]);
+    }, [token, navigate, API_URL]);
 
     const fetchLiveSessions = async () => {
         try {
             setLoading(true);
-
-            console.log('Récupération des sessions live...');
+            console.log('📡 Récupération des sessions live...');
 
             // Récupérer les sessions actives
-            const activeResponse = await axios.get('http://localhost:5000/api/live/active-sessions', {
+            const activeResponse = await axios.get(`${API_URL}/api/live/active-sessions`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log('Sessions actives récupérées:', activeResponse.data.length);
-            setActiveSessions(activeResponse.data);
+            console.log('✅ Sessions actives récupérées:', activeResponse.data?.length || 0);
+            setActiveSessions(activeResponse.data || []);
 
-            // Si l'utilisateur est professeur, récupérer ses sessions
+            // Si l'utilisateur est professeur ou parent, récupérer ses sessions
             if (user?.accountType === 'teacher' || user?.accountType === 'parent') {
                 try {
-                    const myResponse = await axios.get('http://localhost:5000/api/live/my-sessions', {
+                    const myResponse = await axios.get(`${API_URL}/api/live/my-sessions`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    console.log('Mes sessions récupérées:', myResponse.data.length);
-                    setMySessions(myResponse.data);
+                    console.log('✅ Mes sessions récupérées:', myResponse.data?.length || 0);
+                    setMySessions(myResponse.data || []);
                 } catch (error) {
-                    console.error('Erreur récupération mes sessions:', error);
+                    console.error('⚠️ Erreur récupération mes sessions:', error);
                     // Continue même si erreur pour mes sessions
                 }
             }
         } catch (error) {
-            console.error('Erreur lors du chargement des sessions:', error);
-            alert('Erreur lors du chargement des sessions');
+            console.error('❌ Erreur lors du chargement des sessions:', error);
+            if (error.response?.status === 401) {
+                console.log('🔒 Erreur d\'authentification, redirection');
+                navigate('/connexion');
+            } else {
+                alert('Erreur lors du chargement des sessions');
+            }
         } finally {
             setLoading(false);
         }
@@ -82,15 +95,31 @@ function LiveMenu() {
 
     const createSession = async (e) => {
         e.preventDefault();
-        try {
-            console.log('Création de session:', newSession);
 
-            const response = await axios.post('http://localhost:5000/api/live/create-session',
-                newSession,
+        if (!newSession.title.trim()) {
+            alert('Le titre est obligatoire');
+            return;
+        }
+
+        try {
+            console.log('🎬 Création de session:', newSession.title);
+
+            const sessionData = {
+                title: newSession.title.trim(),
+                description: newSession.description.trim(),
+                subject: newSession.subject.trim(),
+                maxParticipants: parseInt(newSession.maxParticipants) || 30,
+                password: newSession.password.trim() || null
+            };
+
+            console.log('📋 Données à envoyer:', sessionData);
+
+            const response = await axios.post(`${API_URL}/api/live/create-session`,
+                sessionData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log('Session créée:', response.data);
+            console.log('✅ Session créée:', response.data);
 
             setShowCreateModal(false);
             setNewSession({
@@ -102,19 +131,28 @@ function LiveMenu() {
                 isPrivate: false
             });
 
-            // Rediriger vers la session créée
-            navigate(`/live/session/${response.data.sessionId}`);
+            // Actualiser la liste
+            await fetchLiveSessions();
+
+            // Naviguer vers la session créée
+            const sessionId = response.data.sessionId || response.data.id;
+            if (sessionId) {
+                console.log('🚀 Navigation vers session:', sessionId);
+                navigate(`/live/session/${sessionId}`);
+            }
+
         } catch (error) {
-            console.error('Erreur lors de la création:', error);
-            alert(error.response?.data?.error || 'Erreur lors de la création de la session');
+            console.error('❌ Erreur lors de la création:', error);
+            const errorMessage = error.response?.data?.error || 'Erreur lors de la création de la session';
+            alert(errorMessage);
         }
     };
 
     const joinSession = async (sessionId, needsPassword = false) => {
         try {
-            let joinData = {};
+            console.log('🔗 Tentative de connexion à session:', sessionId);
 
-            console.log('Tentative de connexion à session:', sessionId, 'Mot de passe requis:', needsPassword);
+            let joinData = {};
 
             if (needsPassword) {
                 const password = prompt('Cette session est protégée par un mot de passe :');
@@ -122,16 +160,16 @@ function LiveMenu() {
                 joinData.password = password;
             }
 
-            const response = await axios.post(`http://localhost:5000/api/live/join-session/${sessionId}`,
+            const response = await axios.post(`${API_URL}/api/live/join-session/${sessionId}`,
                 joinData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log('Connexion réussie:', response.data);
+            console.log('✅ Connexion réussie:', response.data.message);
             navigate(`/live/session/${sessionId}`);
 
         } catch (error) {
-            console.error('Erreur lors de la connexion:', error);
+            console.error('❌ Erreur lors de la connexion:', error);
 
             if (error.response?.status === 401) {
                 alert('Mot de passe incorrect');
@@ -146,38 +184,44 @@ function LiveMenu() {
     };
 
     const joinByCode = async () => {
-        if (!searchCode.trim()) {
+        const code = searchCode.trim();
+        if (!code) {
             alert('Veuillez entrer un code de session');
             return;
         }
 
         try {
-            console.log('Recherche par code:', searchCode);
+            console.log('🔍 Recherche par code:', code);
 
-            const response = await axios.get(`http://localhost:5000/api/live/session-by-code/${searchCode}`, {
+            const response = await axios.get(`${API_URL}/api/live/session-by-code/${code}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log('Session trouvée par code:', response.data);
-            joinSession(response.data.sessionId, response.data.hasPassword);
+            console.log('✅ Session trouvée par code:', response.data);
+            const sessionId = response.data.sessionId || response.data.id;
+            const hasPassword = response.data.hasPassword || !!response.data.password;
+
+            if (sessionId) {
+                joinSession(sessionId, hasPassword);
+            }
         } catch (error) {
-            console.error('Erreur recherche par code:', error);
+            console.error('❌ Erreur recherche par code:', error);
             alert(error.response?.data?.error || 'Code de session invalide');
         }
     };
 
     const startSession = async (sessionId) => {
         try {
-            console.log('Démarrage session:', sessionId);
+            console.log('▶️ Démarrage session:', sessionId);
 
-            await axios.post(`http://localhost:5000/api/live/start-session/${sessionId}`, {}, {
+            await axios.post(`${API_URL}/api/live/start-session/${sessionId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log('Session démarrée');
+            console.log('✅ Session démarrée');
             navigate(`/live/session/${sessionId}`);
         } catch (error) {
-            console.error('Erreur démarrage:', error);
+            console.error('❌ Erreur démarrage:', error);
             alert(error.response?.data?.error || 'Impossible de démarrer la session');
         }
     };
@@ -186,16 +230,16 @@ function LiveMenu() {
         if (!window.confirm('Êtes-vous sûr de vouloir terminer cette session ?')) return;
 
         try {
-            console.log('Fin session:', sessionId);
+            console.log('⏹️ Fin session:', sessionId);
 
-            await axios.post(`http://localhost:5000/api/live/end-session/${sessionId}`, {}, {
+            await axios.post(`${API_URL}/api/live/end-session/${sessionId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            console.log('Session terminée');
+            console.log('✅ Session terminée');
             fetchLiveSessions();
         } catch (error) {
-            console.error('Erreur fin session:', error);
+            console.error('❌ Erreur fin session:', error);
             alert(error.response?.data?.error || 'Impossible de terminer la session');
         }
     };
@@ -237,6 +281,7 @@ function LiveMenu() {
                     Centre Live MSA
                 </h1>
                 <p>Rejoignez ou créez des sessions d'apprentissage en direct</p>
+                <small>API: {API_URL}</small>
             </div>
 
             {/* Barre d'actions */}
@@ -251,6 +296,7 @@ function LiveMenu() {
                             onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
                             className="search-input"
                             maxLength={8}
+                            onKeyPress={(e) => e.key === 'Enter' && joinByCode()}
                         />
                         <button onClick={joinByCode} className="search-btn">
                             Rejoindre
@@ -483,8 +529,8 @@ function LiveMenu() {
 
             {/* Modal de création de session */}
             {showCreateModal && (
-                <div className="modal-overlay">
-                    <div className="modal">
+                <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>Créer une nouvelle session live</h3>
                             <button
@@ -504,6 +550,7 @@ function LiveMenu() {
                                     onChange={(e) => setNewSession({...newSession, title: e.target.value})}
                                     required
                                     placeholder="Ex: Cours de Mathématiques - Les Fractions"
+                                    maxLength={100}
                                 />
                             </div>
 
@@ -514,6 +561,7 @@ function LiveMenu() {
                                     value={newSession.subject}
                                     onChange={(e) => setNewSession({...newSession, subject: e.target.value})}
                                     placeholder="Ex: Mathématiques, Sciences, Histoire..."
+                                    maxLength={50}
                                 />
                             </div>
 
@@ -524,6 +572,7 @@ function LiveMenu() {
                                     onChange={(e) => setNewSession({...newSession, description: e.target.value})}
                                     placeholder="Décrivez brièvement le contenu de votre session..."
                                     rows={3}
+                                    maxLength={500}
                                 />
                             </div>
 
@@ -533,7 +582,7 @@ function LiveMenu() {
                                     <input
                                         type="number"
                                         value={newSession.maxParticipants}
-                                        onChange={(e) => setNewSession({...newSession, maxParticipants: parseInt(e.target.value)})}
+                                        onChange={(e) => setNewSession({...newSession, maxParticipants: parseInt(e.target.value) || 30})}
                                         min={1}
                                         max={100}
                                     />
@@ -546,6 +595,7 @@ function LiveMenu() {
                                         value={newSession.password}
                                         onChange={(e) => setNewSession({...newSession, password: e.target.value})}
                                         placeholder="Laisser vide pour session publique"
+                                        maxLength={20}
                                     />
                                 </div>
                             </div>
