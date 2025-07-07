@@ -10,12 +10,12 @@ exports.getFeed = async (req, res) => {
                    COUNT(DISTINCT pl.id) as likeCount,
                    COUNT(DISTINCT c.id) as commentCount
             FROM posts p
-            LEFT JOIN users u ON p.user_id = u.id
-            LEFT JOIN post_likes pl ON p.id = pl.post_id
-            LEFT JOIN comments c ON p.id = c.post_id
+                     LEFT JOIN users u ON p.user_id = u.id
+                     LEFT JOIN post_likes pl ON p.id = pl.post_id
+                     LEFT JOIN comments c ON p.id = c.post_id
             GROUP BY p.id
             ORDER BY p.created_at DESC
-            LIMIT 50
+                LIMIT 50
         `);
 
         console.log(`Feed récupéré: ${posts.length} posts`);
@@ -36,9 +36,9 @@ exports.getPostById = async (req, res) => {
                    COUNT(DISTINCT pl.id) as likeCount,
                    COUNT(DISTINCT c.id) as commentCount
             FROM posts p
-            LEFT JOIN users u ON p.user_id = u.id
-            LEFT JOIN post_likes pl ON p.id = pl.post_id
-            LEFT JOIN comments c ON p.id = c.post_id
+                     LEFT JOIN users u ON p.user_id = u.id
+                     LEFT JOIN post_likes pl ON p.id = pl.post_id
+                     LEFT JOIN comments c ON p.id = c.post_id
             WHERE p.id = ?
             GROUP BY p.id
         `, [postId]);
@@ -77,7 +77,7 @@ exports.createPost = async (req, res) => {
             SELECT p.*, u.name, u.username, u.profile_picture,
                    0 as likeCount, 0 as commentCount
             FROM posts p
-            LEFT JOIN users u ON p.user_id = u.id
+                     LEFT JOIN users u ON p.user_id = u.id
             WHERE p.id = ?
         `, [result.insertId]);
 

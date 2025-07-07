@@ -1,14 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './index.css';  // ← AJOUTEZ CETTE LIGNE (CSS global en premier)
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext'; // <-- ici très important
+import { AuthProvider } from './context/AuthContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
     <React.StrictMode>
-        <AuthProvider>       {/* Tu dois entourer ton App ici */}
+        <AuthProvider>
             <BrowserRouter>
                 <App />
             </BrowserRouter>

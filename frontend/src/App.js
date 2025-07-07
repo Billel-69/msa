@@ -8,7 +8,11 @@ import Fragments from './pages/Fragments';
 import Login from './pages/Login';
 import Subscriptions from './pages/Subscriptions';
 import Register from "./pages/Register";
-import Live from "./pages/Live";
+
+// IMPORTANT: Nouveau composant pour les sessions live
+import LiveSession from "./pages/LiveSession"; // ← Nouveau avec chat temps réel
+import LiveMenu from "./pages/LiveMenu"; // ← Menu principal
+
 import PrivateRoute from './components/PrivateRoute';
 import EditProfile from "./pages/EditProfile";
 
@@ -21,19 +25,15 @@ import FollowingList from "./pages/FollowingList";
 import CreatePost from "./pages/CreatePost";
 import ParentSetup from "./pages/ParentSetup";
 import ParentDashboard from "./pages/ParentDashboard";
-//ChatBot
-import Chat from './pages/Chat';
 
 // Import des pages Messages
 import Messages from "./pages/Messages";
 
-// Import des pages Mini-Jeux
-import MiniGames from "./pages/MiniGames";
-
-import GameDetail from "./pages/GameDetail";
-
 function App() {
     const location = useLocation();
+
+    // Debug: afficher la route actuelle
+    console.log('🛣️ Route actuelle:', location.pathname);
 
     return (
         <>
@@ -42,7 +42,20 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/mondes" element={<Worlds />} />
-                <Route path="/live" element={<Live />} />
+
+                {/* MENU LIVE PRINCIPAL */}
+                <Route path="/live" element={
+                    <PrivateRoute>
+                        <LiveMenu />
+                    </PrivateRoute>
+                } />
+
+                {/* SESSION LIVE INDIVIDUELLE - NOUVEAU COMPOSANT */}
+                <Route path="/live/session/:sessionId" element={
+                    <PrivateRoute>
+                        <LiveSession />
+                    </PrivateRoute>
+                } />
 
                 {/* Routes protégées */}
                 <Route path="/profil" element={
@@ -110,17 +123,12 @@ function App() {
                     </PrivateRoute>
                 } />
 
-                {/* CHANGEMENT ICI : ParentSetup maintenant protégé */}
+                {/* Routes Parent */}
                 <Route path="/parent-setup" element={
                     <PrivateRoute>
                         <ParentSetup />
                     </PrivateRoute>
                 } />
-               
-                {/* ChatBot */}
-                <Route path="/sensai" element={<Chat />} />
-
-                {/* Nouveau : Dashboard parent */}
                 <Route path="/parent-dashboard" element={
                     <PrivateRoute>
                         <ParentDashboard />
@@ -130,20 +138,6 @@ function App() {
                 {/* Routes publiques */}
                 <Route path="/connexion" element={<Login />} />
                 <Route path="/inscription" element={<Register />} />
-
-                {/* Routes Mini-Jeux */}
-                <Route path="/mini-jeux" element={
-                    <PrivateRoute>
-                        <MiniGames />
-                    </PrivateRoute>
-                } />
-                {/* test mini-jeux */}
-                <Route path="/test-minigames" element={<MiniGames />} />
-                <Route path="/jeu/:id" element={
-                    <PrivateRoute>
-                        <GameDetail />
-                    </PrivateRoute>
-                } />
             </Routes>
         </>
     );
