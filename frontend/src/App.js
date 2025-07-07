@@ -29,6 +29,7 @@ import Messages from "./pages/Messages";
 
 // Import des pages Mini-Jeux
 import MiniGames from "./pages/MiniGames";
+import MazeGame from "./pages/MazeGame";
 
 import GameDetail from "./pages/GameDetail";
 
@@ -139,6 +140,11 @@ function App() {
                 } />
                 {/* test mini-jeux */}
                 <Route path="/test-minigames" element={<MiniGames />} />
+                <Route path="/jeu/1" element={
+                    <PrivateRoute>
+                        <GameDetail />
+                    </PrivateRoute>
+                } />
                 <Route path="/jeu/:id" element={
                     <PrivateRoute>
                         <GameDetail />

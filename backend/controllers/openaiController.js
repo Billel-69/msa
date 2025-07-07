@@ -116,6 +116,12 @@ exports.processMessage = async (req, res) => {
 // Génération de questions de quiz éducatif
 exports.generateQuizQuestions = async (subject, niveau, count = 5) => {
   try {
+    // Vérifier si OpenAI est initialisé
+    if (!openai) {
+      console.warn("OpenAI API non initialisée, utilisation des questions par défaut");
+      return getDefaultQuestions(subject, niveau);
+    }
+    
     // Ajout de logs détaillés pour le debug
     console.log(`Génération pour sujet="${subject}" (type: ${typeof subject}) et niveau="${niveau}" (type: ${typeof niveau})`);
     // Normalisation du sujet pour éviter les problèmes d'accents et de casse

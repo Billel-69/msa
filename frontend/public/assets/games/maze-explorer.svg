@@ -1,0 +1,51 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#1a1a2e"/>
+  
+  <!-- Maze walls -->
+  <rect x="20" y="20" width="160" height="20" fill="#16213e"/>
+  <rect x="20" y="20" width="20" height="160" fill="#16213e"/>
+  <rect x="160" y="20" width="20" height="160" fill="#16213e"/>
+  <rect x="20" y="160" width="160" height="20" fill="#16213e"/>
+  
+  <!-- Inner maze walls -->
+  <rect x="60" y="60" width="80" height="20" fill="#16213e"/>
+  <rect x="60" y="120" width="80" height="20" fill="#16213e"/>
+  <rect x="60" y="60" width="20" height="60" fill="#16213e"/>
+  <rect x="120" y="80" width="20" height="60" fill="#16213e"/>
+  
+  <!-- Player (student icon) -->
+  <circle cx="50" cy="140" r="8" fill="#e94560"/>
+  <text x="50" y="145" text-anchor="middle" font-size="12" fill="white">🎓</text>
+  
+  <!-- Knowledge gates -->
+  <rect x="95" y="95" width="20" height="20" fill="#e94560"/>
+  <text x="105" y="108" text-anchor="middle" font-size="16" fill="white">?</text>
+  
+  <rect x="135" y="55" width="20" height="20" fill="#e94560"/>
+  <text x="145" y="68" text-anchor="middle" font-size="16" fill="white">?</text>
+  
+  <!-- Exit -->
+  <rect x="150" y="150" width="20" height="20" fill="#4caf50"/>
+  <text x="160" y="163" text-anchor="middle" font-size="12" fill="white">🏁</text>
+  
+  <!-- Energy collectible -->
+  <circle cx="100" cy="50" r="6" fill="#FFD93D"/>
+  <text x="100" y="53" text-anchor="middle" font-size="8" fill="black">⚡</text>
+  
+  <!-- Glow effect -->
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="100" y="15" text-anchor="middle" font-size="14" font-weight="bold" fill="#e94560" filter="url(#glow)">
+    MAZE EXPLORER
+  </text>
+</svg>

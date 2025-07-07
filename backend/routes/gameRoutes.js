@@ -67,6 +67,7 @@ router.get('/available', verifyToken, async (req, res) => {
             imageUrl: game.image_url || '/assets/games/default.png'
         }));
         
+        
         res.json({ games: formattedGames });
     } catch (err) {
         console.error('Error fetching games:', err);
@@ -78,9 +79,12 @@ router.get('/available', verifyToken, async (req, res) => {
 router.get('/:id', verifyToken, async (req, res) => {
     try {
         const { subject, niveau } = req.query; // Récupérer matière et niveau depuis les paramètres URL
+        const gameId = req.params.id;
+        
+        
         const [games] = await db.execute(
             'SELECT * FROM mini_games WHERE id = ?',
-            [req.params.id]
+            [gameId]
         );
         if (games.length === 0) {
             return res.status(404).json({ error: 'Template de jeu non trouvé' });
@@ -107,6 +111,11 @@ router.get('/:id', verifyToken, async (req, res) => {
         if (formattedGame.type === 'quiz') {
             formattedGame.questions = await openaiController.generateQuizQuestions(subject, niveau, 5);
             console.log(`Questions générées: ${formattedGame.questions.length}`);
+        } else if (formattedGame.type === 'branching_adventure') {
+            // For maze/adventure games, generate questions for knowledge gates
+            const questionCount = parseInt(req.query.count) || 6;
+            formattedGame.questions = await openaiController.generateQuizQuestions(subject, niveau, questionCount);
+            console.log(`Questions générées pour le jeu d'aventure: ${formattedGame.questions.length}`);
         }
         res.json({ game: formattedGame });
     } catch (err) {
