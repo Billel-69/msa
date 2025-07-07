@@ -29,6 +29,10 @@ import ParentDashboard from "./pages/ParentDashboard";
 // Import des pages Messages
 import Messages from "./pages/Messages";
 
+// Import des pages Mini-Jeux
+import MiniGames from "./pages/MiniGames";
+import GameDetail from "./pages/GameDetail";
+
 function App() {
     const location = useLocation();
 
@@ -132,6 +136,18 @@ function App() {
                 <Route path="/parent-dashboard" element={
                     <PrivateRoute>
                         <ParentDashboard />
+                    </PrivateRoute>
+                } />
+
+                {/* Routes Mini-Jeux */}
+                <Route path="/mini-jeux" element={
+                    <PrivateRoute>
+                        <MiniGames />
+                    </PrivateRoute>
+                } />
+                <Route path="/jeu/:id" element={
+                    <PrivateRoute>
+                        <GameDetail />
                     </PrivateRoute>
                 } />
 

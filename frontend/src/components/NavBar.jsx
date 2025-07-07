@@ -14,7 +14,8 @@ import {
     FaCog,
     FaSignOutAlt,
     FaChevronDown,
-    FaBell
+    FaBell,
+    FaGamepad
 } from 'react-icons/fa';
 
 function NavBar() {
@@ -67,6 +68,14 @@ function NavBar() {
                 >
                     <FaVideo className="navbar-nav-icon" />
                     <span>Live</span>
+                </Link>
+
+                <Link
+                    to="/mini-jeux"
+                    className={`navbar-nav-link ${isActiveLink('/mini-jeux') ? 'active' : ''}`}
+                >
+                    <FaGamepad className="navbar-nav-icon" />
+                    <span>Mini-Jeux</span>
                 </Link>
 
                 {/* Liens pour utilisateurs connectés */}
