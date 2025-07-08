@@ -105,8 +105,8 @@ const MiniGames = () => {
         <div className="minigames-grid">
           {games.length > 0 ? (
             games.map(game => {
-              // Seul Battle Quiz est disponible, les autres sont "Coming soon"
-              const isComingSoon = game.name !== 'Battle Quiz';
+              // Quiz games and adventure games are available
+              const isComingSoon = !['quiz', 'branching_adventure'].includes(game.type);
               
               return (
                 <div
@@ -136,7 +136,11 @@ const MiniGames = () => {
                       if (normalizedSubject) params.push(`subject=${encodeURIComponent(normalizedSubject)}`);
                       if (normalizedNiveau) params.push(`niveau=${encodeURIComponent(normalizedNiveau)}`);
                       const query = params.length ? `?${params.join('&')}` : '';
-                      const url = `/jeu/${game.id}${query}`;
+                      
+                      // Route to specific game using database ID
+                      const gameRoute = `/jeu/${game.id}`;
+                      
+                      const url = `${gameRoute}${query}`;
                       navigate(url);
                     }}
                   >

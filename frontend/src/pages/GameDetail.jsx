@@ -7,6 +7,7 @@ import {
     FaRedo
 } from 'react-icons/fa';
 import '../styles/GameDetail.css';
+import MazeGame from './MazeGame';
 
 const GameDetail = () => {
     const { id: gameId } = useParams();
@@ -209,6 +210,11 @@ const GameDetail = () => {
                 </div>
             </div>
         );
+    }
+    
+    // Render maze game for branching_adventure type
+    if (game && game.type === 'branching_adventure') {
+        return <MazeGame />;
     }
     
     // Render game not found state

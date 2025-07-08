@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Maze Explorer - Prototype</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 900px;
+            height: 700px;
+            background: #1a1a2e;
+            border: 3px solid #16213e;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            border-bottom: 2px solid #16213e;
+        }
+
+        #gameHeader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: #0f3460;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .headerItem {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .icon {
+            font-size: 20px;
+        }
+
+        #gameUI {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 140px;
+            background: #0f3460;
+            padding: 20px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        #challengePanel {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #16213e;
+            border: 3px solid #e94560;
+            border-radius: 15px;
+            padding: 30px;
+            min-width: 400px;
+            z-index: 100;
+            box-shadow: 0 0 50px rgba(233, 69, 96, 0.5);
+        }
+
+        #challengePanel h3 {
+            margin: 0 0 20px 0;
+            color: #e94560;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .challengeOption {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #0f3460;
+            border: 2px solid #16213e;
+            color: #fff;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .challengeOption:hover {
+            background: #e94560;
+            border-color: #e94560;
+            transform: scale(1.05);
+        }
+
+        .challengeOption.correct {
+            background: #4caf50;
+            border-color: #4caf50;
+        }
+
+        .challengeOption.incorrect {
+            background: #f44336;
+            border-color: #f44336;
+        }
+
+        #abilities {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .ability {
+            flex: 1;
+            padding: 15px;
+            background: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .ability:hover {
+            border-color: #e94560;
+            transform: translateY(-2px);
+        }
+
+        .ability.active {
+            background: #e94560;
+            border-color: #e94560;
+        }
+
+        .ability.cooldown {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .abilityIcon {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+
+        #menuScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        #menuScreen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        .menuButton {
+            padding: 20px 40px;
+            margin: 10px;
+            background: #16213e;
+            border: 3px solid #e94560;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menuButton:hover {
+            background: #e94560;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        #subjectSelect {
+            margin: 20px 0;
+        }
+
+        select {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #16213e;
+            color: #fff;
+            border: 2px solid #e94560;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+        #minimap {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 150px;
+            height: 150px;
+            background: #0a0a0a;
+            border: 2px solid #16213e;
+            border-radius: 5px;
+            opacity: 0.8;
+        }
+
+        #victoryScreen {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #16213e;
+            border: 3px solid #4caf50;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            z-index: 300;
+            box-shadow: 0 0 50px rgba(76, 175, 80, 0.5);
+        }
+
+        #victoryScreen h2 {
+            color: #4caf50;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #e94560;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameHeader">
+            <div class="headerItem">
+                <span class="icon">🎯</span>
+                <span>Score: <span id="score">0</span></span>
+            </div>
+            <div class="headerItem">
+                <span class="icon">⚡</span>
+                <span>Énergie: <span id="energy">100</span></span>
+            </div>
+            <div class="headerItem">
+                <span class="icon">🧭</span>
+                <span>Niveau: <span id="level">1</span></span>
+            </div>
+            <div class="headerItem">
+                <span class="icon">⏱️</span>
+                <span>Temps: <span id="timer">0:00</span></span>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas" width="900" height="500"></canvas>
+        <canvas id="minimap" width="150" height="150"></canvas>
+
+        <div id="gameUI">
+            <div style="text-align: center; margin-bottom: 10px;">
+                <span id="currentSubject" style="font-size: 18px; color: #e94560;"></span>
+            </div>
+            <div id="abilities">
+                <div class="ability" id="sprint" data-key="1">
+                    <div class="abilityIcon">🏃</div>
+                    <div>Sprint (1)</div>
+                    <div style="font-size: 12px;">+50% vitesse</div>
+                </div>
+                <div class="ability" id="hint" data-key="2">
+                    <div class="abilityIcon">💡</div>
+                    <div>Indice (2)</div>
+                    <div style="font-size: 12px;">Révèle indices</div>
+                </div>
+                <div class="ability" id="shield" data-key="3">
+                    <div class="abilityIcon">🛡️</div>
+                    <div>Bouclier (3)</div>
+                    <div style="font-size: 12px;">Protection</div>
+                </div>
+                <div class="ability" id="freeze" data-key="4">
+                    <div class="abilityIcon">❄️</div>
+                    <div>Gel (4)</div>
+                    <div style="font-size: 12px;">Arrête le temps</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="challengePanel">
+            <h3 id="challengeTitle">Défi Mathématique</h3>
+            <p id="challengeQuestion" style="text-align: center; font-size: 18px; margin: 20px 0;"></p>
+            <div id="challengeOptions"></div>
+            <p id="challengeHint" style="text-align: center; color: #4caf50; display: none; margin-top: 20px;"></p>
+        </div>
+
+        <div id="menuScreen">
+            <h1>Knowledge Maze Explorer</h1>
+            <p style="margin-bottom: 30px; color: #aaa;">Naviguez dans le labyrinthe de la connaissance!</p>
+            
+            <div id="subjectSelect">
+                <label>Matière: 
+                    <select id="subjectDropdown">
+                        <option value="maths">Mathématiques</option>
+                        <option value="sciences">Sciences</option>
+                        <option value="francais">Français</option>
+                        <option value="histoire">Histoire-Géo</option>
+                        <option value="anglais">Anglais</option>
+                    </select>
+                </label>
+                <label>Niveau: 
+                    <select id="levelDropdown">
+                        <option value="3e">3e</option>
+                        <option value="2nde">2nde</option>
+                        <option value="1ere">1ère</option>
+                        <option value="term">Terminale</option>
+                    </select>
+                </label>
+            </div>
+
+            <button class="menuButton" onclick="startGame()">Commencer</button>
+            <p style="margin-top: 30px; color: #666; text-align: center;">
+                Utilisez les flèches pour vous déplacer<br>
+                Touchez les portes pour répondre aux défis<br>
+                Utilisez les capacités (1-4) pour vous aider
+            </p>
+        </div>
+
+        <div id="victoryScreen">
+            <h2>🎉 Victoire! 🎉</h2>
+            <p style="font-size: 20px; margin: 20px 0;">Vous avez terminé le labyrinthe!</p>
+            <div style="margin: 20px 0;">
+                <p>Score Final: <span id="finalScore" style="color: #4caf50; font-weight: bold;">0</span></p>
+                <p>Temps: <span id="finalTime" style="color: #4caf50; font-weight: bold;">0:00</span></p>
+                <p>Précision: <span id="accuracy" style="color: #4caf50; font-weight: bold;">0%</span></p>
+            </div>
+            <button class="menuButton" onclick="restartGame()">Rejouer</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimap = document.getElementById('minimap');
+        const minimapCtx = minimap.getContext('2d');
+        
+        let gameState = 'menu';
+        let selectedSubject = 'maths';
+        let selectedLevel = '3e';
+        
+        // Player properties
+        const player = {
+            x: 50,
+            y: 250,
+            width: 30,
+            height: 30,
+            speed: 3,
+            color: '#e94560',
+            dx: 0,
+            dy: 0,
+            hasShield: false,
+            isSprinting: false
+        };
+
+        // Game statistics
+        let score = 0;
+        let energy = 100;
+        let level = 1;
+        let startTime = Date.now();
+        let correctAnswers = 0;
+        let totalAnswers = 0;
+
+        // Maze properties
+        const CELL_SIZE = 50;
+        const MAZE_WIDTH = 18;
+        const MAZE_HEIGHT = 10;
+        let maze = [];
+        let knowledgeGates = [];
+        let collectibles = [];
+        let particles = [];
+
+        // Abilities cooldowns
+        const abilities = {
+            sprint: { cooldown: 0, duration: 0, cost: 10 },
+            hint: { cooldown: 0, uses: 3, cost: 0 },
+            shield: { cooldown: 0, duration: 0, cost: 20 },
+            freeze: { cooldown: 0, duration: 0, cost: 30 }
+        };
+
+        // AI-generated questions based on subject and level
+        const questionDatabase = {
+            maths: {
+                '3e': [
+                    { q: "Résolvez: 2x + 5 = 15", a: ["x = 5", "x = 10", "x = 7", "x = 3"], correct: 0, hint: "Isolez x en soustrayant 5 des deux côtés" },
+                    { q: "Quelle est la racine carrée de 144?", a: ["12", "14", "10", "16"], correct: 0, hint: "Cherchez le nombre qui multiplié par lui-même donne 144" },
+                    { q: "Calculez: 3² + 4²", a: ["25", "49", "14", "7"], correct: 0, hint: "Théorème de Pythagore: 3² = 9, 4² = 16" }
+                ],
+                '2nde': [
+                    { q: "Dérivée de f(x) = x²", a: ["2x", "x", "x²", "2"], correct: 0, hint: "Utilisez la règle de puissance: nx^(n-1)" },
+                    { q: "Limite de 1/x quand x→∞", a: ["0", "1", "∞", "-1"], correct: 0, hint: "Quand x devient très grand, 1/x devient très petit" }
+                ],
+                '1ere': [
+                    { q: "cos(π/2) = ?", a: ["0", "1", "-1", "√2/2"], correct: 0, hint: "Pensez au cercle trigonométrique" },
+                    { q: "Dérivée de ln(x)", a: ["1/x", "x", "e^x", "ln(x)"], correct: 0, hint: "La dérivée du logarithme naturel" }
+                ],
+                'term': [
+                    { q: "∫x dx = ?", a: ["x²/2 + C", "x²", "2x", "x + C"], correct: 0, hint: "N'oubliez pas la constante d'intégration" },
+                    { q: "Limite de sin(x)/x quand x→0", a: ["1", "0", "∞", "-1"], correct: 0, hint: "C'est une limite remarquable" }
+                ]
+            },
+            sciences: {
+                '3e': [
+                    { q: "Formule chimique de l'eau", a: ["H₂O", "CO₂", "O₂", "H₂"], correct: 0, hint: "2 atomes d'hydrogène, 1 d'oxygène" },
+                    { q: "Vitesse de la lumière (m/s)", a: ["3×10⁸", "3×10⁶", "3×10¹⁰", "3×10⁴"], correct: 0, hint: "Environ 300 000 km/s" }
+                ],
+                '2nde': [
+                    { q: "Loi d'Ohm: U = ?", a: ["R × I", "R / I", "I / R", "R + I"], correct: 0, hint: "Tension = Résistance × Intensité" },
+                    { q: "pH d'une solution neutre", a: ["7", "0", "14", "1"], correct: 0, hint: "Entre acide (0) et basique (14)" }
+                ]
+            },
+            francais: {
+                '3e': [
+                    { q: "Figure de style: 'Il pleure dans mon cœur'", a: ["Métaphore", "Comparaison", "Antithèse", "Hyperbole"], correct: 0, hint: "Rapprochement sans 'comme'" },
+                    { q: "Temps du verbe: 'J'aurai fini'", a: ["Futur antérieur", "Futur simple", "Passé composé", "Plus-que-parfait"], correct: 0, hint: "Action future terminée avant une autre" }
+                ]
+            },
+            histoire: {
+                '3e': [
+                    { q: "Date de la prise de la Bastille", a: ["14 juillet 1789", "14 juillet 1790", "4 août 1789", "21 janvier 1793"], correct: 0, hint: "Début symbolique de la Révolution" },
+                    { q: "Début de la Première Guerre mondiale", a: ["1914", "1918", "1939", "1916"], correct: 0, hint: "Assassinat de l'archiduc François-Ferdinand" }
+                ]
+            },
+            anglais: {
+                '3e': [
+                    { q: "Past tense of 'to go'", a: ["went", "gone", "goed", "going"], correct: 0, hint: "Verbe irrégulier" },
+                    { q: "Translate: 'Je suis fatigué'", a: ["I am tired", "I am hungry", "I am happy", "I am sad"], correct: 0, hint: "Tired = fatigué" }
+                ]
+            }
+        };
+
+        // Initialize maze generation
+        function generateMaze() {
+            maze = [];
+            // Create a simple maze layout
+            for (let y = 0; y < MAZE_HEIGHT; y++) {
+                maze[y] = [];
+                for (let x = 0; x < MAZE_WIDTH; x++) {
+                    // Create outer walls
+                    if (x === 0 || x === MAZE_WIDTH - 1 || y === 0 || y === MAZE_HEIGHT - 1) {
+                        maze[y][x] = 1; // Wall
+                    } else {
+                        maze[y][x] = 0; // Path by default
+                    }
+                }
+            }
+            
+            // Add some internal walls to create a maze-like structure
+            // Horizontal walls
+            for (let x = 2; x < MAZE_WIDTH - 2; x++) {
+                if (x !== 8 && x !== 9) { // Leave gaps
+                    maze[2][x] = 1;
+                    maze[7][x] = 1;
+                }
+            }
+            
+            // Vertical walls
+            for (let y = 2; y < MAZE_HEIGHT - 2; y++) {
+                if (y !== 4 && y !== 5) { // Leave gaps
+                    maze[y][4] = 1;
+                    maze[y][13] = 1;
+                }
+            }
+            
+            // Add some random walls
+            for (let i = 0; i < 15; i++) {
+                let x = Math.floor(Math.random() * (MAZE_WIDTH - 4)) + 2;
+                let y = Math.floor(Math.random() * (MAZE_HEIGHT - 4)) + 2;
+                if (!(x === 1 && y === 5)) { // Don't block start
+                    maze[y][x] = 1;
+                }
+            }
+            
+            // Ensure start and end are clear
+            maze[5][1] = 0; // Start
+            maze[5][2] = 0; // Clear path from start
+            maze[5][MAZE_WIDTH - 2] = 2; // Exit
+            maze[5][MAZE_WIDTH - 3] = 0; // Clear path to exit
+            
+            // Add knowledge gates
+            knowledgeGates = [];
+            let gateCount = 3 + level;
+            for (let i = 0; i < gateCount; i++) {
+                let x, y;
+                let attempts = 0;
+                do {
+                    x = Math.floor(Math.random() * (MAZE_WIDTH - 4)) + 2;
+                    y = Math.floor(Math.random() * (MAZE_HEIGHT - 4)) + 2;
+                    attempts++;
+                } while ((maze[y][x] !== 0 || (x === 1 && y === 5)) && attempts < 100);
+                
+                if (maze[y][x] === 0) {
+                    knowledgeGates.push({
+                        x: x * CELL_SIZE + CELL_SIZE / 2,
+                        y: y * CELL_SIZE + CELL_SIZE / 2,
+                        active: true,
+                        question: getRandomQuestion()
+                    });
+                }
+            }
+            
+            // Add collectibles
+            collectibles = [];
+            for (let i = 0; i < 5; i++) {
+                let x, y;
+                let attempts = 0;
+                do {
+                    x = Math.floor(Math.random() * (MAZE_WIDTH - 4)) + 2;
+                    y = Math.floor(Math.random() * (MAZE_HEIGHT - 4)) + 2;
+                    attempts++;
+                } while (maze[y][x] !== 0 && attempts < 100);
+                
+                if (maze[y][x] === 0) {
+                    collectibles.push({
+                        x: x * CELL_SIZE + CELL_SIZE / 2,
+                        y: y * CELL_SIZE + CELL_SIZE / 2,
+                        type: 'energy',
+                        value: 20,
+                        collected: false
+                    });
+                }
+            }
+        }
+
+        function getRandomQuestion() {
+            const questions = questionDatabase[selectedSubject]?.[selectedLevel] || questionDatabase.maths['3e'];
+            return questions[Math.floor(Math.random() * questions.length)];
+        }
+
+        // Render functions
+        function drawMaze() {
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < MAZE_HEIGHT; y++) {
+                for (let x = 0; x < MAZE_WIDTH; x++) {
+                    const cellX = x * CELL_SIZE;
+                    const cellY = y * CELL_SIZE;
+                    
+                    if (maze[y][x] === 1) {
+                        // Wall
+                        ctx.fillStyle = '#16213e';
+                        ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                        ctx.strokeStyle = '#0f3460';
+                        ctx.strokeRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                    } else if (maze[y][x] === 2) {
+                        // Exit
+                        ctx.fillStyle = '#4caf50';
+                        ctx.fillRect(cellX, cellY, CELL_SIZE, CELL_SIZE);
+                        ctx.fillStyle = '#fff';
+                        ctx.font = '24px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText('🏁', cellX + CELL_SIZE/2, cellY + CELL_SIZE/2);
+                    }
+                }
+            }
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            
+            // Shield effect
+            if (player.hasShield) {
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, player.width, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Player body
+            ctx.fillStyle = player.color;
+            ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+            
+            // Player face
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🎓', 0, 0);
+            
+            ctx.restore();
+        }
+
+        function drawKnowledgeGates() {
+            knowledgeGates.forEach(gate => {
+                if (!gate.active) return;
+                
+                ctx.save();
+                ctx.translate(gate.x, gate.y);
+                
+                // Gate glow effect
+                const time = Date.now() / 1000;
+                const glowSize = 20 + Math.sin(time * 2) * 5;
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
+                gradient.addColorStop(0, 'rgba(233, 69, 96, 0.5)');
+                gradient.addColorStop(1, 'rgba(233, 69, 96, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Gate body
+                ctx.fillStyle = '#e94560';
+                ctx.fillRect(-20, -20, 40, 40);
+                
+                // Gate icon
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('?', 0, 0);
+                
+                ctx.restore();
+            });
+        }
+
+        function drawCollectibles() {
+            collectibles.forEach(item => {
+                if (item.collected) return;
+                
+                ctx.save();
+                ctx.translate(item.x, item.y);
+                
+                // Rotation animation
+                const time = Date.now() / 1000;
+                ctx.rotate(time);
+                
+                // Item glow
+                ctx.fillStyle = 'rgba(255, 217, 61, 0.3)';
+                ctx.beginPath();
+                ctx.arc(0, 0, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Item icon
+                ctx.fillStyle = '#FFD93D';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('⚡', 0, 0);
+                
+                ctx.restore();
+            });
+        }
+
+        function drawMinimap() {
+            minimapCtx.fillStyle = '#0a0a0a';
+            minimapCtx.fillRect(0, 0, minimap.width, minimap.height);
+            
+            const scale = minimap.width / (MAZE_WIDTH * CELL_SIZE);
+            
+            // Draw maze
+            for (let y = 0; y < MAZE_HEIGHT; y++) {
+                for (let x = 0; x < MAZE_WIDTH; x++) {
+                    if (maze[y][x] === 1) {
+                        minimapCtx.fillStyle = '#16213e';
+                        minimapCtx.fillRect(
+                            x * CELL_SIZE * scale,
+                            y * CELL_SIZE * scale,
+                            CELL_SIZE * scale,
+                            CELL_SIZE * scale
+                        );
+                    } else if (maze[y][x] === 2) {
+                        minimapCtx.fillStyle = '#4caf50';
+                        minimapCtx.fillRect(
+                            x * CELL_SIZE * scale,
+                            y * CELL_SIZE * scale,
+                            CELL_SIZE * scale,
+                            CELL_SIZE * scale
+                        );
+                    }
+                }
+            }
+            
+            // Draw player
+            minimapCtx.fillStyle = '#e94560';
+            minimapCtx.fillRect(
+                (player.x - player.width/2) * scale,
+                (player.y - player.height/2) * scale,
+                player.width * scale,
+                player.height * scale
+            );
+            
+            // Draw knowledge gates
+            minimapCtx.fillStyle = '#FFD93D';
+            knowledgeGates.forEach(gate => {
+                if (gate.active) {
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(gate.x * scale, gate.y * scale, 3, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            });
+        }
+
+        function drawParticles() {
+            particles = particles.filter(particle => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life -= 0.02;
+                
+                if (particle.life <= 0) return false;
+                
+                ctx.fillStyle = particle.color + Math.floor(particle.life * 255).toString(16).padStart(2, '0');
+                ctx.fillRect(particle.x, particle.y, particle.size, particle.size);
+                
+                return true;
+            });
+        }
+
+        // Game mechanics
+        function updatePlayer() {
+            if (player.dx === 0 && player.dy === 0) return;
+            
+            const speed = player.isSprinting ? player.speed * 1.5 : player.speed;
+            const nextX = player.x + player.dx * speed;
+            const nextY = player.y + player.dy * speed;
+            
+            // Get player boundaries
+            const playerLeft = nextX - player.width / 2;
+            const playerRight = nextX + player.width / 2;
+            const playerTop = nextY - player.height / 2;
+            const playerBottom = nextY + player.height / 2;
+            
+            // Check if the new position would be valid
+            let canMove = true;
+            
+            // Check all four corners of the player
+            const corners = [
+                { x: playerLeft, y: playerTop },
+                { x: playerRight, y: playerTop },
+                { x: playerLeft, y: playerBottom },
+                { x: playerRight, y: playerBottom }
+            ];
+            
+            for (let corner of corners) {
+                const cellX = Math.floor(corner.x / CELL_SIZE);
+                const cellY = Math.floor(corner.y / CELL_SIZE);
+                
+                // Check bounds
+                if (cellX < 0 || cellX >= MAZE_WIDTH || cellY < 0 || cellY >= MAZE_HEIGHT) {
+                    canMove = false;
+                    break;
+                }
+                
+                // Check if it's a wall
+                if (maze[cellY][cellX] === 1) {
+                    canMove = false;
+                    break;
+                }
+            }
+            
+            // Update position if movement is valid
+            if (canMove) {
+                player.x = nextX;
+                player.y = nextY;
+            } else {
+                // Try to move in only one direction if diagonal movement is blocked
+                if (player.dx !== 0 && player.dy !== 0) {
+                    // Try horizontal movement only
+                    const horizontalX = player.x + player.dx * speed;
+                    let canMoveHorizontal = true;
+                    
+                    const hCorners = [
+                        { x: horizontalX - player.width / 2, y: player.y - player.height / 2 },
+                        { x: horizontalX + player.width / 2, y: player.y - player.height / 2 },
+                        { x: horizontalX - player.width / 2, y: player.y + player.height / 2 },
+                        { x: horizontalX + player.width / 2, y: player.y + player.height / 2 }
+                    ];
+                    
+                    for (let corner of hCorners) {
+                        const cellX = Math.floor(corner.x / CELL_SIZE);
+                        const cellY = Math.floor(corner.y / CELL_SIZE);
+                        if (cellX < 0 || cellX >= MAZE_WIDTH || cellY < 0 || cellY >= MAZE_HEIGHT || maze[cellY][cellX] === 1) {
+                            canMoveHorizontal = false;
+                            break;
+                        }
+                    }
+                    
+                    if (canMoveHorizontal) {
+                        player.x = horizontalX;
+                    } else {
+                        // Try vertical movement only
+                        const verticalY = player.y + player.dy * speed;
+                        let canMoveVertical = true;
+                        
+                        const vCorners = [
+                            { x: player.x - player.width / 2, y: verticalY - player.height / 2 },
+                            { x: player.x + player.width / 2, y: verticalY - player.height / 2 },
+                            { x: player.x - player.width / 2, y: verticalY + player.height / 2 },
+                            { x: player.x + player.width / 2, y: verticalY + player.height / 2 }
+                        ];
+                        
+                        for (let corner of vCorners) {
+                            const cellX = Math.floor(corner.x / CELL_SIZE);
+                            const cellY = Math.floor(corner.y / CELL_SIZE);
+                            if (cellX < 0 || cellX >= MAZE_WIDTH || cellY < 0 || cellY >= MAZE_HEIGHT || maze[cellY][cellX] === 1) {
+                                canMoveVertical = false;
+                                break;
+                            }
+                        }
+                        
+                        if (canMoveVertical) {
+                            player.y = verticalY;
+                        }
+                    }
+                }
+            }
+            
+            // Check knowledge gates
+            knowledgeGates.forEach(gate => {
+                if (gate.active && Math.abs(player.x - gate.x) < 30 && Math.abs(player.y - gate.y) < 30) {
+                    showChallenge(gate);
+                }
+            });
+            
+            // Check collectibles
+            collectibles.forEach(item => {
+                if (!item.collected && Math.abs(player.x - item.x) < 25 && Math.abs(player.y - item.y) < 25) {
+                    item.collected = true;
+                    energy = Math.min(100, energy + item.value);
+                    score += 50;
+                    createParticles(item.x, item.y, '#FFD93D');
+                    updateUI();
+                }
+            });
+            
+            // Check exit
+            const exitX = (MAZE_WIDTH - 2) * CELL_SIZE + CELL_SIZE / 2;
+            const exitY = 5 * CELL_SIZE + CELL_SIZE / 2;
+            if (Math.abs(player.x - exitX) < 30 && Math.abs(player.y - exitY) < 30) {
+                if (knowledgeGates.every(gate => !gate.active)) {
+                    victory();
+                }
+            }
+            
+            // Sprint energy consumption
+            if (player.isSprinting && energy > 0) {
+                energy -= 0.5;
+                if (energy <= 0) {
+                    energy = 0;
+                    player.isSprinting = false;
+                    document.getElementById('sprint').classList.remove('active');
+                }
+                updateUI();
+            }
+        }
+
+        function showChallenge(gate) {
+            gameState = 'challenge';
+            player.dx = 0;
+            player.dy = 0;
+            
+            const panel = document.getElementById('challengePanel');
+            const question = gate.question;
+            
+            document.getElementById('challengeQuestion').textContent = question.q;
+            document.getElementById('challengeHint').style.display = 'none';
+            
+            const optionsDiv = document.getElementById('challengeOptions');
+            optionsDiv.innerHTML = '';
+            
+            question.a.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'challengeOption';
+                button.textContent = answer;
+                button.onclick = () => checkAnswer(index, question.correct, gate);
+                optionsDiv.appendChild(button);
+            });
+            
+            panel.style.display = 'block';
+            
+            // Store current gate for hint system
+            window.currentGate = gate;
+        }
+
+        function checkAnswer(selected, correct, gate) {
+            totalAnswers++;
+            const options = document.querySelectorAll('.challengeOption');
+            
+            if (selected === correct) {
+                options[selected].classList.add('correct');
+                score += 100;
+                energy = Math.min(100, energy + 10);
+                correctAnswers++;
+                
+                setTimeout(() => {
+                    gate.active = false;
+                    document.getElementById('challengePanel').style.display = 'none';
+                    gameState = 'playing';
+                    createParticles(gate.x, gate.y, '#4caf50');
+                }, 1000);
+            } else {
+                options[selected].classList.add('incorrect');
+                options[correct].classList.add('correct');
+                
+                if (!player.hasShield) {
+                    energy = Math.max(0, energy - 20);
+                }
+                
+                setTimeout(() => {
+                    document.getElementById('challengePanel').style.display = 'none';
+                    gameState = 'playing';
+                }, 2000);
+            }
+            
+            updateUI();
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 20; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: (Math.random() - 0.5) * 5,
+                    size: Math.random() * 4 + 2,
+                    color: color,
+                    life: 1
+                });
+            }
+        }
+
+        // Ability functions
+        function activateAbility(abilityName) {
+            if (gameState !== 'playing' && gameState !== 'challenge') return;
+            
+            const ability = abilities[abilityName];
+            
+            switch(abilityName) {
+                case 'sprint':
+                    if (ability.cooldown <= 0 && energy >= ability.cost) {
+                        player.isSprinting = true;
+                        ability.duration = 5000;
+                        ability.cooldown = 10000;
+                        energy -= ability.cost;
+                        document.getElementById('sprint').classList.add('active');
+                    }
+                    break;
+                    
+                case 'hint':
+                    if (ability.uses > 0 && gameState === 'challenge' && window.currentGate) {
+                        const hint = window.currentGate.question.hint;
+                        document.getElementById('challengeHint').textContent = `💡 ${hint}`;
+                        document.getElementById('challengeHint').style.display = 'block';
+                        ability.uses--;
+                        document.getElementById('hint').querySelector('div:nth-child(2)').textContent = `Indice (${ability.uses})`;
+                    }
+                    break;
+                    
+                case 'shield':
+                    if (ability.cooldown <= 0 && energy >= ability.cost) {
+                        player.hasShield = true;
+                        ability.duration = 10000;
+                        ability.cooldown = 20000;
+                        energy -= ability.cost;
+                        document.getElementById('shield').classList.add('active');
+                    }
+                    break;
+                    
+                case 'freeze':
+                    if (ability.cooldown <= 0 && energy >= ability.cost && gameState === 'challenge') {
+                        // Freeze timer effect would go here
+                        ability.cooldown = 30000;
+                        energy -= ability.cost;
+                    }
+                    break;
+            }
+            
+            updateUI();
+        }
+
+        // Update abilities
+        function updateAbilities(deltaTime) {
+            Object.keys(abilities).forEach(name => {
+                const ability = abilities[name];
+                
+                if (ability.cooldown > 0) {
+                    ability.cooldown -= deltaTime;
+                    if (ability.cooldown <= 0) {
+                        document.getElementById(name).classList.remove('cooldown');
+                    } else {
+                        document.getElementById(name).classList.add('cooldown');
+                    }
+                }
+                
+                if (ability.duration > 0) {
+                    ability.duration -= deltaTime;
+                    if (ability.duration <= 0) {
+                        switch(name) {
+                            case 'sprint':
+                                player.isSprinting = false;
+                                document.getElementById('sprint').classList.remove('active');
+                                break;
+                            case 'shield':
+                                player.hasShield = false;
+                                document.getElementById('shield').classList.remove('active');
+                                break;
+                        }
+                    }
+                }
+            });
+        }
+
+        // UI updates
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('energy').textContent = Math.floor(energy);
+            document.getElementById('level').textContent = level;
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Game loop
+        let lastTime = 0;
+        function gameLoop(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            
+            if (gameState === 'playing') {
+                updateMovement();
+                updatePlayer();
+                updateAbilities(deltaTime);
+                
+                // Draw everything
+                drawMaze();
+                drawCollectibles();
+                drawKnowledgeGates();
+                drawPlayer();
+                drawParticles();
+                drawMinimap();
+                
+                updateUI();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            
+            if (e.key >= '1' && e.key <= '4') {
+                const abilityNames = ['sprint', 'hint', 'shield', 'freeze'];
+                activateAbility(abilityNames[parseInt(e.key) - 1]);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Update player movement
+        function updateMovement() {
+            if (gameState === 'playing') {
+                player.dx = 0;
+                player.dy = 0;
+                
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) player.dx = -1;
+                if (keys['ArrowRight'] || keys['d'] || keys['D']) player.dx = 1;
+                if (keys['ArrowUp'] || keys['w'] || keys['W']) player.dy = -1;
+                if (keys['ArrowDown'] || keys['s'] || keys['S']) player.dy = 1;
+            }
+        }
+
+        // Game control functions
+        function startGame() {
+            selectedSubject = document.getElementById('subjectDropdown').value;
+            selectedLevel = document.getElementById('levelDropdown').value;
+            
+            document.getElementById('currentSubject').textContent = 
+                `${document.getElementById('subjectDropdown').selectedOptions[0].text} - ${selectedLevel}`;
+            
+            document.getElementById('menuScreen').style.display = 'none';
+            gameState = 'playing';
+            
+            // Reset game state
+            player.x = 75;  // Start position adjusted for better spawn
+            player.y = 250;
+            player.dx = 0;
+            player.dy = 0;
+            player.hasShield = false;
+            player.isSprinting = false;
+            score = 0;
+            energy = 100;
+            level = 1;
+            correctAnswers = 0;
+            totalAnswers = 0;
+            startTime = Date.now();
+            abilities.hint.uses = 3;
+            
+            generateMaze();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function victory() {
+            gameState = 'victory';
+            
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 100;
+            
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            document.getElementById('victoryScreen').style.display = 'block';
+        }
+
+        function restartGame() {
+            document.getElementById('victoryScreen').style.display = 'none';
+            document.getElementById('menuScreen').style.display = 'flex';
+            gameState = 'menu';
+        }
+
+        // Ability click handlers
+        document.querySelectorAll('.ability').forEach(ability => {
+            ability.addEventListener('click', () => {
+                activateAbility(ability.id);
+            });
+        });
+    </script>
+</body>
+</html>
