@@ -10,7 +10,9 @@
 // IMPORTATIONS
 // =================================================================================
 import axios from 'axios';
-import { API_BASE_URL } from '../config';
+
+// Base URL for API
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // =================================================================================
 // CONFIGURATION DE L'INSTANCE AXIOS
@@ -39,16 +41,36 @@ axiosInstance.interceptors.request.use(
 
         // Si un token est trouvé, l'ajoute à l'en-tête d'autorisation.
         if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
+            config.headers.Authorization = `Bearer ${token}`;
         }
 
+        console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${config.url}`);
         // Retourne l'objet de configuration de la requête modifié (ou non).
         return config;
     },
     (error) => {
         // Gère les erreurs qui pourraient survenir lors de la configuration de la requête.
         // Cette fonction est rarement déclenchée mais est une bonne pratique à conserver.
-        console.error("Erreur dans l'intercepteur de requête Axios:", error);
+        console.error('❌ Request interceptor error:', error);
+        return Promise.reject(error);
+    }
+);
+
+// =================================================================================
+// INTERCEPTEUR DE RÉPONSE
+// =================================================================================
+axiosInstance.interceptors.response.use(
+    (response) => {
+        console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+        return response;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+
+        console.error(`❌ API Error: ${error.response?.status || 'Network'} ${originalRequest?.url}`);
+
+        // Gestion des erreurs d'authentification
+
         return Promise.reject(error);
     }
 );

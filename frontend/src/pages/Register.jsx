@@ -104,7 +104,7 @@ function Register() {
         try {
             // 1. Inscription
             console.log('Tentative d\'inscription...');
-            const registerResponse = await axios.post('/auth/register', {
+            const registerResponse = await axios.post('/api/auth/register', {
                 name: formData.name,
                 username: formData.username,
                 email: formData.email,
@@ -116,7 +116,7 @@ function Register() {
 
             // 2. Connexion automatique après inscription
             console.log('Connexion automatique...');
-            const loginResponse = await axios.post('/auth/login', {
+            const loginResponse = await axios.post('/api/auth/login', {
                 identifier: formData.email,
                 password: formData.password
             });

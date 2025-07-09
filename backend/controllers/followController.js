@@ -1,11 +1,22 @@
-
 const db = require('../config/db');
+const notificationService = require('../services/notificationService');
 
 exports.followUser = async (req, res) => {
     const userId = req.user.id;
     const followedId = req.params.id;
     try {
-        await db.execute('INSERT IGNORE INTO followers (follower_id, followed_id) VALUES (?, ?)', [userId, followedId]);
+        await db.execute(
+            'INSERT IGNORE INTO followers (follower_id, followed_id) VALUES (?, ?)',
+            [userId, followedId]
+        );
+        // Create notification for the followed user
+        await notificationService.createNotification({
+            userId: followedId,
+            type: 'follow',
+            title: 'Nouvel abonné',
+            content: `${req.user.name || 'Un utilisateur'} vous suit.`,
+            relatedId: userId
+        });
         res.json({ message: 'Utilisateur suivi' });
     } catch (err) {
         res.status(500).json({ error: 'Erreur serveur' });

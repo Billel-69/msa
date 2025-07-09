@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const notificationService = require('../services/notificationService');
 
 // Récupérer le feed des posts
 exports.getFeed = async (req, res) => {
@@ -124,11 +125,12 @@ exports.likePost = async (req, res) => {
 
         console.log('Toggle like post:', { postId, userId });
 
-        // Vérifier si le post existe
-        const [postExists] = await db.execute('SELECT id FROM posts WHERE id = ?', [postId]);
+        // Vérifier si le post existe et récupérer l'auteur
+        const [postExists] = await db.execute('SELECT id, user_id FROM posts WHERE id = ?', [postId]);
         if (postExists.length === 0) {
             return res.status(404).json({ error: 'Post introuvable' });
         }
+        const postAuthorId = postExists[0].user_id;
 
         // Vérifier si l'utilisateur a déjà liké ce post
         const [existingLike] = await db.execute(
@@ -150,6 +152,25 @@ exports.likePost = async (req, res) => {
                 'INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, NOW())',
                 [postId, userId]
             );
+            
+            // Créer une notification pour l'auteur du post (seulement si ce n'est pas lui-même)
+            if (postAuthorId !== userId) {
+                console.log('👍 Creating like notification for post author:', postAuthorId, 'from user:', userId);
+                // Récupérer le nom de l'utilisateur qui a liké
+                const [likerInfo] = await db.execute('SELECT name FROM users WHERE id = ?', [userId]);
+                const likerName = likerInfo[0]?.name || 'Un utilisateur';
+                
+                await notificationService.createNotification({
+                    userId: postAuthorId,
+                    type: 'like',
+                    title: 'Nouveau like',
+                    content: `${likerName} a aimé votre publication.`,
+                    relatedId: postId
+                });
+            } else {
+                console.log('👍 Skipping like notification - user liked their own post');
+            }
+            
             console.log('Like ajouté');
             res.json({ liked: true, message: 'Post liké' });
         }

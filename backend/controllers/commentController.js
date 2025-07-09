@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const notificationService = require('../services/notificationService');
 
 // Récupérer tous les commentaires d'un post
 exports.getCommentsByPostId = async (req, res) => {
@@ -40,10 +41,11 @@ exports.createComment = async (req, res) => {
         }
 
         // Vérifier que le post existe
-        const [postExists] = await db.execute('SELECT id FROM posts WHERE id = ?', [postId]);
+        const [postExists] = await db.execute('SELECT id, user_id FROM posts WHERE id = ?', [postId]);
         if (postExists.length === 0) {
             return res.status(404).json({ error: 'Post introuvable' });
         }
+        const postAuthorId = postExists[0].user_id;
 
         // Insérer le commentaire
         const [result] = await db.execute(`
@@ -59,7 +61,23 @@ exports.createComment = async (req, res) => {
             WHERE c.id = ?
         `, [result.insertId]);
 
-        console.log('Commentaire créé:', newComment[0]);
+        // Notify post author of new comment
+        if (postAuthorId !== userId) {
+            console.log('💬 Creating comment notification for post author:', postAuthorId, 'from user:', userId);
+            // Get the commenter's name
+            const [commenterInfo] = await db.execute('SELECT name FROM users WHERE id = ?', [userId]);
+            const commenterName = commenterInfo[0]?.name || 'Un utilisateur';
+            
+            await notificationService.createNotification({
+                userId: postAuthorId,
+                type: 'comment',
+                title: 'Nouveau commentaire',
+                content: `${commenterName} a commenté votre publication.`,
+                relatedId: result.insertId
+            });
+        } else {
+            console.log('💬 Skipping comment notification - user commented on their own post');
+        }
         res.status(201).json(newComment[0]);
     } catch (err) {
         console.error('Erreur lors de la création du commentaire:', err);

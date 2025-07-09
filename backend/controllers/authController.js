@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 const db = require('../config/db');
 const { calculateLevel } = require('../utils/levelUtils');
+const notificationService = require('../services/notificationService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'kaizenverse_secret_key';
 
@@ -344,6 +345,21 @@ exports.followUser = async (req, res) => {
         }
 
         await db.execute('INSERT IGNORE INTO followers (follower_id, followed_id) VALUES (?, ?)', [userId, followedId]);
+        
+        // Get the follower's name for notification
+        const [followerInfo] = await db.execute('SELECT name FROM users WHERE id = ?', [userId]);
+        const followerName = followerInfo[0]?.name || 'Un utilisateur';
+        
+        // Create notification for the followed user
+        console.log('👥 Creating follow notification for user:', followedId, 'from follower:', userId);
+        await notificationService.createNotification({
+            userId: followedId,
+            type: 'follow',
+            title: 'Nouvel abonné',
+            content: `${followerName} vous suit maintenant.`,
+            relatedId: userId
+        });
+        
         res.json({ message: 'Utilisateur suivi avec succès' });
     } catch (err) {
         console.error(err);

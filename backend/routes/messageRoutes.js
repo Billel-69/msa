@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { verifyToken } = require('../middlewares/authMiddleware');
+const notificationService = require('../services/notificationService');
 
 // ==========================================
 // ROUTE: Obtenir toutes les conversations d'un utilisateur
@@ -286,6 +287,23 @@ router.post('/conversation/:conversationId/send', verifyToken, async (req, res) 
                      LEFT JOIN users u ON m.sender_id = u.id
             WHERE m.id = ?
         `, [result.insertId]);
+
+        // Notify the other participant
+        const [convRows] = await db.execute(
+            'SELECT participant1_id, participant2_id FROM conversations WHERE id = ?',
+            [conversationId]
+        );
+        if (convRows.length > 0) {
+            const { participant1_id, participant2_id } = convRows[0];
+            const recipientId = participant1_id === userId ? participant2_id : participant1_id;
+            await notificationService.createNotification({
+                userId: recipientId,
+                type: 'message',
+                title: 'Nouveau message',
+                content: `${req.user.name || 'Un utilisateur'} vous a envoyé un message.`,
+                relatedId: conversationId
+            });
+        }
 
         console.log('Message créé avec succès:', newMessage[0]);
         res.status(201).json(newMessage[0]);

@@ -41,6 +41,7 @@ import GameDetail from "./pages/GameDetail";
 
 // Import du Chat IA
 import Chat from "./pages/Chat";
+import Notifications from './pages/Notifications';
 
 function App() {
     const location = useLocation();
@@ -164,6 +165,13 @@ function App() {
                 <Route path="/chat" element={
                     <PrivateRoute>
                         <Chat />
+                    </PrivateRoute>
+                } />
+
+                {/* Route Notifications */}
+                <Route path="/notifications" element={
+                    <PrivateRoute>
+                        <Notifications />
                     </PrivateRoute>
                 } />
 

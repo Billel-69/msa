@@ -29,7 +29,7 @@ function CreatePostModal({ isOpen, onClose, onPostCreated }) {
                 formData.append('image', image);
             }
 
-            await axios.post('/posts', formData, {
+            await axios.post('/api/posts', formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
