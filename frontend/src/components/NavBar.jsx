@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import { useAuth } from '../context/AuthContext';
@@ -15,7 +15,8 @@ import {
     FaSignOutAlt,
     FaChevronDown,
     FaBell,
-    FaGamepad
+    FaGamepad,
+    FaRobot
 } from 'react-icons/fa';
 
 function NavBar() {
@@ -23,6 +24,7 @@ function NavBar() {
     const location = useLocation();
     const { token, user, logout } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     const handleLogout = () => {
         logout();
@@ -37,6 +39,31 @@ function NavBar() {
     const toggleProfileDropdown = () => {
         setIsProfileOpen(!isProfileOpen);
     };
+
+    // Handle click outside dropdown to close it
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+        };
+
+        const handleEscapeKey = (event) => {
+            if (event.key === 'Escape') {
+                setIsProfileOpen(false);
+            }
+        };
+
+        if (isProfileOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleEscapeKey);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscapeKey);
+        };
+    }, [isProfileOpen]);
 
     return (
         <nav className="navbar">
@@ -96,6 +123,14 @@ function NavBar() {
                             <FaEnvelope className="navbar-nav-icon" />
                             <span>Messages</span>
                         </Link>
+
+                        <Link
+                            to="/chat"
+                            className={`navbar-nav-link ${isActiveLink('/chat') ? 'active' : ''}`}
+                        >
+                            <FaRobot className="navbar-nav-icon" />
+                            <span>Sens AI</span>
+                        </Link>
                     </>
                 )}
             </div>
@@ -119,10 +154,16 @@ function NavBar() {
                         </button>
 
                         {/* Profile Dropdown */}
-                        <div className={`navbar-profile-dropdown ${isProfileOpen ? 'open' : ''}`}>
+                        <div 
+                            ref={dropdownRef}
+                            className={`navbar-profile-dropdown ${isProfileOpen ? 'open' : ''}`}
+                        >
                             <button
                                 className="navbar-profile-trigger"
                                 onClick={toggleProfileDropdown}
+                                aria-expanded={isProfileOpen}
+                                aria-haspopup="true"
+                                aria-label="Profile menu"
                             >
                                 <div className="navbar-profile-avatar">
                                     {user?.profilePicture ? (
@@ -144,7 +185,11 @@ function NavBar() {
                                 <FaChevronDown className={`navbar-dropdown-arrow ${isProfileOpen ? 'rotated' : ''}`} />
                             </button>
 
-                            <div className="navbar-dropdown-menu">
+                            <div 
+                                className="navbar-dropdown-menu"
+                                role="menu"
+                                aria-labelledby="profile-menu-button"
+                            >
                                 <div className="navbar-dropdown-header">
                                     <div className="navbar-user-stats">
                                         <div className="navbar-stat">
@@ -163,6 +208,7 @@ function NavBar() {
                                     <Link
                                         to="/profil"
                                         className="navbar-dropdown-item"
+                                        role="menuitem"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
                                         <FaUser className="navbar-dropdown-icon" />
@@ -171,6 +217,7 @@ function NavBar() {
                                     <Link
                                         to="/fragments"
                                         className="navbar-dropdown-item"
+                                        role="menuitem"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
                                         <FaGem className="navbar-dropdown-icon" />
@@ -179,6 +226,7 @@ function NavBar() {
                                     <Link
                                         to="/abonnements"
                                         className="navbar-dropdown-item"
+                                        role="menuitem"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
                                         <FaCrown className="navbar-dropdown-icon" />
@@ -193,6 +241,7 @@ function NavBar() {
                                         <Link
                                             to="/parent-dashboard"
                                             className="navbar-dropdown-item special"
+                                            role="menuitem"
                                             onClick={() => setIsProfileOpen(false)}
                                         >
                                             <FaUsers className="navbar-dropdown-icon" />
@@ -206,6 +255,7 @@ function NavBar() {
                                     <Link
                                         to="/modifier-profil"
                                         className="navbar-dropdown-item"
+                                        role="menuitem"
                                         onClick={() => setIsProfileOpen(false)}
                                     >
                                         <FaCog className="navbar-dropdown-icon" />
@@ -216,6 +266,7 @@ function NavBar() {
                                 <div className="navbar-dropdown-footer">
                                     <button
                                         className="navbar-logout-button"
+                                        role="menuitem"
                                         onClick={handleLogout}
                                     >
                                         <FaSignOutAlt className="navbar-dropdown-icon" />
@@ -228,13 +279,6 @@ function NavBar() {
                 )}
             </div>
 
-            {/* Overlay pour fermer le dropdown */}
-            {isProfileOpen && (
-                <div
-                    className="navbar-dropdown-overlay"
-                    onClick={() => setIsProfileOpen(false)}
-                ></div>
-            )}
         </nav>
     );
 }

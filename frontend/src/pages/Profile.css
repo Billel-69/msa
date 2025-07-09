@@ -1,11 +1,12 @@
-/* Profile Page - Beautiful Modern Design */
+/* Profile Page - Modern Clean Design using Design System */
 .profile-page {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background: linear-gradient(135deg, var(--color-dark-primary) 0%, var(--color-dark-tertiary) 50%, var(--color-dark-quaternary) 100%);
     min-height: 100vh;
-    color: white;
-    font-family: 'Arial', sans-serif;
+    color: var(--text-primary);
+    font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
     position: relative;
     overflow-x: hidden;
+    padding-top: 64px; /* Account for navbar height */
 }
 
 /* Loading State */
@@ -15,7 +16,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    color: #b0b0b0;
+    color: var(--text-muted);
 }
 
 .loading-spinner {
@@ -29,8 +30,8 @@
     width: 60px;
     height: 60px;
     border: 4px solid rgba(0, 224, 255, 0.2);
-    border-top: 4px solid #00e0ff;
-    border-radius: 50%;
+    border-top: 4px solid var(--color-primary);
+    border-radius: var(--radius-full);
     animation: spin 1s linear infinite;
 }
 
@@ -83,9 +84,11 @@
 /* Hero Section */
 .profile-hero {
     position: relative;
-    padding: 80px 20px 60px;
-    background: linear-gradient(135deg, #1b1444, #0f0c29);
+    padding: 60px 20px 40px;
+    background: linear-gradient(135deg, rgba(27, 20, 68, 0.8) 0%, rgba(15, 12, 41, 0.9) 100%);
+    backdrop-filter: blur(10px);
     overflow: hidden;
+    border-bottom: 1px solid rgba(0, 224, 255, 0.1);
 }
 
 .hero-background {
@@ -112,6 +115,7 @@
     align-items: center;
     gap: 40px;
     z-index: 1;
+    flex-wrap: wrap;
 }
 
 /* Avatar Section */
@@ -121,12 +125,13 @@
     align-items: center;
     gap: 20px;
     flex-shrink: 0;
+    min-width: 200px;
 }
 
 .avatar-wrapper {
     position: relative;
-    width: 160px;
-    height: 160px;
+    width: 140px;
+    height: 140px;
 }
 
 .profile-avatar,
@@ -216,21 +221,24 @@
 }
 
 .profile-name {
-    font-size: 42px;
-    font-weight: bold;
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
     margin: 0;
-    background: linear-gradient(135deg, #ffffff, #00e0ff);
+    background: linear-gradient(135deg, var(--color-white) 0%, var(--color-primary) 50%, var(--color-white) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    line-height: 1.2;
+    line-height: var(--line-height-tight);
+    text-align: center;
 }
 
 .profile-username {
-    font-size: 18px;
-    color: #00e0ff;
+    font-size: var(--font-size-base);
+    color: var(--color-primary);
     margin: 0;
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
+    text-align: center;
+    opacity: 0.9;
 }
 
 .profile-badges {
@@ -327,15 +335,15 @@
 
 .btn-primary,
 .btn-secondary {
-    padding: 12px 24px;
-    border-radius: 15px;
-    font-weight: 600;
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-lg);
+    font-weight: var(--font-weight-semibold);
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    font-size: 14px;
+    gap: var(--space-2);
+    transition: var(--transition-all);
+    font-size: var(--font-size-sm);
     border: none;
     cursor: pointer;
     position: relative;
@@ -343,21 +351,21 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #00e0ff, #0099cc);
-    color: white;
-    box-shadow: 0 4px 16px rgba(0, 224, 255, 0.3);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    color: var(--color-white);
+    box-shadow: var(--shadow-primary);
 }
 
 .btn-secondary {
-    background: rgba(0, 224, 255, 0.1);
-    color: #00e0ff;
-    border: 1px solid #00e0ff;
+    background: var(--color-info-bg);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
     backdrop-filter: blur(10px);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 224, 255, 0.4);
+    box-shadow: var(--shadow-primary-lg);
 }
 
 .btn-secondary:hover {
@@ -375,32 +383,36 @@
 /* Navigation Tabs */
 .profile-tabs {
     display: flex;
-    flex-direction: column;
-    background: rgba(27, 20, 68, 0.6);
-    border-radius: 20px;
-    padding: 8px;
-    margin-bottom: 40px;
+    flex-direction: row;
+    background: rgba(27, 20, 68, 0.8);
+    border-radius: 16px;
+    padding: 6px;
+    margin-bottom: 32px;
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 224, 255, 0.1);
-    gap: 8px;
+    border: 1px solid rgba(0, 224, 255, 0.2);
+    gap: 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tab-btn {
-    width: 100%;
-    padding: 16px 20px;
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
     background: transparent;
     border: none;
     color: #b0b0b0;
     font-weight: 500;
-    border-radius: 15px;
+    border-radius: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
+    justify-content: center;
+    gap: 8px;
     position: relative;
-    text-align: left;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -411,8 +423,8 @@
 .tab-btn.active {
     background: linear-gradient(135deg, #00e0ff, #0099cc);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 224, 255, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 12px rgba(0, 224, 255, 0.4);
 }
 
 .post-count {
@@ -445,13 +457,14 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    align-items: flex-start;
 }
 
 /* Progress Section */
 .progress-section {
     background: linear-gradient(135deg, rgba(27, 20, 68, 0.8), rgba(15, 12, 41, 0.9));
-    border-radius: 25px;
-    padding: 32px;
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
     border: 1px solid rgba(0, 224, 255, 0.2);
     backdrop-filter: blur(20px);
     position: relative;
@@ -482,15 +495,15 @@
 }
 
 .section-header h3 {
-    font-size: 24px;
-    font-weight: bold;
-    color: #00e0ff;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
     margin: 0;
 }
 
 .section-icon {
-    font-size: 24px;
-    color: #00e0ff;
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary);
     animation: pulse 2s infinite;
 }
 
@@ -607,6 +620,7 @@
     width: 100%;
     box-sizing: border-box;
     margin-top: 0;
+    justify-content: flex-start;
 }
 
 .stat-card {
@@ -971,14 +985,34 @@
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .profile-page {
+        padding-top: 56px;
+    }
+    
     .hero-content {
         flex-direction: column;
         text-align: center;
         gap: 32px;
+        justify-content: center;
+    }
+    
+    .profile-avatar-container {
+        min-width: auto;
     }
     
     .profile-name {
-        font-size: 36px;
+        font-size: 32px;
+    }
+    
+    .profile-tabs {
+        flex-direction: row;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .profile-tabs::-webkit-scrollbar {
+        display: none;
     }
     
     .stats-grid {
@@ -992,12 +1026,16 @@
 }
 
 @media (max-width: 768px) {
+    .profile-page {
+        padding-top: 48px;
+    }
+    
     .profile-hero {
-        padding: 60px 15px 40px;
+        padding: 40px 15px 30px;
     }
     
     .profile-content {
-        padding: 32px 15px;
+        padding: 24px 15px;
     }
     
     .profile-name {
@@ -1018,9 +1056,16 @@
     }
     
     .quick-stats {
-        gap: 24px;
-        padding: 20px 32px;
-        max-width: 500px;
+        gap: 20px;
+        padding: 16px 24px;
+        max-width: 100%;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat-item {
+        min-width: auto;
+        text-align: center;
     }
     
     .stat-value {
@@ -1028,11 +1073,14 @@
     }
     
     .profile-tabs {
-        gap: 4px;
+        gap: 2px;
+        padding: 4px;
     }
     
     .tab-btn {
-        padding: 14px 16px;
+        padding: 10px 12px;
+        font-size: 12px;
+        min-width: 100px;
     }
     
     .posts-grid {
@@ -1045,27 +1093,23 @@
     
     .stats-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
     }
     
     .overview-content {
-        gap: 32px;
+        gap: 24px;
     }
     
-    .progress-section {
-        padding: 28px 24px;
-        margin-bottom: 0;
-    }
-    
+    .progress-section,
     .achievements-section {
-        padding: 28px 24px;
-        margin-top: 0;
+        padding: 24px 20px;
+        margin-bottom: 0;
     }
     
     .level-info {
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 16px;
         text-align: center;
     }
     
@@ -1075,12 +1119,16 @@
 }
 
 @media (max-width: 480px) {
+    .profile-page {
+        padding-top: 40px;
+    }
+    
     .profile-hero {
-        padding: 40px 10px 30px;
+        padding: 30px 10px 20px;
     }
     
     .profile-content {
-        padding: 24px 10px;
+        padding: 20px 10px;
     }
     
     .profile-name {
@@ -1093,46 +1141,73 @@
     }
     
     .level-badge {
-        padding: 8px 16px;
-        font-size: 12px;
+        padding: 6px 12px;
+        font-size: 11px;
     }
     
     .quick-stats {
-        gap: 16px;
-        padding: 16px 24px;
-        max-width: 400px;
+        gap: 12px;
+        padding: 12px 16px;
+        max-width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+    
+    .stat-item {
+        min-width: 80px;
+    }
+    
+    .stat-value {
+        font-size: 18px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
     }
     
     .profile-actions {
         width: 100%;
+        justify-content: center;
     }
     
     .btn-primary,
     .btn-secondary {
         flex: 1;
         justify-content: center;
-        padding: 12px 16px;
+        padding: 10px 16px;
+        font-size: 12px;
+    }
+    
+    .profile-tabs {
+        gap: 1px;
+        padding: 3px;
+    }
+    
+    .tab-btn {
+        padding: 8px 10px;
+        font-size: 11px;
+        min-width: 80px;
     }
     
     .progress-section,
     .achievements-section,
     .stats-category {
-        padding: 28px 24px;
+        padding: 20px 16px;
         margin-bottom: 0;
     }
     
     .stat-card {
-        padding: 28px 24px;
+        padding: 20px 16px;
     }
     
     .overview-content {
-        gap: 24px;
+        gap: 16px;
     }
     
     .level-info {
         flex-direction: column;
         align-items: center;
-        gap: 16px;
+        gap: 12px;
         text-align: center;
     }
     

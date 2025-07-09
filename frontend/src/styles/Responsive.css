@@ -1,0 +1,635 @@
+/* ==========================================================================
+   MSA RESPONSIVE SYSTEM - Standardized Breakpoints and Mobile-First Design
+   ==========================================================================
+   This file provides a consistent responsive system across all components
+   with standardized breakpoints and mobile-first approach.
+   ========================================================================== */
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS - Standardized across the entire application
+   ========================================================================== */
+
+/*
+  Mobile-first breakpoint system:
+  - Default: Mobile (320px+)
+  - sm: Small tablets (640px+)
+  - md: Tablets (768px+) 
+  - lg: Small laptops (1024px+)
+  - xl: Large laptops (1280px+)
+  - 2xl: Desktops (1536px+)
+*/
+
+/* ==========================================================================
+   CONTAINER SYSTEM - Responsive containers
+   ========================================================================== */
+
+.msa-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .msa-container {
+    max-width: 640px;
+    padding: 0 var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .msa-container {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .msa-container {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .msa-container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .msa-container {
+    max-width: 1536px;
+  }
+}
+
+/* Full width container */
+.msa-container-full {
+  width: 100%;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .msa-container-full {
+    padding: 0 var(--space-6);
+  }
+}
+
+/* ==========================================================================
+   GRID SYSTEM - Responsive grid layouts
+   ========================================================================== */
+
+.msa-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* Auto-fit columns with minimum width */
+.msa-grid-auto {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.msa-grid-auto-sm {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.msa-grid-auto-lg {
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* Fixed column grids - responsive */
+.msa-grid-1 { grid-template-columns: 1fr; }
+
+@media (min-width: 768px) {
+  .msa-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .msa-grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .msa-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .msa-grid-5 { grid-template-columns: repeat(5, 1fr); }
+  .msa-grid-6 { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ==========================================================================
+   RESPONSIVE UTILITIES - Show/Hide on different screens
+   ========================================================================== */
+
+/* Hide on mobile */
+@media (max-width: 767px) {
+  .msa-hidden-mobile { display: none !important; }
+}
+
+/* Hide on tablet and up */
+@media (min-width: 768px) {
+  .msa-hidden-tablet-up { display: none !important; }
+}
+
+/* Hide on desktop and up */
+@media (min-width: 1024px) {
+  .msa-hidden-desktop-up { display: none !important; }
+}
+
+/* Show only on mobile */
+.msa-mobile-only { display: block; }
+@media (min-width: 768px) {
+  .msa-mobile-only { display: none !important; }
+}
+
+/* Show only on tablet and up */
+.msa-tablet-up { display: none; }
+@media (min-width: 768px) {
+  .msa-tablet-up { display: block; }
+}
+
+/* Show only on desktop and up */
+.msa-desktop-up { display: none; }
+@media (min-width: 1024px) {
+  .msa-desktop-up { display: block; }
+}
+
+/* ==========================================================================
+   RESPONSIVE TEXT - Scalable typography
+   ========================================================================== */
+
+.msa-text-responsive-sm {
+  font-size: var(--font-size-sm);
+}
+
+@media (min-width: 768px) {
+  .msa-text-responsive-sm {
+    font-size: var(--font-size-base);
+  }
+}
+
+.msa-text-responsive-base {
+  font-size: var(--font-size-base);
+}
+
+@media (min-width: 768px) {
+  .msa-text-responsive-base {
+    font-size: var(--font-size-lg);
+  }
+}
+
+.msa-text-responsive-lg {
+  font-size: var(--font-size-lg);
+}
+
+@media (min-width: 768px) {
+  .msa-text-responsive-lg {
+    font-size: var(--font-size-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .msa-text-responsive-lg {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+.msa-text-responsive-xl {
+  font-size: var(--font-size-xl);
+}
+
+@media (min-width: 768px) {
+  .msa-text-responsive-xl {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .msa-text-responsive-xl {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE SPACING - Adaptive margins and padding
+   ========================================================================== */
+
+/* Responsive padding */
+.msa-p-responsive {
+  padding: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .msa-p-responsive {
+    padding: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .msa-p-responsive {
+    padding: var(--space-8);
+  }
+}
+
+/* Responsive margin */
+.msa-m-responsive {
+  margin: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .msa-m-responsive {
+    margin: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .msa-m-responsive {
+    margin: var(--space-8);
+  }
+}
+
+/* Responsive gap */
+.msa-gap-responsive {
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .msa-gap-responsive {
+    gap: var(--space-4);
+  }
+}
+
+@media (min-width: 1024px) {
+  .msa-gap-responsive {
+    gap: var(--space-6);
+  }
+}
+
+/* ==========================================================================
+   COMPONENT-SPECIFIC RESPONSIVE OVERRIDES
+   ========================================================================== */
+
+/* NavBar responsive improvements */
+@media (max-width: 1024px) {
+  .navbar {
+    padding: var(--space-2) var(--space-4);
+    height: 56px;
+  }
+  
+  .navbar-main {
+    max-width: 500px;
+    gap: var(--space-1);
+  }
+  
+  .navbar-nav-link {
+    padding: var(--space-2);
+    font-size: var(--font-size-xs);
+    min-width: auto;
+  }
+  
+  .navbar-nav-link span {
+    font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    height: 48px;
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .navbar-nav-link span {
+    display: none;
+  }
+  
+  .navbar-nav-link {
+    padding: var(--space-2);
+    min-width: 36px;
+    justify-content: center;
+  }
+  
+  .navbar-notification-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+  }
+  
+  .navbar-profile-trigger {
+    height: 36px;
+    padding: var(--space-2);
+  }
+  
+  .navbar-profile-avatar {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    height: 40px;
+    padding: var(--space-1) var(--space-2);
+  }
+  
+  .navbar-nav-link {
+    padding: var(--space-1);
+    min-width: 32px;
+  }
+  
+  .navbar-notification-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .navbar-profile-trigger {
+    height: 32px;
+    padding: var(--space-1);
+  }
+}
+
+/* Profile page responsive improvements */
+@media (max-width: 1024px) {
+  .profile-page {
+    padding-top: 56px;
+  }
+  
+  .hero-content {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-8);
+  }
+  
+  .profile-name {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding-top: 48px;
+  }
+  
+  .profile-hero {
+    padding: var(--space-10) var(--space-4) var(--space-8);
+  }
+  
+  .profile-content {
+    padding: var(--space-6) var(--space-4);
+  }
+  
+  .profile-name {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .profile-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .profile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .quick-stats {
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-page {
+    padding-top: 40px;
+  }
+  
+  .profile-hero {
+    padding: var(--space-8) var(--space-3) var(--space-6);
+  }
+  
+  .profile-content {
+    padding: var(--space-5) var(--space-3);
+  }
+  
+  .profile-name {
+    font-size: var(--font-size-xl);
+  }
+  
+  .quick-stats {
+    flex-direction: row;
+    justify-content: space-around;
+    padding: var(--space-3);
+  }
+  
+  .stat-item {
+    min-width: 80px;
+  }
+  
+  .progress-section,
+  .achievements-section {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+/* Card responsive improvements */
+@media (max-width: 768px) {
+  .msa-card,
+  .card,
+  .stat-card,
+  .achievement-card {
+    padding: var(--space-4);
+  }
+  
+  .msa-card-title,
+  .card-title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .msa-card,
+  .card,
+  .stat-card,
+  .achievement-card {
+    padding: var(--space-3);
+  }
+}
+
+/* Button responsive improvements */
+@media (max-width: 768px) {
+  .msa-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+  
+  .msa-btn-lg {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-base);
+  }
+  
+  .profile-actions {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    flex: 1;
+    justify-content: center;
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Form responsive improvements */
+@media (max-width: 768px) {
+  .msa-form-input,
+  .form-input {
+    font-size: var(--font-size-base); /* Prevent zoom on iOS */
+  }
+}
+
+/* Login page responsive improvements */
+@media (max-width: 768px) {
+  .login-page {
+    padding: var(--space-4);
+  }
+  
+  .login-container {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE IMAGES
+   ========================================================================== */
+
+.msa-img-responsive {
+  max-width: 100%;
+  height: auto;
+}
+
+.msa-img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.msa-img-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ==========================================================================
+   RESPONSIVE TABLES
+   ========================================================================== */
+
+.msa-table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.msa-table-responsive table {
+  min-width: 600px;
+}
+
+@media (max-width: 768px) {
+  .msa-table-responsive table {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ==========================================================================
+   TOUCH OPTIMIZATIONS
+   ========================================================================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Touch device optimizations */
+  .msa-btn,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 48px; /* Larger touch targets */
+    padding: var(--space-3) var(--space-4);
+  }
+  
+  .navbar-nav-link,
+  .tab-btn {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  /* Remove hover states on touch devices */
+  .msa-card:hover,
+  .card:hover {
+    transform: none;
+  }
+  
+  .msa-btn:hover,
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE ANIMATIONS
+   ========================================================================== */
+
+/* Reduce animations on smaller screens for performance */
+@media (max-width: 768px) {
+  .profile-hero,
+  .hero-gradient,
+  .progress-fill {
+    animation: none;
+  }
+  
+  .msa-card,
+  .card,
+  .btn-primary,
+  .btn-secondary {
+    transition: background-color var(--transition-fast), 
+                border-color var(--transition-fast),
+                opacity var(--transition-fast);
+  }
+}
+
+/* ==========================================================================
+   LANDSCAPE MOBILE OPTIMIZATIONS
+   ========================================================================== */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .profile-hero {
+    padding: var(--space-4) var(--space-4) var(--space-6);
+  }
+  
+  .navbar {
+    height: 40px;
+  }
+  
+  .profile-page {
+    padding-top: 40px;
+  }
+}
+
+/* ==========================================================================
+   PRINT RESPONSIVE
+   ========================================================================== */
+
+@media print {
+  .msa-container,
+  .msa-container-full {
+    max-width: none;
+    padding: 0;
+  }
+  
+  .msa-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  
+  .msa-btn,
+  .btn-primary,
+  .btn-secondary {
+    border: 1px solid #000;
+    background: transparent !important;
+    color: #000 !important;
+  }
+}

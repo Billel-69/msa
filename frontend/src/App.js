@@ -1,6 +1,12 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import NavBar from './components/NavBar';
+
+// Import the comprehensive design system
+import './styles/DesignSystem.css';
+import './styles/Components.css';
+import './styles/Accessibility.css';
+import './styles/Responsive.css';
 import Home from './pages/Home';
 import Worlds from './pages/Worlds';
 import Profile from './pages/Profile';
@@ -32,6 +38,9 @@ import Messages from "./pages/Messages";
 // Import des pages Mini-Jeux
 import MiniGames from "./pages/MiniGames";
 import GameDetail from "./pages/GameDetail";
+
+// Import du Chat IA
+import Chat from "./pages/Chat";
 
 function App() {
     const location = useLocation();
@@ -148,6 +157,13 @@ function App() {
                 <Route path="/jeu/:id" element={
                     <PrivateRoute>
                         <GameDetail />
+                    </PrivateRoute>
+                } />
+
+                {/* Route Chat IA */}
+                <Route path="/chat" element={
+                    <PrivateRoute>
+                        <Chat />
                     </PrivateRoute>
                 } />
 

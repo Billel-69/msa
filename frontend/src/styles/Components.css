@@ -1,0 +1,648 @@
+/* ==========================================================================
+   MSA COMPONENT LIBRARY - Consistent UI Components
+   ==========================================================================
+   This file provides standardized component classes that should be used
+   across all pages to ensure visual consistency and maintainability.
+   ========================================================================== */
+
+/* ==========================================================================
+   BUTTON SYSTEM - Unified Button Components
+   ========================================================================== */
+
+/* Base Button Class - Always use this as the foundation */
+.msa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  text-align: center;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-all);
+  user-select: none;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.msa-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.msa-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Primary Button - Main actions */
+.msa-btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-white);
+  box-shadow: var(--shadow-primary);
+}
+
+.msa-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-secondary));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary-lg);
+}
+
+.msa-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-primary);
+}
+
+/* Secondary Button - Secondary actions */
+.msa-btn-secondary {
+  background: var(--color-info-bg);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  backdrop-filter: blur(10px);
+}
+
+.msa-btn-secondary:hover:not(:disabled) {
+  background: rgba(0, 224, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary);
+}
+
+.msa-btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Success Button - Positive actions */
+.msa-btn-success {
+  background: linear-gradient(135deg, var(--color-success), var(--color-success-dark));
+  color: var(--color-white);
+  box-shadow: var(--shadow-success);
+}
+
+.msa-btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-success-dark), var(--color-success));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+}
+
+/* Warning Button - Caution actions */
+.msa-btn-warning {
+  background: linear-gradient(135deg, var(--color-warning), var(--color-warning-dark));
+  color: var(--color-white);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.msa-btn-warning:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-warning-dark), var(--color-warning));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+}
+
+/* Error Button - Destructive actions */
+.msa-btn-error {
+  background: linear-gradient(135deg, var(--color-error), var(--color-error-dark));
+  color: var(--color-white);
+  box-shadow: var(--shadow-error);
+}
+
+.msa-btn-error:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-error-dark), var(--color-error));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+/* Ghost Button - Minimal actions */
+.msa-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.msa-btn-ghost:hover:not(:disabled) {
+  background: var(--color-info-bg);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Button Sizes */
+.msa-btn-sm {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  gap: var(--space-1);
+}
+
+.msa-btn-lg {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-base);
+  gap: var(--space-3);
+}
+
+.msa-btn-xl {
+  padding: var(--space-5) var(--space-8);
+  font-size: var(--font-size-lg);
+  gap: var(--space-3);
+}
+
+/* Button with icon */
+.msa-btn-icon-only {
+  padding: var(--space-3);
+  aspect-ratio: 1;
+}
+
+.msa-btn-icon-only.msa-btn-sm {
+  padding: var(--space-2);
+}
+
+.msa-btn-icon-only.msa-btn-lg {
+  padding: var(--space-4);
+}
+
+/* Full width button */
+.msa-btn-full {
+  width: 100%;
+}
+
+/* ==========================================================================
+   CARD SYSTEM - Unified Card Components
+   ========================================================================== */
+
+.msa-card {
+  background: linear-gradient(135deg, rgba(27, 20, 68, 0.8), rgba(15, 12, 41, 0.9));
+  border: 1px solid rgba(0, 224, 255, 0.2);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  backdrop-filter: blur(20px);
+  transition: var(--transition-all);
+  position: relative;
+  overflow: hidden;
+}
+
+.msa-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary-lg);
+}
+
+.msa-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, rgba(0, 224, 255, 0.05) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.msa-card:hover::before {
+  opacity: 1;
+}
+
+.msa-card-header {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid rgba(0, 224, 255, 0.1);
+}
+
+.msa-card-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.msa-card-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.msa-card-content {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.msa-card-footer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(0, 224, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Card Variants */
+.msa-card-elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+.msa-card-flat {
+  background: rgba(27, 20, 68, 0.6);
+  box-shadow: none;
+}
+
+.msa-card-interactive {
+  cursor: pointer;
+}
+
+.msa-card-interactive:hover {
+  transform: translateY(-4px);
+}
+
+/* ==========================================================================
+   FORM SYSTEM - Unified Form Components
+   ========================================================================== */
+
+.msa-form-group {
+  margin-bottom: var(--space-4);
+}
+
+.msa-form-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.msa-form-label.required::after {
+  content: ' *';
+  color: var(--color-error);
+}
+
+.msa-form-input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 224, 255, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  backdrop-filter: blur(10px);
+  transition: var(--transition-all);
+  box-sizing: border-box;
+}
+
+.msa-form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.msa-form-input::placeholder {
+  color: var(--text-subtle);
+}
+
+.msa-form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Input States */
+.msa-form-input.error {
+  border-color: var(--color-error);
+  box-shadow: var(--shadow-error);
+}
+
+.msa-form-input.success {
+  border-color: var(--color-success);
+  box-shadow: var(--shadow-success);
+}
+
+.msa-form-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.msa-form-help {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+/* ==========================================================================
+   AVATAR SYSTEM - Unified Avatar Components
+   ========================================================================== */
+
+.msa-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: var(--radius-full);
+  color: var(--color-white);
+  font-weight: var(--font-weight-semibold);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.msa-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.msa-avatar-xs {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: var(--font-size-xs);
+}
+
+.msa-avatar-sm {
+  width: 2rem;
+  height: 2rem;
+  font-size: var(--font-size-xs);
+}
+
+.msa-avatar-base {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.msa-avatar-lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: var(--font-size-base);
+}
+
+.msa-avatar-xl {
+  width: 4rem;
+  height: 4rem;
+  font-size: var(--font-size-lg);
+}
+
+.msa-avatar-2xl {
+  width: 5rem;
+  height: 5rem;
+  font-size: var(--font-size-xl);
+}
+
+/* Avatar with status indicator */
+.msa-avatar-status {
+  position: relative;
+}
+
+.msa-avatar-status::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 25%;
+  height: 25%;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-white);
+}
+
+.msa-avatar-status.online::after {
+  background: var(--color-success);
+}
+
+.msa-avatar-status.away::after {
+  background: var(--color-warning);
+}
+
+.msa-avatar-status.offline::after {
+  background: var(--color-gray-500);
+}
+
+/* ==========================================================================
+   BADGE SYSTEM - Unified Badge Components
+   ========================================================================== */
+
+.msa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border-radius: var(--radius-base);
+  white-space: nowrap;
+}
+
+.msa-badge-primary {
+  background: var(--color-info-bg);
+  color: var(--color-primary);
+}
+
+.msa-badge-success {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.msa-badge-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.msa-badge-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.msa-badge-neutral {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+/* Badge sizes */
+.msa-badge-sm {
+  padding: var(--space-1) var(--space-1);
+  font-size: 10px;
+}
+
+.msa-badge-lg {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+/* ==========================================================================
+   SPINNER SYSTEM - Unified Loading Components
+   ========================================================================== */
+
+.msa-spinner {
+  display: inline-block;
+  border: 2px solid rgba(0, 224, 255, 0.2);
+  border-top: 2px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  animation: msa-spin 1s linear infinite;
+}
+
+.msa-spinner-xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.msa-spinner-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.msa-spinner-base {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.msa-spinner-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.msa-spinner-xl {
+  width: 3rem;
+  height: 3rem;
+  border-width: 3px;
+}
+
+@keyframes msa-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   ALERT SYSTEM - Unified Alert Components
+   ========================================================================== */
+
+.msa-alert {
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.msa-alert-info {
+  background: var(--color-info-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.msa-alert-success {
+  background: var(--color-success-bg);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.msa-alert-warning {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.msa-alert-error {
+  background: var(--color-error-bg);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.msa-alert-icon {
+  flex-shrink: 0;
+  font-size: var(--font-size-lg);
+}
+
+.msa-alert-content {
+  flex: 1;
+}
+
+.msa-alert-title {
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.msa-alert-message {
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+/* ==========================================================================
+   UTILITY CLASSES - Quick Layout Helpers
+   ========================================================================== */
+
+/* Flexbox utilities */
+.msa-flex { display: flex; }
+.msa-flex-col { flex-direction: column; }
+.msa-flex-row { flex-direction: row; }
+.msa-items-center { align-items: center; }
+.msa-items-start { align-items: flex-start; }
+.msa-items-end { align-items: flex-end; }
+.msa-justify-center { justify-content: center; }
+.msa-justify-between { justify-content: space-between; }
+.msa-justify-start { justify-content: flex-start; }
+.msa-justify-end { justify-content: flex-end; }
+
+/* Gap utilities */
+.msa-gap-1 { gap: var(--space-1); }
+.msa-gap-2 { gap: var(--space-2); }
+.msa-gap-3 { gap: var(--space-3); }
+.msa-gap-4 { gap: var(--space-4); }
+.msa-gap-6 { gap: var(--space-6); }
+.msa-gap-8 { gap: var(--space-8); }
+
+/* Text utilities */
+.msa-text-center { text-align: center; }
+.msa-text-left { text-align: left; }
+.msa-text-right { text-align: right; }
+
+/* Width utilities */
+.msa-w-full { width: 100%; }
+.msa-w-auto { width: auto; }
+
+/* Height utilities */
+.msa-h-full { height: 100%; }
+.msa-h-auto { height: auto; }
+
+/* ==========================================================================
+   RESPONSIVE UTILITIES
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .msa-btn {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+  
+  .msa-btn-lg {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-base);
+  }
+  
+  .msa-card {
+    padding: var(--space-4);
+  }
+  
+  .msa-card-title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .msa-btn-xl {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-base);
+  }
+  
+  .msa-card {
+    padding: var(--space-3);
+  }
+}

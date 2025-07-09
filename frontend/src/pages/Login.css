@@ -1,13 +1,13 @@
-/* Login Page - Version Moderne */
+/* Login Page - Modern Design with Design System */
 .login-page {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    background: linear-gradient(135deg, var(--color-dark-primary), var(--color-dark-tertiary), var(--color-dark-quaternary));
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Arial', sans-serif;
-    color: white;
-    padding: 20px;
+    font-family: 'Inter', 'Segoe UI', 'Arial', sans-serif;
+    color: var(--text-primary);
+    padding: var(--space-5);
 }
 
 .login-container {
@@ -19,24 +19,24 @@
 /* Header */
 .login-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: var(--space-10);
 }
 
 .logo-container {
-    margin-bottom: 30px;
+    margin-bottom: var(--space-8);
 }
 
 .logo-animation {
     display: inline-flex;
     align-items: center;
-    gap: 15px;
+    gap: var(--space-4);
 }
 
 .logo-circle {
     width: 50px;
     height: 50px;
-    background: linear-gradient(45deg, #00e0ff, #0099cc);
-    border-radius: 50%;
+    background: linear-gradient(45deg, var(--color-primary), var(--color-primary-dark));
+    border-radius: var(--radius-full);
     position: relative;
     animation: logoFloat 3s ease-in-out infinite;
 }
