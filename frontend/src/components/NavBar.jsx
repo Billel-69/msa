@@ -24,7 +24,9 @@ function NavBar() {
     const location = useLocation();
     const { token, user, logout } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const notificationsRef = useRef(null);
 
     const handleLogout = () => {
         logout();
@@ -38,6 +40,12 @@ function NavBar() {
 
     const toggleProfileDropdown = () => {
         setIsProfileOpen(!isProfileOpen);
+        setIsNotificationsOpen(false);
+    };
+
+    const toggleNotificationsDropdown = () => {
+        setIsNotificationsOpen(!isNotificationsOpen);
+        setIsProfileOpen(false);
     };
 
     // Handle click outside dropdown to close it
@@ -46,15 +54,19 @@ function NavBar() {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setIsProfileOpen(false);
             }
+            if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+                setIsNotificationsOpen(false);
+            }
         };
 
         const handleEscapeKey = (event) => {
             if (event.key === 'Escape') {
                 setIsProfileOpen(false);
+                setIsNotificationsOpen(false);
             }
         };
 
-        if (isProfileOpen) {
+        if (isProfileOpen || isNotificationsOpen) {
             document.addEventListener('mousedown', handleClickOutside);
             document.addEventListener('keydown', handleEscapeKey);
         }
@@ -63,7 +75,7 @@ function NavBar() {
             document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleEscapeKey);
         };
-    }, [isProfileOpen]);
+    }, [isProfileOpen, isNotificationsOpen]);
 
     return (
         <nav className="navbar">
@@ -147,11 +159,73 @@ function NavBar() {
                     </div>
                 ) : (
                     <>
-                        {/* Notifications (placeholder pour futur) */}
-                        <button className="navbar-notification-btn" title="Notifications">
-                            <FaBell />
-                            <span className="navbar-notification-badge">3</span>
-                        </button>
+                        {/* Notifications Dropdown */}
+                        <div 
+                            ref={notificationsRef}
+                            className={`navbar-notifications-dropdown ${isNotificationsOpen ? 'open' : ''}`}
+                        >
+                            <button 
+                                className="navbar-notification-btn" 
+                                onClick={toggleNotificationsDropdown}
+                                title="Notifications"
+                                aria-expanded={isNotificationsOpen}
+                                aria-haspopup="true"
+                            >
+                                <FaBell />
+                                <span className="navbar-notification-badge">3</span>
+                            </button>
+                            
+                            <div className="navbar-notifications-menu" role="menu">
+                                <div className="navbar-notifications-header">
+                                    <h4>Notifications</h4>
+                                    <button className="navbar-notifications-mark-all">
+                                        Tout marquer comme lu
+                                    </button>
+                                </div>
+                                
+                                <div className="navbar-notifications-list">
+                                    <div className="navbar-notification-item unread">
+                                        <div className="navbar-notification-icon">
+                                            <FaUser />
+                                        </div>
+                                        <div className="navbar-notification-content">
+                                            <p>Sarah a commenté votre publication</p>
+                                            <span className="navbar-notification-time">Il y a 2 min</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="navbar-notification-item unread">
+                                        <div className="navbar-notification-icon">
+                                            <FaGem />
+                                        </div>
+                                        <div className="navbar-notification-content">
+                                            <p>Vous avez gagné 5 fragments!</p>
+                                            <span className="navbar-notification-time">Il y a 1h</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="navbar-notification-item">
+                                        <div className="navbar-notification-icon">
+                                            <FaUsers />
+                                        </div>
+                                        <div className="navbar-notification-content">
+                                            <p>Marc a rejoint votre groupe</p>
+                                            <span className="navbar-notification-time">Il y a 3h</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="navbar-notifications-footer">
+                                    <Link 
+                                        to="/notifications" 
+                                        className="navbar-notifications-see-all"
+                                        onClick={() => setIsNotificationsOpen(false)}
+                                    >
+                                        Voir toutes les notifications
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Profile Dropdown */}
                         <div 
@@ -190,18 +264,6 @@ function NavBar() {
                                 role="menu"
                                 aria-labelledby="profile-menu-button"
                             >
-                                <div className="navbar-dropdown-header">
-                                    <div className="navbar-user-stats">
-                                        <div className="navbar-stat">
-                                            <FaGem className="navbar-stat-icon" />
-                                            <span>Niveau {user?.level || 1}</span>
-                                        </div>
-                                        <div className="navbar-stat">
-                                            <FaCrown className="navbar-stat-icon" />
-                                            <span>{user?.fragments || 0} fragments</span>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <div className="navbar-dropdown-section">
                                     <h4>Mon Compte</h4>

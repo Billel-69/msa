@@ -176,7 +176,7 @@ exports.updateProfile = async (req, res) => {
         if (username) updates.username = username;
         if (email) updates.email = email;
 
-        if (password) {
+        if (password && password.trim() !== '') {
             updates.password = await bcrypt.hash(password, 10);
         }
 

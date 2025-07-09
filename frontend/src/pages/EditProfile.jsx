@@ -90,7 +90,7 @@ function EditProfile() {
 
         try {
             const response = await axios.put(
-                'http://localhost:5000/api/me/profile-picture',
+                'http://localhost:5000/api/auth/me/profile-picture',
                 pictureFormData,
                 {
                     headers: {
@@ -119,8 +119,14 @@ function EditProfile() {
                 updatedProfilePicture = await updateProfilePicture();
             }
 
+            // Préparer les données à envoyer (exclure le mot de passe vide)
+            const dataToSend = { ...formData };
+            if (!dataToSend.password || dataToSend.password.trim() === '') {
+                delete dataToSend.password;
+            }
+
             // Mettre à jour les autres informations
-            await axios.put('http://localhost:5000/api/me', formData, {
+            await axios.put('http://localhost:5000/api/auth/me', dataToSend, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
