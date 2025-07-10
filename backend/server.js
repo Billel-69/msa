@@ -61,6 +61,7 @@ const gameRoutes = require('./routes/gameRoutes');
 const achievementsRoutes = require('./routes/achievementsRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // Routes API
 app.use('/api/auth', authRoutes);
@@ -72,6 +73,7 @@ app.use('/api/games', gameRoutes);
 app.use('/api/achievements', achievementsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ==========================================
 // STORES POUR GESTION TEMPS RÉEL

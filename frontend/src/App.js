@@ -43,6 +43,9 @@ import GameDetail from "./pages/GameDetail";
 import Chat from "./pages/Chat";
 import Notifications from './pages/Notifications';
 
+// Import Admin Dashboard
+import AdminDashboard from './pages/AdminDashboard';
+
 function App() {
     const location = useLocation();
 
@@ -172,6 +175,13 @@ function App() {
                 <Route path="/notifications" element={
                     <PrivateRoute>
                         <Notifications />
+                    </PrivateRoute>
+                } />
+
+                {/* Admin Dashboard - Route protégée pour les admins */}
+                <Route path="/admin" element={
+                    <PrivateRoute>
+                        <AdminDashboard />
                     </PrivateRoute>
                 } />
 

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'kaizenverse_secret_key';
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
     try {
         // Récupérer le token depuis les headers
         const authHeader = req.headers.authorization;
@@ -25,8 +25,37 @@ const verifyToken = (req, res, next) => {
         // Vérifier et décoder le token
         const decoded = jwt.verify(token, JWT_SECRET);
 
-        // Ajouter les informations utilisateur à la requête
-        req.user = decoded;
+        // Vérifier que l'utilisateur existe toujours et n'est pas suspendu
+        const db = require('../config/db');
+        const [userResult] = await db.execute(
+            'SELECT id, name, username, email, account_type, is_super_admin, is_suspended FROM users WHERE id = ?',
+            [decoded.id]
+        );
+
+        if (userResult.length === 0) {
+            return res.status(401).json({ error: 'Utilisateur non trouvé. Veuillez vous reconnecter.' });
+        }
+
+        const user = userResult[0];
+
+        // Vérifier si l'utilisateur est suspendu
+        if (user.is_suspended) {
+            return res.status(403).json({ 
+                error: 'Votre compte a été suspendu. Contactez un administrateur.',
+                suspended: true 
+            });
+        }
+
+        // Ajouter les informations utilisateur mises à jour à la requête
+        req.user = {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            accountType: user.account_type,
+            isSuperAdmin: user.is_super_admin
+        };
+        
         next();
 
     } catch (error) {
@@ -55,4 +84,69 @@ const isChildOrStudent = (req, res, next) => {
         return res.status(403).json({ error: 'Accès réservé aux élèves/enfants' });
     }
 };
-module.exports = { verifyToken, isChildOrStudent };
+
+// Middleware pour vérifier si un utilisateur est admin
+const isAdmin = (req, res, next) => {
+    // Vérifier si l'utilisateur est authentifié
+    if (!req.user) {
+        return res.status(401).json({ error: 'Utilisateur non authentifié' });
+    }
+
+    // Vérifier si l'utilisateur est de type admin
+    if (req.user.accountType === 'admin') {
+        next();
+    } else {
+        return res.status(403).json({ error: 'Accès réservé aux administrateurs' });
+    }
+};
+
+// Middleware pour vérifier si un utilisateur est admin ou super admin
+const isSuperAdmin = (req, res, next) => {
+    // Vérifier si l'utilisateur est authentifié
+    if (!req.user) {
+        return res.status(401).json({ error: 'Utilisateur non authentifié' });
+    }
+
+    // Vérifier si l'utilisateur est admin et super admin
+    if (req.user.accountType === 'admin' && req.user.isSuperAdmin === true) {
+        next();
+    } else {
+        return res.status(403).json({ error: 'Accès réservé aux super administrateurs' });
+    }
+};
+
+// Middleware pour logger les actions admin
+const logAdminAction = (actionType) => {
+    return async (req, res, next) => {
+        const db = require('../config/db');
+        const originalJson = res.json;
+        
+        res.json = function(data) {
+            // Log l'action seulement si la requête est réussie
+            if (!data.error && req.user && req.user.accountType === 'admin') {
+                const details = {
+                    method: req.method,
+                    path: req.path,
+                    params: req.params,
+                    body: req.body ? { ...req.body, password: undefined } : undefined
+                };
+                
+                db.execute(
+                    'INSERT INTO admin_actions (admin_id, action_type, target_type, target_id, details, ip_address) VALUES (?, ?, ?, ?, ?, ?)',
+                    [
+                        req.user.id,
+                        actionType,
+                        req.params.type || null,
+                        req.params.id || null,
+                        JSON.stringify(details),
+                        req.ip || req.connection.remoteAddress
+                    ]
+                ).catch(err => console.error('Erreur lors du log admin:', err));
+            }
+            originalJson.call(this, data);
+        };
+        next();
+    };
+};
+
+module.exports = { verifyToken, isChildOrStudent, isAdmin, isSuperAdmin, logAdminAction };

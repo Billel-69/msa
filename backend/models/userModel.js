@@ -1,18 +1,18 @@
 const db = require('../config/db');
 
 exports.findUserByEmail = async (email) => {
-    const [rows] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+    const [rows] = await db.execute('SELECT *, is_suspended, is_super_admin FROM users WHERE email = ?', [email]);
     return rows[0];
 };
 
 exports.findUserByUsername = async (username) => {
-    const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+    const [rows] = await db.execute('SELECT *, is_suspended, is_super_admin FROM users WHERE username = ?', [username]);
     return rows[0];
 };
 
 exports.findUserByEmailOrUsername = async (identifier) => {
     const [rows] = await db.execute(
-        'SELECT * FROM users WHERE email = ? OR username = ?',
+        'SELECT *, is_suspended, is_super_admin FROM users WHERE email = ? OR username = ?',
         [identifier, identifier]
     );
     return rows[0];

@@ -59,6 +59,18 @@ exports.login = async (req, res) => {
             return res.status(400).json({ error: 'Identifiants incorrects' });
         }
 
+        // Debug: Log user suspension status
+        console.log(`🔍 Login Debug - User: ${user.username}, is_suspended: ${user.is_suspended}, type: ${typeof user.is_suspended}`);
+
+        // Vérifier si le compte est suspendu
+        if (user.is_suspended) {
+            console.log(`🚫 Login blocked - User ${user.username} is suspended`);
+            return res.status(403).json({ 
+                error: 'Votre compte a été suspendu. Contactez un administrateur pour plus d\'informations.',
+                suspended: true 
+            });
+        }
+
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) {
             return res.status(400).json({ error: 'Identifiants incorrects' });
@@ -78,7 +90,8 @@ exports.login = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 accountType: user.account_type,
-                profilePicture: user.profile_picture
+                profilePicture: user.profile_picture,
+                isSuperAdmin: user.is_super_admin
             }
         });
     } catch (err) {

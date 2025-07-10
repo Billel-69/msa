@@ -334,6 +334,20 @@ function NavBar() {
                                         <FaUser className="navbar-dropdown-icon" />
                                         Mon Profil
                                     </Link>
+                                    
+                                    {/* Admin Dashboard Link - Only show for admins */}
+                                    {user?.accountType === 'admin' && (
+                                        <Link
+                                            to="/admin"
+                                            className="navbar-dropdown-item admin-link"
+                                            role="menuitem"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <FaCrown className="navbar-dropdown-icon" />
+                                            🛡️ Administration
+                                            {user?.isSuperAdmin && <span className="super-admin-badge">SUPER</span>}
+                                        </Link>
+                                    )}
                                     <Link
                                         to="/fragments"
                                         className="navbar-dropdown-item"

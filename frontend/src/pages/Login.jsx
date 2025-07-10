@@ -109,6 +109,16 @@ function Login() {
 
             if (err.response?.data?.error) {
                 errorMessage = err.response.data.error;
+                
+                // Gestion spéciale pour les comptes suspendus
+                if (err.response?.data?.suspended) {
+                    setErrors({ 
+                        general: errorMessage,
+                        suspended: true 
+                    });
+                    setLoading(false);
+                    return;
+                }
             } else if (err.message) {
                 errorMessage = err.message;
             } else if (err.code === 'ECONNREFUSED' || err.code === 'ERR_NETWORK') {
@@ -169,8 +179,14 @@ function Login() {
 
                 <div className="login-box">
                     {errors.general && (
-                        <div className="error-banner">
+                        <div className={`error-banner ${errors.suspended ? 'suspended-account' : ''}`}>
+                            {errors.suspended && <span className="suspended-icon">🚫</span>}
                             {errors.general}
+                            {errors.suspended && (
+                                <div className="suspended-help">
+                                    <small>Si vous pensez qu'il s'agit d'une erreur, contactez le support.</small>
+                                </div>
+                            )}
                         </div>
                     )}
 

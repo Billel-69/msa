@@ -1,4 +1,29 @@
 /* Login Page - Modern Design with Design System */
+
+/* Suspended account styling */
+.suspended-account {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)) !important;
+    border: 2px solid #e74c3c !important;
+    color: #c0392b !important;
+    padding: 1rem !important;
+}
+
+.suspended-icon {
+    font-size: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.suspended-help {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+.suspended-help small {
+    color: rgba(192, 57, 43, 0.8);
+    font-style: italic;
+}
+
 .login-page {
     background: linear-gradient(135deg, var(--color-dark-primary), var(--color-dark-tertiary), var(--color-dark-quaternary));
     min-height: 100vh;
