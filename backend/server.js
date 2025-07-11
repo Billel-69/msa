@@ -158,7 +158,7 @@ io.on('connection', (socket) => {
             const [sessions] = await db.execute(`
                 SELECT ls.*, u.name as teacher_name, u.username as teacher_username
                 FROM live_sessions ls
-                LEFT JOIN users u ON ls.teacher_id = u.id
+                         LEFT JOIN users u ON ls.teacher_id = u.id
                 WHERE ls.id = ?
             `, [sessionId]);
 
@@ -195,10 +195,10 @@ io.on('connection', (socket) => {
             await db.execute(`
                 INSERT INTO live_participants (session_id, user_id, role, is_active, joined_at)
                 VALUES (?, ?, ?, 1, NOW())
-                ON DUPLICATE KEY UPDATE 
-                    is_active = 1, 
-                    joined_at = NOW(), 
-                    left_at = NULL
+                    ON DUPLICATE KEY UPDATE
+                                         is_active = 1,
+                                         joined_at = NOW(),
+                                         left_at = NULL
             `, [sessionId, socket.user.id, role]);
 
             // NOUVEAU: Ajouter au store des participants WebRTC
@@ -228,12 +228,12 @@ io.on('connection', (socket) => {
 
             // Mettre à jour le nombre de participants
             const [participantCount] = await db.execute(`
-                SELECT COUNT(*) as count FROM live_participants 
+                SELECT COUNT(*) as count FROM live_participants
                 WHERE session_id = ? AND is_active = 1
             `, [sessionId]);
 
             await db.execute(`
-                UPDATE live_sessions 
+                UPDATE live_sessions
                 SET current_participants = ?
                 WHERE id = ?
             `, [participantCount[0].count, sessionId]);
@@ -244,7 +244,7 @@ io.on('connection', (socket) => {
             const [participants] = await db.execute(`
                 SELECT lp.*, u.name as user_name, u.username, u.profile_picture, u.account_type
                 FROM live_participants lp
-                JOIN users u ON lp.user_id = u.id
+                         JOIN users u ON lp.user_id = u.id
                 WHERE lp.session_id = ? AND lp.is_active = 1
                 ORDER BY lp.joined_at ASC
             `, [sessionId]);
@@ -407,8 +407,8 @@ io.on('connection', (socket) => {
 
             // Sauvegarder en base de données
             await db.execute(`
-                UPDATE live_participants 
-                SET media_state = ? 
+                UPDATE live_participants
+                SET media_state = ?
                 WHERE session_id = ? AND user_id = ?
             `, [JSON.stringify(mediaState), sessionId, userId]);
 
@@ -581,7 +581,7 @@ io.on('connection', (socket) => {
 
             // Marquer comme inactif en base
             await db.execute(`
-                UPDATE live_participants 
+                UPDATE live_participants
                 SET is_active = 0, left_at = NOW()
                 WHERE session_id = ? AND user_id = ?
             `, [sessionId, socket.user.id]);
@@ -605,12 +605,12 @@ io.on('connection', (socket) => {
 
             // Mettre à jour le nombre de participants
             const [participantCount] = await db.execute(`
-                SELECT COUNT(*) as count FROM live_participants 
+                SELECT COUNT(*) as count FROM live_participants
                 WHERE session_id = ? AND is_active = 1
             `, [sessionId]);
 
             await db.execute(`
-                UPDATE live_sessions 
+                UPDATE live_sessions
                 SET current_participants = ?
                 WHERE id = ?
             `, [participantCount[0].count, sessionId]);

@@ -421,9 +421,9 @@ router.post('/leave-session/:sessionId', verifyToken, async (req, res) => {
 
         // Récupérer les infos du participant
         const [participant] = await db.execute(`
-            SELECT lp.*, u.name 
+            SELECT lp.*, u.name
             FROM live_participants lp
-            LEFT JOIN users u ON lp.user_id = u.id
+                     LEFT JOIN users u ON lp.user_id = u.id
             WHERE lp.session_id = ? AND lp.user_id = ? AND lp.is_active = 1
         `, [sessionId, userId]);
 
@@ -616,10 +616,10 @@ router.get('/session/:sessionId/chat', verifyToken, async (req, res) => {
                     u.profile_picture,
                     u.account_type
                 FROM live_chat lc
-                LEFT JOIN users u ON lc.user_id = u.id
+                         LEFT JOIN users u ON lc.user_id = u.id
                 WHERE lc.session_id = ?
                 ORDER BY lc.created_at DESC
-                LIMIT ? OFFSET ?
+                    LIMIT ? OFFSET ?
             `, [sessionId, limit, offset]);
 
             messages = messageResults || [];

@@ -14,7 +14,9 @@ import {
     FaCog,
     FaSignOutAlt,
     FaChevronDown,
-    FaBell
+    FaBell,
+    FaPlay,
+    FaBook
 } from 'react-icons/fa';
 
 function NavBar() {
@@ -59,6 +61,15 @@ function NavBar() {
                 >
                     <FaGlobeAmericas className="navbar-nav-icon" />
                     <span>Mondes</span>
+                </Link>
+
+                {/* NOUVEAU: Lien vers la bibliothèque vidéo */}
+                <Link
+                    to="/videos"
+                    className={`navbar-nav-link ${isActiveLink('/videos') ? 'active' : ''}`}
+                >
+                    <FaPlay className="navbar-nav-icon" />
+                    <span>Vidéos</span>
                 </Link>
 
                 <Link
@@ -176,6 +187,29 @@ function NavBar() {
                                         Mes Abonnements
                                     </Link>
                                 </div>
+
+                                {/* NOUVEAU: Section spéciale pour les professeurs */}
+                                {user?.accountType === 'teacher' && (
+                                    <div className="navbar-dropdown-section">
+                                        <h4>Espace Professeur</h4>
+                                        <Link
+                                            to="/videos/upload"
+                                            className="navbar-dropdown-item special"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <FaPlay className="navbar-dropdown-icon" />
+                                            Ajouter une vidéo
+                                        </Link>
+                                        <Link
+                                            to="/videos/my-videos"
+                                            className="navbar-dropdown-item"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <FaBook className="navbar-dropdown-icon" />
+                                            Mes vidéos
+                                        </Link>
+                                    </div>
+                                )}
 
                                 {/* Section spéciale pour les parents */}
                                 {user?.accountType === 'parent' && (

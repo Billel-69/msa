@@ -13,6 +13,12 @@ import Register from "./pages/Register";
 import LiveSession from "./pages/LiveSession"; // ← Nouveau avec chat temps réel
 import LiveMenu from "./pages/LiveMenu"; // ← Menu principal
 
+// NOUVEAU: Pages vidéos
+import Videos from "./pages/Video"; // ← Page principale type Netflix
+import VideoPlayer from "./pages/VideoPlayer"; // ← Lecteur vidéo
+import VideoUpload from "./pages/VideoUpload"; // ← Upload pour professeurs
+import MyVideos from "./pages/MyVideo"; // ← Gestion vidéos professeur
+
 import PrivateRoute from './components/PrivateRoute';
 import EditProfile from "./pages/EditProfile";
 
@@ -42,6 +48,22 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/mondes" element={<Worlds />} />
+
+                {/* NOUVEAU: Routes vidéos */}
+                <Route path="/videos" element={<Videos />} />
+                <Route path="/videos/:id" element={<VideoPlayer />} />
+
+                {/* Routes protégées pour les professeurs */}
+                <Route path="/videos/upload" element={
+                    <PrivateRoute>
+                        <VideoUpload />
+                    </PrivateRoute>
+                } />
+                <Route path="/videos/my-videos" element={
+                    <PrivateRoute>
+                        <MyVideos />
+                    </PrivateRoute>
+                } />
 
                 {/* MENU LIVE PRINCIPAL */}
                 <Route path="/live" element={
