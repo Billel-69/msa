@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/static/css/main.7b0e67a7.css",
+    "main.js": "/static/js/main.a89d51ef.js",
+    "static/media/mage.png": "/static/media/mage.02f929d11a60f70d4929.png",
+    "static/media/m3.png": "/static/media/m3.eaf02bc17964e2f5f14b.png",
+    "static/media/m8.png": "/static/media/m8.44fcced19126a8ca10fd.png",
+    "static/media/m6.png": "/static/media/m6.efd53f41e2c3e28215e8.png",
+    "static/media/m5.png": "/static/media/m5.1728657f6c6399fefd62.png",
+    "static/media/m2.png": "/static/media/m2.d263fb0a6c0a1a41e33a.png",
+    "static/media/m9.png": "/static/media/m9.2992b5a51deaae90bd91.png",
+    "static/media/m7.png": "/static/media/m7.c30b553b1b8809026a3b.png",
+    "static/media/m4.png": "/static/media/m4.002aa2bc4d0cba1f3395.png",
+    "static/media/m10.png": "/static/media/m10.575f484bba8399898433.png",
+    "static/media/minijeux.jpg": "/static/media/minijeux.b308a6faf562946d5619.jpg",
+    "static/media/img.png": "/static/media/img.1cf02a11208e9cbcefb3.png",
+    "index.html": "/index.html",
+    "main.7b0e67a7.css.map": "/static/css/main.7b0e67a7.css.map",
+    "main.a89d51ef.js.map": "/static/js/main.a89d51ef.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7b0e67a7.css",
+    "static/js/main.a89d51ef.js"
+  ]
+}
