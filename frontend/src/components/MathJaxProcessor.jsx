@@ -4,15 +4,39 @@ import { BlockMath, InlineMath } from 'react-katex';
 
 // Composant pour traiter le rendu mathématique
 const MathJaxProcessor = ({ text }) => {
+  // Fonction pour nettoyer et corriger le texte avant traitement
+  const cleanText = (rawText) => {
+    let cleaned = rawText;
+    
+    // Corriger les patterns mal formatés courants
+    // Pattern 1: *a*2 ou *a*² → $a^2$
+    cleaned = cleaned.replace(/\*([a-zA-Z0-9]+)\*(\d+|²)/g, '$$$1^2$');
+    
+    // Pattern 2: un2+b2=c2 → $a^2 + b^2 = c^2$
+    cleaned = cleaned.replace(/un2\+b2=c2/g, '$a^2 + b^2 = c^2$');
+    
+    // Pattern 3: \( ... \) → $ ... $
+    cleaned = cleaned.replace(/\\\((.*?)\\\)/g, '$$1$');
+    
+    // Pattern 4: \[ ... \] → $$ ... $$
+    cleaned = cleaned.replace(/\\\[(.*?)\\\]/g, '$$$$1$$');
+    
+    // Pattern 5: Nettoyer les doubles backslashes
+    cleaned = cleaned.replace(/\\\\([a-zA-Z])/g, '\\$1');
+    
+    return cleaned;
+  };
+  
   // Découpe le contenu en segments: texte, math inline et math block
   const processText = () => {
     const result = [];
-    let currentText = '';
-    let remainingText = text;
+    // Nettoyer le texte avant traitement
+    const cleanedText = cleanText(text);
+    let remainingText = cleanedText;
     
     // Expression régulière améliorée pour capturer les blocs et les expressions inline
     // Utilise des lookahead/lookbehind pour éviter les faux positifs
-    const regex = /(?<!\$)(\$\$[\s\S]*?\$\$)|(?<!\$)(\$[^\$\n]+?\$)(?!\$)/g;
+    const regex = /(?<!\$)(\$\$[\s\S]*?\$\$)|(?<!\$)(\$[^$\n]+?\$)(?!\$)/g;
     let match;
     let lastIndex = 0;
     
@@ -31,13 +55,13 @@ const MathJaxProcessor = ({ text }) => {
         // Formule bloc
         result.push({
           type: 'block-math',
-          content: formula.slice(2, -2) // Enlever les $$
+          content: formula.slice(2, -2).trim() // Enlever les $$ et trim
         });
       } else {
         // Formule inline
         result.push({
           type: 'inline-math',
-          content: formula.slice(1, -1) // Enlever les $
+          content: formula.slice(1, -1).trim() // Enlever les $ et trim
         });
       }
       
@@ -53,6 +77,24 @@ const MathJaxProcessor = ({ text }) => {
     }
     
     return result;
+  };
+  
+  // Fonction pour nettoyer le LaTeX avant de le rendre
+  const cleanLatex = (latex) => {
+    let cleaned = latex;
+    
+    // Supprimer les espaces en trop
+    cleaned = cleaned.trim();
+    
+    // S'assurer que les commandes LaTeX sont correctes
+    cleaned = cleaned
+      .replace(/\\frac\s+/g, '\\frac')
+      .replace(/\\sqrt\s+/g, '\\sqrt')
+      .replace(/\\int\s+/g, '\\int')
+      .replace(/\\sum\s+/g, '\\sum')
+      .replace(/\\lim\s+/g, '\\lim');
+    
+    return cleaned;
   };
   
   // Traiter les sauts de ligne dans le texte
@@ -75,14 +117,16 @@ const MathJaxProcessor = ({ text }) => {
           return <span key={index}>{renderTextWithLineBreaks(segment.content)}</span>;
         } else if (segment.type === 'inline-math') {
           try {
-            return <InlineMath key={index} math={segment.content} />;
+            const cleanedMath = cleanLatex(segment.content);
+            return <InlineMath key={index} math={cleanedMath} />;
           } catch (error) {
             console.error("Erreur de rendu MathJax inline:", error, segment.content);
             return <span key={index} style={{color: "red"}}>${segment.content}$</span>;
           }
         } else if (segment.type === 'block-math') {
           try {
-            return <BlockMath key={index} math={segment.content} />;
+            const cleanedMath = cleanLatex(segment.content);
+            return <BlockMath key={index} math={cleanedMath} />;
           } catch (error) {
             console.error("Erreur de rendu MathJax block:", error, segment.content);
             return <div key={index} style={{color: "red"}}>$${segment.content}$$</div>;

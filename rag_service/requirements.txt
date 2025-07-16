@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+langchain
+langchain-community
+transformers
+sentence-transformers
+torch
+chromadb
+pymupdf
+tqdm
+dataclasses; python_version < '3.7' 
+langchain-community
+bitsandbytes
+chromadb

@@ -138,15 +138,44 @@ const Chat = () => {
   const chatEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
-  // Effet pour charger le threadId depuis localStorage au démarrage
+  // Effet pour charger l'utilisateur authentifié
   useEffect(() => {
-    const savedThreadId = localStorage.getItem('sensai_thread_id');
-    if (savedThreadId) {
-      setThreadId(savedThreadId);
-      setShowSuggestions(false); // Ne pas montrer les suggestions si conversation existante
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    } else {
+      // Rediriger vers la page de login si pas d'utilisateur
+      navigate('/login');
     }
-  }, []);
+  }, [navigate]);
+
+  // MODIFICATION : Créer une clé unique pour chaque utilisateur
+  useEffect(() => {
+    if (user?.id) {
+      // Clé unique basée sur l'ID utilisateur
+      const threadKey = `sensai_thread_id_user_${user.id}`;
+      const savedThreadId = localStorage.getItem(threadKey);
+      
+      if (savedThreadId) {
+        setThreadId(savedThreadId);
+        setShowSuggestions(false);
+      } else {
+        // Pas de thread sauvegardé, on en créera un nouveau au premier message
+        setThreadId(null);
+      }
+    }
+  }, [user]);
+
+  // Fonction pour sauvegarder le threadId pour cet utilisateur spécifique
+  const saveThreadId = (newThreadId) => {
+    if (user?.id && newThreadId) {
+      const threadKey = `sensai_thread_id_user_${user.id}`;
+      localStorage.setItem(threadKey, newThreadId);
+      setThreadId(newThreadId);
+    }
+  };
 
   // Défilement automatique vers le bas avec animation douce
   useEffect(() => {
@@ -179,6 +208,11 @@ const Chat = () => {
   // Fonction pour envoyer un message
   const handleSend = async (messageText = input) => {
     if (!messageText.trim()) return;
+    if (!user?.id) {
+      alert("Utilisateur non authentifié. Veuillez vous reconnecter.");
+      navigate('/login');
+      return;
+    }
 
     // Cacher les suggestions après le premier message
     setShowSuggestions(false);
@@ -202,8 +236,9 @@ const Chat = () => {
         },
         body: JSON.stringify({
           message: messageText,
-          thread_id: threadId,
-          // Options additionnelles
+          thread_id: threadId, // Sera null au premier message pour chaque utilisateur
+          userId: user.id,
+          session_id: `session_user_${user.id}_${Date.now()}` // Session unique aussi
         }),
       });
 
@@ -213,10 +248,9 @@ const Chat = () => {
 
       const data = await response.json();
       
-      // Mettre à jour et sauvegarder le threadId
-      if (data.thread_id) {
-        setThreadId(data.thread_id);
-        localStorage.setItem('sensai_thread_id', data.thread_id);
+      // Sauvegarder le threadId unique pour cet utilisateur
+      if (data.thread_id && data.thread_id !== threadId) {
+        saveThreadId(data.thread_id);
       }
 
       // Ajouter la réponse de l'IA avec horodatage
@@ -240,6 +274,17 @@ const Chat = () => {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // OPTIONNEL : Fonction pour réinitialiser la conversation
+  const resetConversation = () => {
+    if (user?.id) {
+      const threadKey = `sensai_thread_id_user_${user.id}`;
+      localStorage.removeItem(threadKey);
+      setThreadId(null);
+      setMessages([]);
+      setShowSuggestions(true);
     }
   };
 
