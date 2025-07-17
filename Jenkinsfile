@@ -1,6 +1,10 @@
 pipeline {
     agent any
     
+    tools {
+        nodejs 'NodeJS-18'
+    }
+    
     environment {
         NODE_ENV = 'test'
         JWT_SECRET = 'test_secret_key'
@@ -21,11 +25,11 @@ pipeline {
                 sh '''
                     echo "Setting up environment..."
                     
-                    # Check Node.js version
-                    node --version || echo "Node.js not found"
-                    npm --version || echo "npm not found"
+                    # Verify Node.js is available from Jenkins tool
+                    node --version
+                    npm --version
                     
-                    # Install dependencies
+                    # Install root dependencies
                     if [ -f "package.json" ]; then
                         npm install
                     fi
