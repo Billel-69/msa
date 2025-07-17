@@ -2,7 +2,8 @@
 const express = require("express");
 const router = express.Router();
 const openaiCtrl = require("../controllers/openaiController");
+const { enhancedTokenMeter } = require("../services/levelManagementService");
 
-router.post("/", openaiCtrl.processMessage);
+router.post("/", enhancedTokenMeter, openaiCtrl.processMessage);
 
 module.exports = router;
