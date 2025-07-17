@@ -36,9 +36,12 @@ pipeline {
                     
                     # Backend setup
                     if [ -d "backend" ]; then
+                        echo "Installing backend dependencies..."
                         cd backend
                         npm install
                         npm install --save-dev jest supertest jest-junit
+                        echo "Backend dependencies installed"
+                        cd ..
                     fi
                     
                     # Frontend setup
@@ -79,7 +82,7 @@ EOF
                                         
                                         # Run basic tests
                                         if [ -f "package.json" ] && grep -q "jest" package.json; then
-                                            npm test -- --passWithNoTests --testPathPattern="simple.test.js"
+                                            npm test -- --passWithNoTests --testPathPatterns="simple.test.js"
                                         else
                                             echo "Jest not found in package.json"
                                         fi
