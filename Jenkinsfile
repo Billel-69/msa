@@ -43,8 +43,11 @@ pipeline {
                     
                     # Frontend setup
                     if [ -d "frontend" ]; then
+                        echo "Installing frontend dependencies..."
                         cd frontend
                         npm install
+                        echo "Frontend dependencies installed"
+                        ls -la node_modules/.bin/react-scripts || echo "react-scripts not found"
                     fi
                 '''
             }

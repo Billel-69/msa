@@ -1,4 +1,14 @@
 const request = require('supertest');
+// Mock Socket.io before requiring server
+jest.mock('socket.io', () => ({
+    Server: jest.fn().mockImplementation(() => ({
+        on: jest.fn(),
+        emit: jest.fn(),
+        to: jest.fn().mockReturnThis(),
+        use: jest.fn()
+    }))
+}));
+
 const app = require('../server');
 const db = require('../config/db');
 
