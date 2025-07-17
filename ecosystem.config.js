@@ -85,7 +85,7 @@ module.exports = {
     production: {
       user: 'root',
       host: 'VOTRE_IP_SERVEUR',
-      ref: 'origin/main',
+      ref: 'origin/master',
       repo: 'https://github.com/votre-username/msa.git',
       path: '/var/www/msa-app',
       'pre-deploy': 'git fetch --all',
