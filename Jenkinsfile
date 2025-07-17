@@ -74,17 +74,16 @@ pipeline {
                                     sh '''
                                         echo "Running backend tests..."
                                         
-                                        # Create simple test environment
-                                        cat > .env.test << EOF
-NODE_ENV=test
-JWT_SECRET=test_secret_key
-EOF
+                                        # Use existing .env.test file
+                                        echo "Test environment file exists: $(ls -la .env.test)"
                                         
-                                        # Run basic tests
+                                        # Run real API tests
                                         if [ -f "package.json" ] && grep -q "jest" package.json; then
-                                            npm test -- --passWithNoTests --testPathPatterns="simple.test.js"
+                                            echo "Running authentication and API integration tests..."
+                                            npm test -- --testTimeout=30000 --verbose --detectOpenHandles --forceExit
                                         else
                                             echo "Jest not found in package.json"
+                                            exit 1
                                         fi
                                     '''
                                 } catch (Exception e) {
@@ -110,16 +109,19 @@ EOF
                                                 echo "React scripts found in package.json"
                                                 if [ -f "node_modules/.bin/react-scripts" ]; then
                                                     echo "Running React tests..."
-                                                    # Skip frontend tests for now - focus on build success
-                                                    echo "Frontend tests skipped to focus on build success"
+                                                    # Run tests with coverage and proper exit
+                                                    CI=true npm test -- --coverage --testTimeout=30000 --watchAll=false --passWithNoTests
                                                 else
                                                     echo "react-scripts not installed in node_modules"
+                                                    exit 1
                                                 fi
                                             else
                                                 echo "react-scripts not found in package.json"
+                                                exit 1
                                             fi
                                         else
                                             echo "No package.json found in frontend"
+                                            exit 1
                                         fi
                                     '''
                                 } catch (Exception e) {
