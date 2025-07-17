@@ -1,0 +1,174 @@
+version: '3.8'
+
+services:
+  mysql-test:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: test_root_password
+      MYSQL_DATABASE: msa_test
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-test-data:/var/lib/mysql
+      - ./backend/database/game_schema.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - test-network
+
+  mongodb-test:
+    image: mongo:6.0
+    environment:
+      MONGO_INITDB_DATABASE: msa_test
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb-test-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - test-network
+
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - test-network
+
+  backend-test:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NODE_ENV: test
+      DB_HOST: mysql-test
+      DB_PORT: 3306
+      DB_NAME: msa_test
+      DB_USER: test_user
+      DB_PASS: test_password
+      MONGODB_URI: mongodb://mongodb-test:27017/msa_test
+      REDIS_URL: redis://redis-test:6379
+      JWT_SECRET: test_jwt_secret
+      OPENAI_API_KEY: test_openai_key
+    ports:
+      - "5001:5000"
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+      mongodb-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  frontend-test:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      NODE_ENV: test
+      REACT_APP_API_URL: http://backend-test:5000/api
+      REACT_APP_SOCKET_URL: http://backend-test:5000
+      REACT_APP_AGORA_APP_ID: test_agora_id
+    ports:
+      - "3001:3000"
+    depends_on:
+      backend-test:
+        condition: service_healthy
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - test-network
+
+  # Test runner service
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      NODE_ENV: test
+      DB_HOST: mysql-test
+      DB_PORT: 3306
+      DB_NAME: msa_test
+      DB_USER: test_user
+      DB_PASS: test_password
+      MONGODB_URI: mongodb://mongodb-test:27017/msa_test
+      BACKEND_URL: http://backend-test:5000
+      FRONTEND_URL: http://frontend-test:3000
+    depends_on:
+      backend-test:
+        condition: service_healthy
+      frontend-test:
+        condition: service_started
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - test-results:/app/test-results
+    networks:
+      - test-network
+    command: ["npm", "run", "test:all"]
+
+  # Selenium for E2E tests
+  selenium-hub:
+    image: selenium/hub:4.0.0
+    ports:
+      - "4444:4444"
+    networks:
+      - test-network
+
+  selenium-chrome:
+    image: selenium/node-chrome:4.0.0
+    depends_on:
+      - selenium-hub
+    environment:
+      HUB_HOST: selenium-hub
+      HUB_PORT: 4444
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - test-network
+
+  selenium-firefox:
+    image: selenium/node-firefox:4.0.0
+    depends_on:
+      - selenium-hub
+    environment:
+      HUB_HOST: selenium-hub
+      HUB_PORT: 4444
+    volumes:
+      - /dev/shm:/dev/shm
+    networks:
+      - test-network
+
+volumes:
+  mysql-test-data:
+  mongodb-test-data:
+  test-results:
+
+networks:
+  test-network:
+    driver: bridge

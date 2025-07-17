@@ -1,0 +1,469 @@
+pipeline {
+    agent any
+    
+    environment {
+        NODE_VERSION = '18'
+        DOCKER_IMAGE = 'msa-app'
+        DOCKER_TAG = "${BUILD_NUMBER}"
+        DB_HOST = 'localhost'
+        DB_PORT = '3306'
+        MONGO_HOST = 'localhost'
+        MONGO_PORT = '27017'
+        
+        // Test environment variables
+        NODE_ENV = 'test'
+        JWT_SECRET = 'test_secret_key'
+        
+        // SonarQube configuration
+        SONAR_PROJECT_KEY = 'msa-project'
+        SONAR_PROJECT_NAME = 'MSA Educational Platform'
+    }
+    
+    tools {
+        nodejs "${NODE_VERSION}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.GIT_COMMIT_MSG = sh(script: "git log --format=%B -n 1 ${env.GIT_COMMIT}", returnStdout: true).trim()
+                }
+            }
+        }
+        
+        stage('Setup Environment') {
+            parallel {
+                stage('Backend Environment') {
+                    steps {
+                        dir('backend') {
+                            sh '''
+                                echo "Setting up backend environment..."
+                                npm ci --only=production
+                                npm install --save-dev jest supertest
+                                
+                                # Create test environment file
+                                cat > .env.test << EOF
+NODE_ENV=test
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=msa_test
+DB_USER=test_user
+DB_PASS=test_pass
+MONGODB_URI=mongodb://localhost:27017/msa_test
+JWT_SECRET=test_secret_key
+OPENAI_API_KEY=test_key
+EOF
+                            '''
+                        }
+                    }
+                }
+                
+                stage('Frontend Environment') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                echo "Setting up frontend environment..."
+                                npm ci
+                                
+                                # Create test environment file
+                                cat > .env.test << EOF
+REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_SOCKET_URL=http://localhost:5000
+REACT_APP_AGORA_APP_ID=test_agora_id
+NODE_ENV=test
+EOF
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Database Setup') {
+            steps {
+                script {
+                    sh '''
+                        echo "Setting up test databases..."
+                        
+                        # Start MySQL test container
+                        docker run -d --name mysql-test \
+                            -e MYSQL_ROOT_PASSWORD=test_pass \
+                            -e MYSQL_DATABASE=msa_test \
+                            -e MYSQL_USER=test_user \
+                            -e MYSQL_PASSWORD=test_pass \
+                            -p 3306:3306 \
+                            mysql:8.0
+                        
+                        # Start MongoDB test container
+                        docker run -d --name mongo-test \
+                            -p 27017:27017 \
+                            mongo:6.0
+                        
+                        # Wait for databases to be ready
+                        sleep 30
+                        
+                        # Run database migrations
+                        cd backend
+                        node -e "
+                            const fs = require('fs');
+                            const mysql = require('mysql2/promise');
+                            
+                            async function setupDB() {
+                                const connection = await mysql.createConnection({
+                                    host: 'localhost',
+                                    user: 'test_user',
+                                    password: 'test_pass',
+                                    database: 'msa_test'
+                                });
+                                
+                                const schema = fs.readFileSync('./database/game_schema.sql', 'utf8');
+                                await connection.execute(schema);
+                                console.log('Database schema created successfully');
+                                await connection.end();
+                            }
+                            
+                            setupDB().catch(console.error);
+                        "
+                    '''
+                }
+            }
+        }
+        
+        stage('Code Quality & Security') {
+            parallel {
+                stage('Lint Backend') {
+                    steps {
+                        dir('backend') {
+                            sh '''
+                                # Install ESLint if not present
+                                npm install --save-dev eslint eslint-config-standard
+                                
+                                # Create basic ESLint config
+                                cat > .eslintrc.js << EOF
+module.exports = {
+    env: {
+        node: true,
+        es2021: true,
+        jest: true
+    },
+    extends: ['standard'],
+    parserOptions: {
+        ecmaVersion: 12,
+        sourceType: 'module'
+    },
+    rules: {
+        'no-console': 'warn',
+        'no-unused-vars': 'error'
+    }
+};
+EOF
+                                
+                                # Run ESLint
+                                npx eslint . --ext .js --format junit --output-file eslint-results.xml || true
+                            '''
+                        }
+                    }
+                }
+                
+                stage('Lint Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                # Run ESLint (already configured in React)
+                                npm run lint:report || true
+                            '''
+                        }
+                    }
+                }
+                
+                stage('Security Scan') {
+                    steps {
+                        sh '''
+                            # Install and run npm audit
+                            cd backend && npm audit --audit-level=high --json > npm-audit-backend.json || true
+                            cd ../frontend && npm audit --audit-level=high --json > npm-audit-frontend.json || true
+                            
+                            # Install and run Snyk (if available)
+                            if command -v snyk &> /dev/null; then
+                                cd backend && snyk test --json > snyk-backend.json || true
+                                cd ../frontend && snyk test --json > snyk-frontend.json || true
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+        
+        stage('Unit Tests') {
+            parallel {
+                stage('Backend Tests') {
+                    steps {
+                        dir('backend') {
+                            sh '''
+                                # Run backend tests
+                                npm test -- --coverage --testResultsProcessor=jest-junit --coverageReporters=cobertura
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            publishTestResults testResultsPattern: 'backend/junit.xml'
+                            publishCoverageGlobalResults([
+                                [path: 'backend/coverage/cobertura-coverage.xml', threshold: [[thresholdTarget: 'Line', unhealthyThreshold: 60, unstableThreshold: 80]]]
+                            ])
+                        }
+                    }
+                }
+                
+                stage('Frontend Tests') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                # Run frontend tests
+                                CI=true npm test -- --coverage --testResultsProcessor=jest-junit --coverageReporters=cobertura --watchAll=false
+                            '''
+                        }
+                    }
+                    post {
+                        always {
+                            publishTestResults testResultsPattern: 'frontend/junit.xml'
+                            publishCoverageGlobalResults([
+                                [path: 'frontend/coverage/cobertura-coverage.xml', threshold: [[thresholdTarget: 'Line', unhealthyThreshold: 60, unstableThreshold: 80]]]
+                            ])
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Integration Tests') {
+            steps {
+                script {
+                    sh '''
+                        # Start backend server in background
+                        cd backend
+                        NODE_ENV=test npm start &
+                        BACKEND_PID=$!
+                        
+                        # Wait for server to start
+                        sleep 10
+                        
+                        # Run integration tests
+                        npm run test:integration || true
+                        
+                        # Stop backend server
+                        kill $BACKEND_PID
+                    '''
+                }
+            }
+        }
+        
+        stage('Build') {
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        dir('backend') {
+                            sh '''
+                                echo "Backend build completed (Node.js - no build step required)"
+                                # Create build artifact
+                                tar -czf ../backend-build.tar.gz .
+                            '''
+                        }
+                    }
+                }
+                
+                stage('Build Frontend') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                # Build React app
+                                CI=false npm run build
+                                
+                                # Create build artifact
+                                tar -czf ../frontend-build.tar.gz build/
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Docker Build') {
+            steps {
+                script {
+                    // Build Docker images
+                    sh '''
+                        # Build backend Docker image
+                        docker build -t ${DOCKER_IMAGE}-backend:${DOCKER_TAG} -f backend/Dockerfile .
+                        
+                        # Build frontend Docker image  
+                        docker build -t ${DOCKER_IMAGE}-frontend:${DOCKER_TAG} -f frontend/Dockerfile .
+                        
+                        # Tag as latest
+                        docker tag ${DOCKER_IMAGE}-backend:${DOCKER_TAG} ${DOCKER_IMAGE}-backend:latest
+                        docker tag ${DOCKER_IMAGE}-frontend:${DOCKER_TAG} ${DOCKER_IMAGE}-frontend:latest
+                    '''
+                }
+            }
+        }
+        
+        stage('E2E Tests') {
+            steps {
+                script {
+                    sh '''
+                        # Start application stack with Docker Compose
+                        docker-compose -f docker-compose.test.yml up -d
+                        
+                        # Wait for services to be ready
+                        sleep 30
+                        
+                        # Run E2E tests (if available)
+                        if [ -d "e2e" ]; then
+                            cd e2e
+                            npm ci
+                            npm run test:e2e
+                        fi
+                    '''
+                }
+            }
+            post {
+                always {
+                    sh 'docker-compose -f docker-compose.test.yml down'
+                }
+            }
+        }
+        
+        stage('Performance Tests') {
+            steps {
+                script {
+                    sh '''
+                        # Install k6 for performance testing
+                        if command -v k6 &> /dev/null; then
+                            # Start application
+                            docker-compose -f docker-compose.test.yml up -d
+                            sleep 30
+                            
+                            # Run performance tests
+                            k6 run --out json=performance-results.json performance-tests/load-test.js || true
+                            
+                            # Stop application
+                            docker-compose -f docker-compose.test.yml down
+                        fi
+                    '''
+                }
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName="${SONAR_PROJECT_NAME}" \
+                            -Dsonar.sources=. \
+                            -Dsonar.exclusions="**/node_modules/**,**/build/**,**/coverage/**,**/dist/**" \
+                            -Dsonar.javascript.lcov.reportPaths=backend/coverage/lcov.info,frontend/coverage/lcov.info \
+                            -Dsonar.testExecutionReportPaths=backend/junit.xml,frontend/junit.xml
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                script {
+                    sh '''
+                        echo "Deploying to staging environment..."
+                        
+                        # Push Docker images to registry
+                        docker push ${DOCKER_IMAGE}-backend:${DOCKER_TAG}
+                        docker push ${DOCKER_IMAGE}-frontend:${DOCKER_TAG}
+                        
+                        # Deploy to staging server
+                        ssh staging-server "
+                            docker pull ${DOCKER_IMAGE}-backend:${DOCKER_TAG}
+                            docker pull ${DOCKER_IMAGE}-frontend:${DOCKER_TAG}
+                            docker-compose -f docker-compose.staging.yml up -d
+                        "
+                    '''
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    // Manual approval for production deployment
+                    input message: 'Deploy to production?', ok: 'Deploy'
+                    
+                    sh '''
+                        echo "Deploying to production environment..."
+                        
+                        # Deploy using existing deployment script
+                        ./scripts/deploy.sh production
+                        
+                        # Health check
+                        sleep 30
+                        curl -f http://production-url/health || exit 1
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Clean up test containers
+            sh '''
+                docker rm -f mysql-test mongo-test || true
+                docker system prune -f
+            '''
+            
+            // Archive artifacts
+            archiveArtifacts artifacts: '**/*.tar.gz, **/*-results.xml, **/*-results.json', allowEmptyArchive: true
+            
+            // Publish test results
+            publishTestResults testResultsPattern: '**/junit.xml'
+            
+            // Send notifications
+            script {
+                def color = currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger'
+                def message = """
+                    Build ${env.BUILD_NUMBER} - ${currentBuild.currentResult}
+                    Project: ${env.JOB_NAME}
+                    Branch: ${env.BRANCH_NAME}
+                    Commit: ${env.GIT_COMMIT_MSG}
+                    Duration: ${currentBuild.durationString}
+                """
+                
+                // Slack notification (if configured)
+                slackSend(color: color, message: message)
+                
+                // Email notification
+                emailext(
+                    subject: "Build ${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
+                    body: message,
+                    to: "${env.CHANGE_AUTHOR_EMAIL}"
+                )
+            }
+        }
+        
+        failure {
+            // Additional failure handling
+            sh '''
+                echo "Build failed - collecting debug information..."
+                docker logs mysql-test || true
+                docker logs mongo-test || true
+            '''
+        }
+    }
+}

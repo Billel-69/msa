@@ -1,0 +1,33 @@
+FROM node:18-alpine
+
+# Install testing dependencies
+RUN apk add --no-cache curl jq
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY backend/package*.json ./backend/
+COPY frontend/package*.json ./frontend/
+
+# Install dependencies
+RUN npm ci
+RUN cd backend && npm ci
+RUN cd frontend && npm ci
+
+# Copy source code
+COPY . .
+
+# Create test results directory
+RUN mkdir -p test-results
+
+# Install global testing tools
+RUN npm install -g jest newman wait-on
+
+# Set permissions
+RUN chown -R node:node /app
+USER node
+
+# Default command
+CMD ["npm", "run", "test:all"]
