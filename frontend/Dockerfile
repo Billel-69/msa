@@ -22,7 +22,7 @@ FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Create non-root user
 RUN addgroup -g 1001 -S nginx

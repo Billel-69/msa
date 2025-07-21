@@ -1,0 +1,157 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: msa-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${DB_NAME:-msa_db}
+      MYSQL_USER: ${DB_USER:-msa_user}
+      MYSQL_PASSWORD: ${DB_PASS:-msa_password}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/database/game_schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./backend/migrations:/docker-entrypoint-initdb.d/migrations
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - msa-network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: msa-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-msa_mongo}
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - msa-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: msa-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - msa-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: msa-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 5000
+      # Database
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-msa_db}
+      DB_USER: ${DB_USER:-msa_user}
+      DB_PASS: ${DB_PASS:-msa_password}
+      # MongoDB
+      MONGODB_URI: mongodb://mongodb:27017/${MONGO_DB_NAME:-msa_mongo}
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_here}
+      # OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Agora
+      AGORA_APP_ID: ${AGORA_APP_ID}
+      AGORA_APP_CERTIFICATE: ${AGORA_APP_CERTIFICATE}
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - backend-logs:/app/logs
+    networks:
+      - msa-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: msa-frontend
+    restart: unless-stopped
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000/api}
+      REACT_APP_SOCKET_URL: ${REACT_APP_SOCKET_URL:-http://localhost:5000}
+      REACT_APP_AGORA_APP_ID: ${REACT_APP_AGORA_APP_ID}
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - msa-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: RAG service
+  rag-service:
+    build:
+      context: ./rag_service
+      dockerfile: Dockerfile
+    container_name: msa-rag
+    restart: unless-stopped
+    environment:
+      PYTHONUNBUFFERED: 1
+    ports:
+      - "${RAG_PORT:-8000}:8000"
+    volumes:
+      - ./rag_service/data:/app/data
+    networks:
+      - msa-network
+    profiles:
+      - rag
+
+volumes:
+  mysql-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  backend-logs:
+    driver: local
+
+networks:
+  msa-network:
+    driver: bridge
