@@ -677,6 +677,25 @@ app.get('/', (req, res) => {
     });
 });
 
+// Health check route
+app.get('/health', async (req, res) => {
+    try {
+        // Test MySQL connection
+        await db.execute('SELECT 1');
+        res.status(200).json({ 
+            status: 'healthy',
+            db: 'connected',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(503).json({ 
+            status: 'unhealthy',
+            db: 'disconnected',
+            error: error.message 
+        });
+    }
+});
+
 // Route de debug pour voir les utilisateurs connectés (améliorée)
 app.get('/debug/users', (req, res) => {
     const users = Array.from(connectedUsers.values());
